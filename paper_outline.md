@@ -47,6 +47,8 @@ model = gam(y ~ s(x) + s(x, group, bs = "fs", m = 1))
 
 **GLS:** _no need for `select = TRUE` here; the `fs` smooths already have penalties on the null space. The `m` normally refers to the order of the penalty, but Bayeen et al says "...and `m=1` requests shrinkage to obtain wiggly random effects" (page 4 of Bayeen et al [arXiv](http://arxiv.org/pdf/1601.02043v1.pdf)). Also not sure you need `s(x)` here for `fs` smooths, at least that's my reading of Bayeen et al, where they don't include include it always. Depends on focus; this model gives a global function of `x` and then difference splines estimated as random effect factor-spline smooths. Without `s(x)` you seem to get the same model but you don't see the global smoother. This model is easier to work with, but not if you want the global smooth._
 
+_Also, at what point do we need `method = "REML"` or `method = "ML"` here? I tend to default to fitting via one of these rather than GCV these days..._
+
 Alternate forms, and their effect on performance: 
 
 1. `gam(y ~ s(x, group, bs = "fs"), select = TRUE)`
@@ -71,7 +73,7 @@ Alternate forms, and their effect on performance:
 
     *This removes the slight penalty term that pulls the smooths toward zero (rather than a straight line). Not sure yet what affect this has on model performance overall.*
 
-    **_GLS_:This is redundant; fitting like this (assuming we drop the `s(x)` term is how you are supposed to fit these smooth factor interactions because they already have the null-space penalties added.**
+    **_GLS_:This is redundant; fitting like this (assuming we drop the `s(x)` term is how you are supposed to fit these smooth factor interactions because they already have the null-space penalties added. I don't think this removes the null-space penalties in the `fs` term; it just doesn't apply a null-space penalty to the global term, which ordinarily wouldn't have one anyway, but it would if you didn't include `s(x)`**
 
 5. `gam(y ~ group + s(x, by = group))`
 
@@ -95,7 +97,10 @@ group-level functions.
 
 * The use of 'by=' terms to include fixed effects or group. Although after playing around
 a bit with code for this, this can be very finicky; it often raises errors about 
-having more coefficients that data, in cases that it should work. 
+having more coefficients that data, in cases that it should work.
+
+    **GLS:** _I haven't had problems with this, as long as *j* (number of groups) * *k* (basis dimension) isn't larger than your data set size or size of an individual group._
+
 * using this for generalized additive models with alternate error terms.
 
 ## Where this approach should work well, where it can fail
@@ -119,5 +124,5 @@ to derive how recruitment has changed over time globally, and how it varies betw
 * Noah: time-series of bat virus antibody prevalence over time, for multiple cohorts of bats over 
 their first year, which reveals the seasonality of when they are exposed to a virus
 
-**GLS:** _we're going to have be somewhat careful when fitting time series to not allow (or warn users) too complex smooth terms unless we explicitly account for residual temporal autocorrelation. This really depends on how much data is available._
+**GLS:** _we're going to have be somewhat careful when fitting time series to not allow (or warn users) too complex smooth terms unless we explicitly account for residual temporal autocorrelation. This really depends on how much data is available and how strong any autocorrelation is. Thinking about the examples, unless they are quite hi-res I doubt this will be an issue._
 
