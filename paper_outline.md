@@ -31,7 +31,7 @@ general ecology audience), and the penalty term assumed by mgcv for the "fs" smo
 one to understand, like a cubic spline basis. Potentially use a heatmap matrix
 to show what the penalty matrix would look like.*
 
-**GLS:** _a 1-D thin-plate spline is pretty easy to grok (just not compute easily) and those are the defaults so perhaps showing both in a 2-panel plot?
+**GLS:** _a 1-D thin-plate spline is pretty easy to grok (just not compute easily) and those are the defaults so perhaps showing both in a 2-panel plot?_
 
 ## How to code the model in R
 Discuss how to code the model in R, why we use each term, and pitfalls to avoid. Throughout, I will use 'x' to refer to the independent continuous variable, 'y' to the dependent outcome variable, and 'group' to the grouping factor. 
