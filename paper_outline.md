@@ -1,15 +1,12 @@
 # Outline of tutorial paper
 
-## General concept: Teaching ecologists how to use functional mixed effects
-using the mgcv package and the "fs" basis. The basic idea is that the "fs"
-basis in mgcv allows you to fit different smooths for different factor levels of
-a variable, but share a certain amount of information between smooths in that
-grouping level. That is, when fitting a smooth for factor levels that have few
-data points, using the "fs" basis will draw those levels towards the global mean
-smooth for that variable. Conceptually very close to a mixed effect model with
-random effects for slopes.
+## General concept: Teaching ecologists how to use functional mixed effects using the mgcv package and the "fs" basis.
+
+The basic idea is that the "fs" basis in mgcv allows you to fit different smooths for different factor levels of a variable, but share a certain amount of information between smooths in that grouping level. That is, when fitting a smooth for factor levels that have few data points, using the "fs" basis will draw those levels towards the global mean smooth for that variable. Conceptually very close to a mixed effect model with random effects for slopes.
 
 **GLS:** _we should talk about subject-specific smooths in general, thus including `by` smooths as a fixed effect alternative. Then we can make the point that with larger *j* (sensu eqn below) a random effect smooth might be more useful generally. Then there are different ways to accomplish these things with **mgcv**. Putting everything in this broader context would be more generally useful than the very specific efficient random smooths of `fs` terms. Also, need to be clear that `fs` terms will tend to have similar amoungs of wigglyness, but `by` terms need not._
+
+**DLM**: _Definitely want to set out in general (and plain) terms what these smooths mean in a non-mathemtatical sense to give folks an idea of the **kind** of models that they can fit. We can dive into some specific examples but we also want to ensure that someone with a new problem that fits into this approach can work that out from our paper (is this asking too much?). Assuming you were writing the above quickly, as smooths aren't really fixed effects :) -- this brings up some terminology issues in terms of how to describe random effects (which are smooths) vs. smooths (which are random effects) vs. combinations of both (which are combinations of both). Need to be careful to not write sentences as confusing as my last one._
 
 For a one-dimensional ~~Gaussian~~ regression, this model is in effect fitting: 
 
@@ -23,7 +20,8 @@ f(x) is the mean function across all levels of the grouping variable, f <sub>j <
 
 
 
-## Why does it work, and how well does it work? 
+## Why does it work, and how well does it work?
+
 A brief description of the math behind penalized spline regression (aimed at a 
 general ecology audience), and the penalty term assumed by mgcv for the "fs" smoother. 
 
@@ -33,13 +31,19 @@ to show what the penalty matrix would look like.*
 
 **GLS:** _a 1-D thin-plate spline is pretty easy to grok (just not compute easily) and those are the defaults so perhaps showing both in a 2-panel plot?_
 
+**DLM**: _agree but default is `tprs` and visualising eigenbases is a bit more tricky. Wonder how we can get around this maintaining both simplicity and fidelity to what actually happens... I thinlk the usual way is to explain the thin plate then say "we do this clever trick to reduce dimensionality". Is that what you were thinking of?_
+
+
 ## How to code the model in R
 Discuss how to code the model in R, why we use each term, and pitfalls to avoid. Throughout, I will use 'x' to refer to the independent continuous variable, 'y' to the dependent outcome variable, and 'group' to the grouping factor. 
 
 It may make sense here to show usage and performance, with in-sample and out-of-sample 
 error rates, for simulated data. I've added some code to the github page to demonstrate what I'm thinking of here. 
 
-###Basic model formula: 
+**DLM**: _I wonder how much performance will be context-dependent here. May be more interesting to try to thoroughly delineate the differences between the models we have or show how misspecification effects interpretation?_
+
+
+###Basic model formula:
 
 ```r
 model = gam(y ~ s(x) + s(x, group, bs = "fs", m = 1))
@@ -49,6 +53,8 @@ model = gam(y ~ s(x) + s(x, group, bs = "fs", m = 1))
 
 _Also, at what point do we need `method = "REML"` or `method = "ML"` here? I tend to default to fitting via one of these rather than GCV these days..._
 
+**DLM**: _Yup definitely want to cover this. Esp. since model selection via REML can only take place if the other terms in the model (than `"fs"`) have penalised nullspaces. I see in `?smooth.construct.fs.smooth.spec` that Simon uses either `gamm` or `method="ML"`, need to discuss this too. If we start talking about using `gamm` then we're in a more sticky situation maths-wise as we really need to say something about random effect-smooth term equivalence and what that means. (That doesn't sound like a paper than normal ecologists want to read.)_
+
 Alternate forms, and their effect on performance: 
 
 1. `gam(y ~ s(x, group, bs = "fs"), select = TRUE)`
@@ -57,11 +63,22 @@ Alternate forms, and their effect on performance:
 
     **_GLS_:will it?; it's mainly redundant as `fs` smooths have penalties on the null space already, which is what you are asking for with `select = TRUE`; `s(x, by = group, id = 1), select = TRUE` would be somewhat equivalent** 
 
+**DLM**: _`smooth.r:1709` shows the "fs" construction is similar to what's in pp160-161 (though I have an annotation on my copy that says the equation at the top of page 161 is not correct and should be a matrix with 1 on the the diagonal on the last few rows only). Fitting with and without `select=TRUE` gives identical penalty matrices for the "fs" term -- so this is exactly equivalent I think._
+
+_BUT! This will make a difference when other terms are included, especially if one wants to use `method="REML"` (see above).
+
+_Probably also worth consulting [Giampiero Marra's thesis (PDF)](http://opus.bath.ac.uk/22536/1/UnivBath_PhD_2010_G_Marra.pdf) on this matter._
+
+
+
 2. `gam(y ~ s(x) + s(x, group, bs = "fs", m = 1) + group, select = TRUE)`
 
     *This will raise an error, as it's overparameterizing the model. mgcv automatically gives each level of the group a separate intercept.*
 
      **_GLS_:in `fs` smooths. For `by` smooths are subject to centring constraints and hence you need the parameteric `group` term.**
+
+**DLM**: _So let's add "centring constraints" to the "to explain" list :)_
+
 
 3. `gam(y ~ s(x) + s(x, group, bs = "fs"), select = TRUE)`
 
@@ -69,19 +86,28 @@ Alternate forms, and their effect on performance:
 
     **_GLS_: I'm not quite sure what you mean here; these models do fit "separate" splines. Normally `m = 1` just means the penalty is on the first derivative. Bayeen et al imply this is something to do with shrinkage to obtain wiggly smooths (see above). A quick test with data from `?factor.smooth.interaction` suggests that `m = 1` gives wigglier smooths than without.**
 
+*DLM*: _As above, I think this warrants a look at the source of `smooth.construct.fs.smooth.spec` to really see precisely what's happening (I'm also a little lost by the explanation above, so I'll let you ellaborate more before I wade in here)._
+
 4. `gam(y ~ s(x) + s(x, group, bs= "fs"), select = FALSE)`
 
     *This removes the slight penalty term that pulls the smooths toward zero (rather than a straight line). Not sure yet what affect this has on model performance overall.*
 
     **_GLS_:This is redundant; fitting like this (assuming we drop the `s(x)` term is how you are supposed to fit these smooth factor interactions because they already have the null-space penalties added. I don't think this removes the null-space penalties in the `fs` term; it just doesn't apply a null-space penalty to the global term, which ordinarily wouldn't have one anyway, but it would if you didn't include `s(x)`**
 
+**DLM**: _See my comments above._
+
+
 5. `gam(y ~ group + s(x, by = group))`
 
     **_GLS_:This formulation fits full fixed effects terms for x within the levels of `group`; we have a smooth effect of `x` for each group. This also implies that each group has a potentially different set of basis functions and smoothing parameters.**
 
+**DLM**: _Again not keen on the use of the term "fixed effects" here :)_
+
 6. `gam(y ~ group + s(x, by = group, id = 1), select = TRUE)`
 
     **_GLS_:This is almost equivalent to the `gam(y ~ s(x, group, bs = "fs"))` form --- see `?factor.smooth.interaction`. The `id = 1` links all smooths such that they share the same basis functions and have the same smoothness penalties.**
+
+**DLM**: _Will they not share the same basis functions without the `id` argument? I think the key here is to emphasize the shapes of the smooths will be different by their amount of wigglyness will remain the same (and say why this is useful IRL)._
 
 7. `gam(y ~ group + s(x) + s(x, by = group, m = 1))`
 
@@ -93,6 +119,8 @@ Alternate forms, and their effect on performance:
 * Discuss the importance of interpreting group-level plots as a sum of mean and 
 group-level functions. 
 
+**DLM**: _The default `plot` method is nice but I think we can make something a little more visually appealing (there are **so many colours** in the default method), specifically highlighting the "global" function nicely._
+
 ### Extending the model: 
 
 * The use of 'by=' terms to include fixed effects or group. Although after playing around
@@ -101,7 +129,11 @@ having more coefficients that data, in cases that it should work.
 
     **GLS:** _I haven't had problems with this, as long as *j* (number of groups) * *k* (basis dimension) isn't larger than your data set size or size of an individual group._
 
+**DLM**: _I've found this tricky once you get up to a fair size of *j*, even with relatively large data sets, though using `id` may solve this._
+
 * using this for generalized additive models with alternate error terms.
+
+**DLM**: _what does this mean?_
 
 ## Where this approach should work well, where it can fail
 
@@ -115,14 +147,16 @@ We can also discuss when it will work less well, such as:
 * when there are hidden parameters that lead to a "multi-modal" global function; if
 there are multiple underlying groups that each have their own mean function (say, one function for males and one for females) the mean function derived from averaging across tha hidden variation will not represent any of the hidden groupings well. 
 
+
 ## Worked examples
 
 * Walleye recruitment: A data set of roughly 100 lakes with walleye recruitment (counts of young of year)
 time series sampled irregularly for each lake from 1989 onward. Use the "fs" method
 to derive how recruitment has changed over time globally, and how it varies between lakes
 * Walleye age structure: A smaller data set (a subset of the recruitment lakes) where counts of adults at multiple lengths were taken, as part of a population estimate. Use this technique to measure the mean age structure across all lakes, how it's changed over time, and how much inter-lake variation there is. 
-* Noah: time-series of bat virus antibody prevalence over time, for multiple cohorts of bats over 
+* Noam: time-series of bat virus antibody prevalence over time, for multiple cohorts of bats over 
 their first year, which reveals the seasonality of when they are exposed to a virus
 
 **GLS:** _we're going to have be somewhat careful when fitting time series to not allow (or warn users) too complex smooth terms unless we explicitly account for residual temporal autocorrelation. This really depends on how much data is available and how strong any autocorrelation is. Thinking about the examples, unless they are quite hi-res I doubt this will be an issue._
 
+**DLM**: _I'm experimenting with these in some spatial models I'm working on, that seems like a fairly general situation that might be interesting to folks. More on this soon!_
