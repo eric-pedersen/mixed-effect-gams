@@ -9,13 +9,13 @@ source("code/functions.R")
 
 
 #starting parameters  ####  
-n_data = 40 #number of data points per group
+n_data = 36 #number of data points per group
 n_groups = 25 # number of groups
 holdout_frac= 0.5 #fraction of data held out from training models
 
 total_amp = 1
 noise  = total_amp/2 #variance of random noise around main function
-main_func_amp = 0.7
+main_func_amp = 0.6
 main_func_scale= 0.2
 indiv_func_scale = 0.1
 indiv_func_amp = total_amp-main_func_amp
@@ -79,22 +79,26 @@ model_labels$new = factor(model_labels$new, levels=model_labels$new)
 
 #Fitting randomly chosen training data ####
 #model fit with only group-level intercepts and a global smoother
-global_random_fit = gam(y~s(x,bs="tp", k=15)+group, 
+global_random_fit = gam(y~s(x,bs="tp", k=15)+group,
+                        method="REML",
                          data=test_random_data)
 
 #model fit with a unique, unconnected smoother and mean for each group
-fixef_random_fit  = gam(y~s(x,bs="tp",by=group, k=15)+group, 
+fixef_random_fit  = gam(y~s(x,bs="tp",by=group, k=15)+group,
+                        method="REML",
                          data=test_random_data)
 
 # model fit with random effect smoother between groups, 
 # integrating interaction and main terms into a single smoother
-# This in effect penalizes all of the smoothers towards zero
-fs_basic_random_fit  = gam(y~s(x,group, bs="fs",k=15),select=T, 
+# This means that all groups will share the same smooth parameter.
+fs_basic_random_fit  = gam(y~s(x,group, bs="fs",k=15),
+                           method="REML",
                              data=test_random_data)
 
 #model fit with main smoothers and a seperate interaction random effect term
-fs_full_random_fit  = gam(y~s(x,group, bs="fs",m=1,k=15)+
-                          s(x, bs="tp",k=15),select=T,
+fs_full_random_fit  = gam(y~s(x, bs="tp",k=15)+
+                            s(x,group, bs="fs",k=15),
+                          method="REML",
                         data=test_random_data)
 
 #Testing models on randomly chosen testing data####
@@ -111,13 +115,17 @@ fit_random_data= fit_random_data %>%
 
 #Fitting block-chosen training data ####
 global_block_fit = gam(y~s(x,bs="tp", k=15)+group, 
+                       method="REML",
                         data=test_block_data)
-fixef_block_fit  = gam(y~s(x,bs="tp",by=group, k=15)+group, 
+fixef_block_fit  = gam(y~s(x,bs="tp",by=group, k=15)+group,
+                       method="REML",
                         data=test_block_data)
-fs_basic_block_fit  = gam(y~s(x,group, bs="fs",k=15),select=T,
+fs_basic_block_fit  = gam(y~s(x,group, bs="fs",k=15),
+                          method="REML",
                               data=test_block_data)
-fs_full_block_fit  = gam(y~s(x,group, bs="fs",m=1,k=15)+
-                              s(x, bs="tp",k=15),select=T,
+fs_full_block_fit  = gam(y~s(x, bs="tp",k=15)+
+                           s(x,group, bs="fs",k=15),
+                        method="REML",
                              data=test_block_data)
 
 #Testing models on block-chosen testing data####

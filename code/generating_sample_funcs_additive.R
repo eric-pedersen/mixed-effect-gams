@@ -9,7 +9,7 @@ source("code/functions.R")
   
 
 #starting parameters  ####  
-n_data = 60 #number of data points per group
+n_data = 36 #number of data points per group
 n_groups = 25 # number of groups
 holdout_frac= 0.33 #fraction of data held out from training models
 
@@ -90,21 +90,24 @@ model_labels$new = factor(model_labels$new, levels=model_labels$new)
 #Fitting randomly chosen training data ####
 #model fit with only group-level intercepts and a global smoother
 global_random_fit = gam(y~s(x,bs="tp", k=15)+group, 
+                        method="REML",
                          data=test_random_data)
 
 #model fit with a unique, unconnected smoother and mean for each group
 fixef_random_fit  = gam(y~s(x,bs="tp",by=group, k=15)+group, 
+                        method="REML",
                          data=test_random_data)
 
 #model fit with random effect smoother between groups, integrating interaction and main terms into a single smoother
 fs_basic_random_fit  = gam(y~s(x,group, bs=c("fs"),k=15), 
+                           method="REML",
                              data=test_random_data)
 
 #model fit with main smoothers and a seperate interaction random effect term
 fs_full_random_fit  = gam(y~s(x, bs="tp",k=15) +
-                               s(x,group,bs=c("fs"),m=1,
-                                  k=15),
-                        data=test_random_data,select=T)
+                               s(x,group,bs="fs",k=15),
+                          method="REML",
+                        data=test_random_data)
 
 #Testing models on randomly chosen testing data####
 fit_random_data = full_data 
@@ -119,16 +122,19 @@ fit_random_data= fit_random_data %>%
 
 
 #Fitting block-chosen training data ####
-global_block_fit = gam(y~s(x,bs="tp", k=15)+group, 
+global_block_fit = gam(y~s(x,bs="tp", k=15)+group,
+                       method="REML",
                         data=test_block_data)
-fixef_block_fit  = gam(y~s(x,bs="tp",by=group, k=15)+group, 
+fixef_block_fit  = gam(y~s(x,bs="tp",by=group, k=15)+group,
+                       method="REML",
                         data=test_block_data)
-fs_basic_block_fit  = gam(y~s(x,group,bs=c("fs"), 
-                                   k=15),
+fs_basic_block_fit  = gam(y~s(x,group,bs="fs", k=15),
+                          method="REML",
                               data=test_block_data)
-fs_full_block_fit  = gam(y~s(x,group,bs="fs",
-                                  k=15,m=1)+s(x, bs="tp",k=15),
-                            select=T,data=test_block_data)
+fs_full_block_fit  = gam(y~s(x, bs="tp",k=15)+
+                           s(x,group,bs="fs",k=15),
+                         method="REML",
+                         data=test_block_data)
 
 
 #Testing models on block-chosen testing data####
@@ -183,6 +189,7 @@ random_fit_plot = ggplot(aes(x=x,y=y), data=full_data)+
   geom_line(aes(y= fit,color=model), data=fit_random_data,
             size=1)+
   scale_color_brewer(palette="Set1")+ 
+  guides(colour = guide_legend(nrow = 2))+
   theme(strip.background = element_blank(),
         strip.text.x = element_blank(),
         legend.position="bottom")
@@ -195,7 +202,8 @@ block_fit_plot = ggplot(aes(x=x,y=y), data=full_data)+
   theme_bw()+
   geom_line(aes(y= fit,color=model), data=fit_block_data,
             size=1)+
-  scale_color_brewer(palette="Set1")+ 
+  scale_color_brewer(palette="Set1")+
+  guides(colour = guide_legend(nrow = 2))+
   theme(strip.background = element_blank(),
         strip.text.x = element_blank(),
         legend.position="bottom")
