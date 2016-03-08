@@ -19,8 +19,7 @@ f(x) is the mean function across all levels of the grouping variable, f <sub>j <
 
 *figure 1: A simple diagram, illustrating the concept of a global function and group-level functions derived from it*
 
-![](https://github.com/noamross/mixed-effect-gams/blob/master/figures/fig.1%20-%20example%20spline%20basis%20and%20penalties.png?raw=true)
-
+<img src="https://raw.githubusercontent.com/noamross/mixed-effect-gams/master/figures/fig.2%20-%20alternate%20models%20of%20functional%20variability.png" width="500">
 
 ## Why does it work, and how well does it work?
 
@@ -30,6 +29,8 @@ general ecology audience), and the penalty term assumed by mgcv for the "fs" smo
 *figure 2: a plot showing the spline basis for a 1-D smooth (probably a simple 
 one to understand, like a cubic spline basis. Potentially use a heatmap matrix
 to show what the penalty matrix would look like.*
+
+![](https://raw.githubusercontent.com/noamross/mixed-effect-gams/master/figures/fig.1%20-%20example%20spline%20basis%20and%20penalties.png)
 
 **GLS:** _a 1-D thin-plate spline is pretty easy to grok (just not compute easily) and those are the defaults so perhaps showing both in a 2-panel plot?_
 
