@@ -172,7 +172,7 @@ group-level functions.
 
 ## Extending the model: 
 
-* Modelling interactions between smooth terms that differ between groups: `s(x,y,group, bs="fs")` or `te(x,y,group, bs=c("tp","tp","re")`. 
+* Modelling interactions between smooth terms that differ between groups: `s(x,y,group, bs="fs")` or `te(x,y,group, bs=c("tp","tp","re"))`. 
 * The use of `by=` terms to allow the global function to vary based on known covariates `(s(x,by=cov))`, or to allow the estimated smoothing parameters to differ between groups (`s(x,group,bs="fs",by=cov)` or `te(x,group, bs=c("tp","re"), by=cov)`. 
 * m=1 vs. m=2 terms for the `bs="fs"` approach. 
 
