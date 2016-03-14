@@ -82,7 +82,7 @@ model = gam(y ~ s(x)+ group, method="REML")
 ```
 3. 
 ```r
-model = gam(y ~ s(x)+ s(group,bs="re"), method="REML", select=T)
+model = gam(y ~ s(x)+ s(group,bs="re"), method="REML", select=TRUE)
 ```
 
 The first model fits only the global trend, the second fits a global trend w/ group-specific intercepts, and the third penalizes both the smooth term and the group-specific intercepts toward the global mean.
@@ -97,25 +97,25 @@ gam(y ~ s(x)+s(x, group, bs = "fs"), method="REML")
 ```
 2. 
 ```r
-gam(y ~ ti(x)+ti(x,group, bs=c("tp","re")+ti(group, bs="re"), 
-method="REML",select=F)
+gam(y ~ ti(x)+ti(x,group, bs=c("tp","re"))+ti(group, bs="re"), 
+method="REML",select=FALSE)
 ```
 3. 
 ```r
-gam(y ~ ti(x)+ti(x,group, bs=c("tp","re")+ ti(group,bs="re"), 
-select=T, method="REML")
+gam(y ~ ti(x)+ti(x,group, bs=c("tp","re"))+ ti(group,bs="re"), 
+select=TRUE, method="REML")
 ```
 
 ### Model 3: Global smooth term w/ group-specific deviations, with different smoothness penalties for each group
 
 1. 
 ```r
-gam(y~s(x) + s(x,by=group)+s(group,bs="re"), select=F, 
+gam(y~s(x) + s(x,by=group)+s(group,bs="re"), select=FALSE, 
 method="REML")
 ``` 
 2. 
 ```r
-gam(y~s(x) + s(x,by=group)+s(group,bs="re"), select=T, 
+gam(y~s(x) + s(x,by=group)+s(group,bs="re"), select=TRUE, 
 method="REML")
 ``` 
 
@@ -132,24 +132,24 @@ gam(y ~ s(x, group, bs = "fs"), method="REML")
 2. 
 ```r
 gam(y ~ te(x,group, bs=c("tp","re")+ s(group,bs="re"),
- method="REML",select=T)
+ method="REML",select=TRUE)
 ```
 3. 
 ```r
 gam(y ~ te(x,group, bs=c("tp","re")+s(group,bs="re"), 
-select=T, method="REML")
+select=TRUE, method="REML")
 ```
 
 ### Model 5: No shared information between groups
 1. 
 ```r
 gam(y~ s(x,by=group)+s(group,bs="re"), 
-select=F, method="REML")
+select=FALSE, method="REML")
 ``` 
 2. 
 ```r
 gam(y~ s(x,by=group)+s(group,bs="re"), 
-select=T,  method="REML")
+select=TRUE,  method="REML")
 ``` 
 
 ## Why does it work, and how well does it work?
