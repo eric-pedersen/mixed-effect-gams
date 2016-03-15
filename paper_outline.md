@@ -50,7 +50,7 @@ Realistically, all ecological models will fall into models 3 or 5: there will al
 
 <img src="https://raw.githubusercontent.com/noamross/mixed-effect-gams/master/figures/fig.2%20-%20alternate%20models%20of%20functional%20variability.png" width="500">
 
-*figure 1: A simple diagram, illustrating the concept of a global function and group-level functions derived from it*
+*figure 2: A simple diagram, illustrating the concept of a global function and group-level functions derived from it*
 
 
 ## How to code the model in R
@@ -72,18 +72,9 @@ different code structures into a table, grouped by degree of pooling and whether
 
 ###Model 1: only global smooth terms
 
-1. 
-```r
-model = gam(y ~ s(x), method="REML")
-```
-2. 
-```r
-model = gam(y ~ s(x)+ group, method="REML")
-```
-3. 
-```r
-model = gam(y ~ s(x)+ s(group,bs="re"), method="REML", select=TRUE)
-```
+1. `model = gam(y ~ s(x), method="REML")`
+2. `model = gam(y ~ s(x)+ group, method="REML")`
+3. `model = gam(y ~ s(x)+ s(group,bs="re"), method="REML", select=TRUE)`
 
 The first model fits only the global trend, the second fits a global trend w/ group-specific intercepts, and the third penalizes both the smooth term and the group-specific intercepts toward the global mean.
 
@@ -91,33 +82,14 @@ The first model fits only the global trend, the second fits a global trend w/ gr
 ###Model 2: Global smoother w/ group-specific deviations, with equal smoothness penalties for all groups 
 **EJP** *note that I'm leaving out essentially identical equivalents here (ie: `gam(y ~ s(x)+s(x, by=group, id=1),select=T, method="REML")` should give almost identical output to using `bs="fs"`*
 
-1. 
-```r
-gam(y ~ s(x)+s(x, group, bs = "fs"), method="REML")
-```
-2. 
-```r
-gam(y ~ ti(x)+ti(x,group, bs=c("tp","re"))+ti(group, bs="re"), 
-method="REML",select=FALSE)
-```
-3. 
-```r
-gam(y ~ ti(x)+ti(x,group, bs=c("tp","re"))+ ti(group,bs="re"), 
-select=TRUE, method="REML")
-```
+1. `gam(y ~ s(x)+s(x, group, bs = "fs"), method="REML")`
+2. `gam(y ~ ti(x)+ti(x,group, bs=c("tp","re"))+ti(group, bs="re"), method="REML",select=FALSE)`
+3. `gam(y ~ ti(x)+ti(x,group, bs=c("tp","re"))+ ti(group,bs="re"), select=TRUE, method="REML")`
 
 ### Model 3: Global smooth term w/ group-specific deviations, with different smoothness penalties for each group
 
-1. 
-```r
-gam(y~s(x) + s(x,by=group)+s(group,bs="re"), select=FALSE, 
-method="REML")
-``` 
-2. 
-```r
-gam(y~s(x) + s(x,by=group)+s(group,bs="re"), select=TRUE, 
-method="REML")
-``` 
+1. `gam(y~s(x) + s(x,by=group)+s(group,bs="re"), select=FALSE, method="REML")`
+2. `gam(y~s(x) + s(x,by=group)+s(group,bs="re"), select=TRUE, method="REML")`
 
 The second case here will allow for null-space penalties for both the global and group-specific functions. In general, #2 is probably a better choice than #1, as it will allow mgcv to smooth the null spaces of each group-term to zero.
 
@@ -125,32 +97,13 @@ The second case here will allow for null-space penalties for both the global and
 
 ### Model 4: No global smoother, group-level smooths share a penalty factor
 
-1. 
-```r
-gam(y ~ s(x, group, bs = "fs"), method="REML")
-```
-2. 
-```r
-gam(y ~ te(x,group, bs=c("tp","re")+ s(group,bs="re"),
- method="REML",select=TRUE)
-```
-3. 
-```r
-gam(y ~ te(x,group, bs=c("tp","re")+s(group,bs="re"), 
-select=TRUE, method="REML")
-```
+1. `gam(y ~ s(x, group, bs = "fs"), method="REML")`
+2. `gam(y ~ te(x,group, bs=c("tp","re")+ s(group,bs="re"), method="REML",select=TRUE)`
+3. `gam(y ~ te(x,group, bs=c("tp","re")+s(group,bs="re"), select=TRUE, method="REML")`
 
 ### Model 5: No shared information between groups
-1. 
-```r
-gam(y~ s(x,by=group)+s(group,bs="re"), 
-select=FALSE, method="REML")
-``` 
-2. 
-```r
-gam(y~ s(x,by=group)+s(group,bs="re"), 
-select=TRUE,  method="REML")
-``` 
+1. `gam(y~ s(x,by=group)+s(group,bs="re"), select=FALSE, method="REML")`
+2. `gam(y~ s(x,by=group)+s(group,bs="re"), select=TRUE,  method="REML")`
 
 ## Why does it work, and how well does it work?
 
