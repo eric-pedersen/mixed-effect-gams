@@ -7,9 +7,9 @@ library(tidyr)
 
 source("code/functions.R")
 
-set.seed(1)
+set.seed(5)
 #starting parameters  ####  
-n_data = 150 #number of data points per group
+n_data = 50 #number of data points per group
 n_groups = 12 # number of groups
 
 total_amp = 1
@@ -26,9 +26,9 @@ indiv_func_amp = total_amp-main_func_amp #var
 # with x-values that are more distant from each other than the length scale
 # will be only weakly correlated
 main_func_scale= 0.1
-func_scale_diff= 0.5 #vary this parameter to move from similar smoothnesses (0) to 
+func_scale_diff= 0. #vary this parameter to move from similar smoothnesses (0) to 
 #large differences in smoothness (Inf). I would keep this between 0 and 1. 
-indiv_func_scale = 0.1*(1:n_groups)^(-func_scale_diff*seq(-1,1,length=n_groups))
+indiv_func_scale = 0.1*10^(-func_scale_diff*seq(-1,1,length=n_groups))
 
 
 x = seq(0,1,length=n_data)
@@ -86,3 +86,75 @@ AIC_table$dev_expl = unlist(lapply(list(model_1, model_2a,model_2b,model_2c,
                                    model_5a,model_5b),
                                    get_r2))
 AIC_table$dev_expl = round(AIC_table$dev_expl,3)
+
+
+
+#### Plot how well each model fits the overall trends for each group
+fit_plot_list = list()
+for(i in list("model_1","model_2a","model_2b","model_2c",
+              "model_3a","model_3b","model_4a","model_4b","model_4c",
+              "model_5a","model_5b")){
+  current_model = eval(parse(text = i))
+  model_fit = predict.gam(current_model,se.fit = T)
+  fit_val = model_fit$fit
+  se_val = model_fit$se.fit
+  current_data= select(full_data,x,func_val, group)
+  current_data$se_val = se_val
+  current_data$fit_val = fit_val
+  full_data[,paste(i, "fit",sep="_")] = fit_val
+  full_data[,paste(i, "se",sep="_")] = se_val
+  fit_plot_list[[i]] = ggplot(aes(x=x,y=func_val), data= current_data)+
+    geom_line() +
+    geom_line(aes(y= fit_val),col="red")+
+    geom_ribbon(aes(ymin = fit_val-2*se_val,
+                    ymax = fit_val+2*se_val),
+                col=NA, fill="red",alpha=0.25)+
+    facet_wrap(~group)+
+    labs(title= i)
+}
+
+
+#### Plot how well each model fits the global trend
+fit_global_plot_list = list()
+for(i in list("model_1","model_2a","model_2b","model_2c",
+              "model_3a","model_3b")){
+  current_model = eval(parse(text = i))
+  current_data = select(full_data,x,global_func, group)
+  current_data = filter(current_data, group=='G1')
+  model_fit = predict.gam(current_model,
+                          newdata = current_data, 
+                          se.fit = T,type = 'iterms')
+  model_names = colnames(model_fit$fit)
+  fit_val = model_fit$fit[,model_names=="s(x)"|model_names=="ti(x)"]
+  se_val = model_fit$se.fit[,model_names=="s(x)"|model_names=="ti(x)"]
+  current_data$se_val = se_val
+  current_data$fit_val = fit_val +mean_global
+  current_data$global_func = current_data$global_func - mean(full_func)
+  full_data[,paste(i, "fit",sep="_")] = fit_val
+  full_data[,paste(i, "se",sep="_")] = se_val
+  
+  fit_global_plot_list[[i]] = ggplot(aes(x=x,y=global_func), 
+                                     data= current_data)+
+    geom_line() +
+    geom_line(aes(y= fit_val),col="red")+
+    geom_ribbon(aes(ymin = fit_val-2*se_val,
+                    ymax = fit_val+2*se_val),
+                col=NA, fill="red",alpha=0.25)+
+    facet_wrap(~group)+
+    labs(title= i)
+}
+
+
+pdf("figures/aic_model_fits.pdf",width = 10, height=7)
+for(i in fit_plot_list){
+  print(i)
+}
+dev.off()
+
+
+pdf("figures/aic_global_fits.pdf",width = 10, height=7)
+for(i in fit_global_plot_list){
+  print(i)
+}
+dev.off()
+
