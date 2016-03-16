@@ -7,10 +7,10 @@ library(tidyr)
 
 source("code/functions.R")
 
-
+set.seed(1)
 #starting parameters  ####  
-n_data = 200 #number of data points per group
-n_groups = 10 # number of groups
+n_data = 150 #number of data points per group
+n_groups = 12 # number of groups
 
 total_amp = 1
 noise  = total_amp/3 #variance of random noise around main function
@@ -63,18 +63,18 @@ full_data = full_func %>%
          indiv = paste(group, indiv, sep="_"))
 
 #### Fitting different variants of the 5 main models
-model_1 = gam(y~s(x,k=10),data=full_data,method="REML", select=T)
-model_2a = update(model_1,formula. = y~s(x,k=10)+s(x,group,bs="fs",k=10))
-model_2b = update(model_1,formula. = y~s(x,k=10)+s(x,group,bs="fs",m=1,k=10))
-model_2c = update(model_1,formula. = y~ti(x,k=10)+ti(x,group,bs=c("tp","re"),k=c(10,n_groups))+
+model_1 = bam(y~s(x,k=15),data=full_data,method="fREML", select=T)
+model_2a = update(model_1,formula. = y~s(x,k=15)+s(x,group,bs="fs",k=15))
+model_2b = update(model_1,formula. = y~s(x,k=15)+s(x,group,bs="fs",m=1,k=15))
+model_2c = update(model_1,formula. = y~ti(x,k=15)+ti(x,group,bs=c("tp","re"),k=c(15,n_groups))+
                     ti(group,bs="re",k=n_groups))
-model_3a = update(model_1,formula. = y~s(x,k=10)+s(x,by=group,k=10)+group)
-model_3b = update(model_1,formula. = y~s(x,k=10)+s(x,by=group,m=1,k=10)+group)
-model_4a = update(model_1,formula. = y~s(x,group,bs="fs",k=10))
-model_4b = update(model_1,formula. = y~s(x,group,bs="fs",m=1,k=10))
-model_4c = update(model_1,formula. = y~te(x,group,bs=c("tp","re"),k=c(10,n_groups))+
+model_3a = update(model_1,formula. = y~s(x,k=15)+s(x,by=group,k=15)+group)
+model_3b = update(model_1,formula. = y~s(x,k=15)+s(x,by=group,m=1,k=15)+group)
+model_4a = update(model_1,formula. = y~s(x,group,bs="fs",k=15))
+model_4b = update(model_1,formula. = y~s(x,group,bs="fs",m=1,k=15))
+model_4c = update(model_1,formula. = y~te(x,group,bs=c("tp","re"),k=c(15,n_groups))+
                     te(group,bs="re",k=n_groups))
-model_5 = update(model_1,formula. = y~s(x,by=group,k=10))
+model_5 = update(model_1,formula. = y~s(x,by=group,k=15))
 
 
 #### AIC table for model fits
