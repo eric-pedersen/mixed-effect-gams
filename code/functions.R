@@ -20,3 +20,7 @@ generate_smooth_func = function(x,n_funcs=1,length_scale=0.25,
 
 calc_rmse = function(fit,y,digits=2) round(sqrt(sum((y-fit)^2)),2)
 
+get_r2 = function(model) {
+  model_summary = summary(model)
+  return(model_summary$dev.expl)
+}
