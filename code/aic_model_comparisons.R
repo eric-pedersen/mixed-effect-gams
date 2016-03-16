@@ -74,14 +74,15 @@ model_4a = update(model_1,formula. = y~s(x,group,bs="fs",k=15))
 model_4b = update(model_1,formula. = y~s(x,group,bs="fs",m=1,k=15))
 model_4c = update(model_1,formula. = y~te(x,group,bs=c("tp","re"),k=c(15,n_groups))+
                     te(group,bs="re",k=n_groups))
-model_5 = update(model_1,formula. = y~s(x,by=group,k=15))
-
+model_5a = update(model_1,formula. = y~s(x,by=group,k=15)+group)
+model_5b = update(model_1,formula. = y~s(x,by=group,k=15,m=1)+group)
 
 #### AIC table for model fits
 AIC_table = AIC(model_1, model_2a,model_2b,model_2c,
-                model_3a, model_3b,model_4a,model_4b,model_4c,model_5)
+                model_3a, model_3b,model_4a,model_4b,model_4c,model_5a,model_5b)
 AIC_table$delta_AIC = round(AIC_table$AIC-min(AIC_table$AIC))
 AIC_table$dev_expl = unlist(lapply(list(model_1, model_2a,model_2b,model_2c,
-                                   model_3a, model_3b,model_4a,model_4b,model_4c,model_5),
+                                   model_3a, model_3b,model_4a,model_4b,model_4c,
+                                   model_5a,model_5b),
                                    get_r2))
 AIC_table$dev_expl = round(AIC_table$dev_expl,3)
