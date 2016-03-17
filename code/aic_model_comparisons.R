@@ -106,8 +106,7 @@ for(i in list("model_1","model_2a","model_2b","model_2c","model_2d",
   current_data= select(full_data,x,func_val, group)
   current_data$se_val = se_val
   current_data$fit_val = fit_val
-  full_data[,paste(i, "fit",sep="_")] = fit_val
-  full_data[,paste(i, "se",sep="_")] = se_val
+
   fit_plot_list[[i]] = ggplot(aes(x=x,y=func_val), data= current_data)+
     geom_line() +
     geom_line(aes(y= fit_val),col="red")+
@@ -119,31 +118,58 @@ for(i in list("model_1","model_2a","model_2b","model_2c","model_2d",
 }
 
 
-#### Plot how well each model fits the global trend
+#### Plot how well each model fits global and individual trends
 fit_global_plot_list = list()
+fit_indiv_plot_list = list()
 for(i in list("model_1","model_2a","model_2b","model_2c","model_2d",
               "model_3a","model_3b")){
   current_model = eval(parse(text = i))
-  current_data = select(full_data,x,global_func, group)
-  current_data = filter(current_data, group=='G1')
+  current_data = select(full_data,x,global_func,func_val, group)
   model_fit = predict.gam(current_model,
                           newdata = current_data, 
                           se.fit = T,type = 'iterms')
   model_names = colnames(model_fit$fit)
-  fit_val = model_fit$fit[,model_names=="s(x)"|model_names=="ti(x)"]
-  se_val = model_fit$se.fit[,model_names=="s(x)"|model_names=="ti(x)"]
-  current_data$se_val = se_val
-  current_data$fit_val = fit_val
+  fit_global_val = model_fit$fit[,model_names=="s(x)"|model_names=="ti(x)"]
+  se_global_val = model_fit$se.fit[,model_names=="s(x)"|model_names=="ti(x)"]
+  if(i=="model_1"){
+    fit_indiv_val = rep(0, times= nrow(current_data))
+    se_indiv_val = rep(0, times= nrow(current_data))
+  }else{
+    fit_indiv_val = model_fit$fit[,!(model_names%in%c("s(x)","ti(x)","ti(group)","group"))]
+    se_indiv_val = model_fit$se.fit[,!(model_names%in%c("s(x)","ti(x)","ti(group)","group"))]
+    
+    if(!is.null(ncol(fit_indiv_val))){
+      fit_indiv_val = rowSums(fit_indiv_val)
+      se_indiv_val = rowSums(se_indiv_val)
+    }
+  }
+  current_data$se_global_val = se_global_val
+  current_data$fit_global_val = fit_global_val
+  current_data$se_indiv_val = se_indiv_val
+  current_data$fit_indiv_val = fit_indiv_val
   current_data$global_func = current_data$global_func - mean(full_func)
-  full_data[,paste(i, "fit",sep="_")] = fit_val
-  full_data[,paste(i, "se",sep="_")] = se_val
+  current_data$indiv_func = current_data$func_val - current_data$global_func 
+  current_data = group_by(current_data,group)
+  current_data = mutate(current_data,
+                        indiv_func = indiv_func-mean(indiv_func),
+                        fit_indiv_val= fit_indiv_val - mean(fit_indiv_val))
+  current_data = ungroup(current_data)
   
   fit_global_plot_list[[i]] = ggplot(aes(x=x,y=global_func), 
+                                     data=filter(current_data, group=='G1'))+
+    geom_line() +
+    geom_line(aes(y= fit_global_val),col="red")+
+    geom_ribbon(aes(ymin = fit_global_val-2*se_global_val,
+                    ymax = fit_global_val+2*se_global_val),
+                col=NA, fill="red",alpha=0.25)+
+    labs(title= i)
+  
+  fit_indiv_plot_list[[i]] = ggplot(aes(x=x,y=indiv_func), 
                                      data= current_data)+
     geom_line() +
-    geom_line(aes(y= fit_val),col="red")+
-    geom_ribbon(aes(ymin = fit_val-2*se_val,
-                    ymax = fit_val+2*se_val),
+    geom_line(aes(y= fit_indiv_val),col="red")+
+    geom_ribbon(aes(ymin = fit_indiv_val-2*se_indiv_val,
+                    ymax = fit_indiv_val+2*se_indiv_val),
                 col=NA, fill="red",alpha=0.25)+
     facet_wrap(~group)+
     labs(title= i)
@@ -162,3 +188,11 @@ for(i in fit_global_plot_list){
   print(i)
 }
 dev.off()
+
+
+pdf("figures/aic_indiv_fits.pdf",width = 10, height=7)
+for(i in fit_indiv_plot_list){
+  print(i)
+}
+dev.off()
+
