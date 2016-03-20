@@ -71,6 +71,9 @@ model_2c = update(model_1,formula. = y~ti(x,k=15)+ti(x,group,bs=c("tp","re"),k=c
 model_2d = update(model_1,formula. = y~ti(x,k=15)+
                     ti(x,group,bs=c("tp","re"),k=c(15,n_groups),m=1)+
                     ti(group,bs="re",k=n_groups))
+model_2e = update(model_1,formula. = y~te(x,k=15)+
+                    te(x,group,bs=c("tp","re"),k=c(15,n_groups),m=1)+
+                    te(group,bs="re",k=n_groups))
 model_3a = update(model_1,formula. = y~s(x,k=15)+s(x,by=group,k=15)+group)
 model_3b = update(model_1,formula. = y~s(x,k=15)+s(x,by=group,m=1,k=15)+group)
 model_4a = update(model_1,formula. = y~s(x,group,bs="fs",k=15))
@@ -83,10 +86,10 @@ model_5a = update(model_1,formula. = y~s(x,by=group,k=15)+group)
 model_5b = update(model_1,formula. = y~s(x,by=group,k=15,m=1)+group)
 
 #### AIC table for model fits
-AIC_table = AIC(model_1, model_2a,model_2b,model_2c,model_2d,
+AIC_table = AIC(model_1, model_2a,model_2b,model_2c,model_2d,model_2e,
                 model_3a, model_3b,model_4a,model_4b,model_4c,model_4d,model_5a,model_5b)
 AIC_table$delta_AIC = round(AIC_table$AIC-min(AIC_table$AIC))
-AIC_table$dev_expl = unlist(lapply(list(model_1, model_2a,model_2b,model_2c,model_2d,
+AIC_table$dev_expl = unlist(lapply(list(model_1, model_2a,model_2b,model_2c,model_2d,model_2e,
                                         model_3a, model_3b,model_4a,model_4b,model_4c,
                                         model_4d,model_5a,model_5b),
                                    get_r2))
@@ -96,7 +99,7 @@ AIC_table$dev_expl = round(AIC_table$dev_expl,3)
 
 #### Plot how well each model fits the overall trends for each group
 fit_plot_list = list()
-for(i in list("model_1","model_2a","model_2b","model_2c","model_2d",
+for(i in list("model_1","model_2a","model_2b","model_2c","model_2d","model_2e",
               "model_3a","model_3b","model_4a","model_4b","model_4c","model_4d",
               "model_5a","model_5b")){
   current_model = eval(parse(text = i))
@@ -121,7 +124,7 @@ for(i in list("model_1","model_2a","model_2b","model_2c","model_2d",
 #### Plot how well each model fits global and individual trends
 fit_global_plot_list = list()
 fit_indiv_plot_list = list()
-for(i in list("model_1","model_2a","model_2b","model_2c","model_2d",
+for(i in list("model_1","model_2a","model_2b","model_2c","model_2d","model_2e",
               "model_3a","model_3b")){
   current_model = eval(parse(text = i))
   current_data = select(full_data,x,global_func,func_val, group)
@@ -129,14 +132,16 @@ for(i in list("model_1","model_2a","model_2b","model_2c","model_2d",
                           newdata = current_data, 
                           se.fit = T,type = 'iterms')
   model_names = colnames(model_fit$fit)
-  fit_global_val = model_fit$fit[,model_names=="s(x)"|model_names=="ti(x)"]
-  se_global_val = model_fit$se.fit[,model_names=="s(x)"|model_names=="ti(x)"]
+  fit_global_val = model_fit$fit[,model_names%in%c("s(x)","ti(x)","te(x)")]
+  se_global_val = model_fit$se.fit[,model_names%in%c("s(x)","ti(x)","te(x)")]
   if(i=="model_1"){
     fit_indiv_val = rep(0, times= nrow(current_data))
     se_indiv_val = rep(0, times= nrow(current_data))
   }else{
-    fit_indiv_val = model_fit$fit[,!(model_names%in%c("s(x)","ti(x)","ti(group)","group"))]
-    se_indiv_val = model_fit$se.fit[,!(model_names%in%c("s(x)","ti(x)","ti(group)","group"))]
+    fit_indiv_val = model_fit$fit[,!(model_names%in%c("s(x)","ti(x)","ti(group)","group",
+                                                      "te(x)","te(group)"))]
+    se_indiv_val = model_fit$se.fit[,!(model_names%in%c("s(x)","ti(x)","ti(group)","group",
+                                                        "te(x)","te(group)"))]
     
     if(!is.null(ncol(fit_indiv_val))){
       fit_indiv_val = rowSums(fit_indiv_val)
