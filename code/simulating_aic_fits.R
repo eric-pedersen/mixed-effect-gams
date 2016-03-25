@@ -105,27 +105,46 @@ aic_data$best_model = apply(aic_data[,model_list],1,
 
 aic_summary_data = aic_data %>%
   group_by(trial,main_func_amp,indiv_scale_diff, n_data,best_model)%>%
-  summarize(n_wins = n())
+  summarize(n_wins = n())%>%
+  mutate(main_amp_lab = paste("var. expl. by\nglobal func: ",main_func_amp,sep=""),
+         indiv_scale_lab= paste("ratio of scales\nbetween groups: ",
+                                indiv_scale_diff,sep=""))
   
 
-aic_compare_main_plot = ggplot(aes(x=n_data, y=n_wins,fill=best_model),
+color_list = c(model_1 = "#1f78b4",model_2a= "#b2df8a",
+               model_2b= "#33a02c",model_3 = "#e31a1c",
+               model_4a= "#fdbf6f",model_4b= "#ff7f00",
+               model_5 ="#6a3d9a")
+
+plot_base = list(geom_bar(stat="identity",color=NA),
+                 scale_x_log10("number of observations", breaks=c(25,50,100,200)),
+                 scale_fill_manual("", breaks=model_list, values=color_list),
+                 scale_y_continuous("frequency model is\nchosen via AIC",
+                                    limits=c(0,1),expand = c(0,0)),
+                 theme_bw(),
+                 theme(panel.margin.y = unit(1, "lines"))
+                 )
+
+aic_compare_main_plot = ggplot(aes(x=n_data, y=n_wins/n_replicates,
+                                   fill=best_model),
                                data=filter(aic_summary_data,
                                            trial=="varying main amp")) +
-  geom_bar(stat="identity")+
-  scale_x_log10(breaks=c(25,50,100,200))+
-  facet_grid(indiv_scale_diff~main_func_amp)+
-  scale_fill_manual(breaks=model_list, values= c("#1f78b4","#b2df8a","#33a02c",
-                                                 "#e31a1c","#fdbf6f","#ff7f00",
-                                                 "#6a3d9a"))+
-  scale_y_continuous(limits=c(0,n_replicates),expand = c(0,0.5))
+  facet_grid(indiv_scale_lab~main_amp_lab)+
+  plot_base
 
-aic_compare_group_plot = ggplot(aes(x=n_data, y=n_wins,fill=best_model),
+
+aic_compare_group_plot = ggplot(aes(x=n_data, y=n_wins/n_replicates,
+                                    fill=best_model),
                                data=filter(aic_summary_data,
                                            trial=="varying group scale")) +
-  geom_bar(stat="identity")+
-  scale_x_log10(breaks=c(25,50,100,200))+
-  facet_grid(main_func_amp~indiv_scale_diff)+
-  scale_fill_manual(breaks=model_list, values= c("#1f78b4","#b2df8a","#33a02c",
-                                                 "#e31a1c","#fdbf6f","#ff7f00",
-                                                 "#6a3d9a"))+
-  scale_y_continuous(limits=c(0,n_replicates),expand = c(0,0.5))
+  facet_grid(main_amp_lab~indiv_scale_lab)+
+  plot_base
+
+
+
+ggsave("figures/comparing AIC fits plot 1.png",aic_compare_main_plot,
+       width=8, height=4, units="in",dpi = 300)
+
+
+ggsave("figures/comparing AIC fits plot 2.png",aic_compare_group_plot,
+       width=8, height=4, units="in",dpi = 300)
