@@ -49,7 +49,8 @@ for(i in 1:nrow(sim_data)){
   main_func_amp = sim_data$main_func_amp[i]
   indiv_func_amp = total_amp-main_func_amp #var
 
-  indiv_func_scale = indiv_func_scale_base*indiv_scale_diff^rep(c(-1,1),each=n_groups/2)
+  indiv_func_scale = indiv_func_scale_base*sqrt(indiv_scale_diff)^rep(c(-1,1),
+                                                                      each=n_groups/2)
   
   main_func = generate_smooth_func(x,n_funcs = 1,main_func_scale,main_func_amp)
   indiv_func = matrix(0, nrow=n_data, ncol=n_groups)
@@ -106,6 +107,7 @@ aic_data$best_model = apply(aic_data[,model_list],1,
 aic_summary_data = aic_data %>%
   group_by(trial,main_func_amp,indiv_scale_diff, n_data,best_model)%>%
   summarize(n_wins = n())%>%
+  group_by(trial)%>%
   mutate(main_amp_lab = paste("var. expl. by\nglobal func: ",main_func_amp,sep=""),
          indiv_scale_lab= paste("ratio of scales\nbetween groups: ",
                                 indiv_scale_diff,sep=""))
