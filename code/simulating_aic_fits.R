@@ -198,7 +198,8 @@ rmse_compare_main_plot = ggplot(aes(x=n_data, y=n_wins/n_replicates,
                                            trial=="varying main amp")) +
   facet_grid(indiv_scale_lab~main_amp_lab)+
   plot_base+
-  labs(y= "frequency model is chosen via RMSE")
+  scale_y_continuous("frequency model is\nchosen via RMSE",
+                     limits=c(0,1),expand = c(0,0))
 
 
 rmse_compare_group_plot = ggplot(aes(x=n_data, y=n_wins/n_replicates,
@@ -207,7 +208,9 @@ rmse_compare_group_plot = ggplot(aes(x=n_data, y=n_wins/n_replicates,
                                             trial=="varying group scale")) +
   facet_grid(main_amp_lab~indiv_scale_lab)+
   plot_base+
-  labs(y= "frequency model is chosen via RMSE")
+  labs(y= "frequency model is chosen via RMSE")+
+  scale_y_continuous("frequency model is\nchosen via RMSE",
+                     limits=c(0,1),expand = c(0,0))
 
 
 
