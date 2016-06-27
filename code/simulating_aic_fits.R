@@ -166,9 +166,15 @@ fit_plot_data = left_join(fit_plot_data,
 color_list = c("model 1" = "white","model 2" = "#a6cee3","model 3" = "#b2df8a",
                 "model 4"= "#1f78b4","model 5" ="#33a02c")
 
+model_labels =  c("Model 1:\nGlobal trend","Model 2:\nGlobal trend\nshared smooths" ,
+                  "Model 3:\nGlobal trend\nseperate smooths",
+                  "Model 4:\nNo trend\nshared smooths","Model 5:\nno trend\nseperate smooths")
+
+
 plot_base = list(geom_bar(stat="identity",color="black"),
                  scale_x_log10("number of observations", breaks=c(25,50,100,200)),
-                 scale_fill_manual("", breaks=model_list_simplified, values=color_list),
+                 scale_fill_manual("", values=color_list,
+                                   labels = model_labels),
                  scale_y_continuous("frequency model is\nchosen via AIC",
                                     limits=c(0,1),expand = c(0,0)),
                  theme_bw(),
