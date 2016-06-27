@@ -33,8 +33,9 @@ indiv_func_scale = 0.1*10^(-func_scale_diff*seq(-1,1,length=n_groups))
 
 x = seq(0,1,length=n_data)
 
-#generating main function and group-level functions ####
-#Functions are genated using a Gaussian process with 
+# generating main function and group-level functions ####
+# Functions are genated using a Gaussian process with an squared exponential cov
+# function with the specified scale and amplitude parameters
 main_func = generate_smooth_func(x,n_funcs = 1,main_func_scale,main_func_amp)
 indiv_func = matrix(0, nrow=n_data, ncol=n_groups)
 for(i in 1:n_groups){

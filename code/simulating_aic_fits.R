@@ -163,8 +163,8 @@ fit_plot_data = left_join(fit_plot_data,
 
 
 
-color_list = c("model 1" = "white","model 2" = "#b2df8a","model 3" = "#735eff",
-                "model 4"= "#e31a1c","model 5" ="black")
+color_list = c("model 1" = "white","model 2" = "#a6cee3","model 3" = "#b2df8a",
+                "model 4"= "#1f78b4","model 5" ="#33a02c")
 
 plot_base = list(geom_bar(stat="identity",color="black"),
                  scale_x_log10("number of observations", breaks=c(25,50,100,200)),
