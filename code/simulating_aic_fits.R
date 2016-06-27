@@ -222,9 +222,9 @@ ggsave("figures/comparing AIC fits plot 2.png",aic_compare_group_plot,
        width=8, height=4, units="in",dpi = 300)
 
 
-ggsave("figures/comparing out of sample RMSE fits plot 1.png",rmse_compare_main_plot,
+ggsave("figures/comparing RMSE fits plot 1.png",rmse_compare_main_plot,
        width=8, height=4, units="in",dpi = 300)
 
 
-ggsave("figures/comparing out of sample RMSE fits plot 2.png",rmse_compare_group_plot,
+ggsave("figures/comparing RMSE fits plot 2.png",rmse_compare_group_plot,
        width=8, height=4, units="in",dpi = 300)
