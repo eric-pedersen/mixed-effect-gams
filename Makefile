@@ -1,9 +1,9 @@
 RMD_FILES := $(patsubst %.Rmd, %.md ,$(wildcard paper_sections/*.Rmd))
 TEX_FILES := $(patsubst %.md, %.tex ,$(wildcard paper_sections/*.md))
 
+all: main tex md
+main: tex md
 tex: md
-main: tex
-all: main
 
 md: $(RMD_FILES)
 %.md: %.Rmd
