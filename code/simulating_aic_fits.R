@@ -163,12 +163,26 @@ fit_plot_data = left_join(fit_plot_data,
 
 
 
-color_list = c("model 1" = "white","model 2" = "#b2df8a","model 3" = "#735eff",
-                "model 4"= "#e31a1c","model 5" ="black")
+color_list = c("model 1" = "white","model 2" = "#a6cee3","model 3" = "#b2df8a",
+                "model 4"= "#1f78b4","model 5" ="#33a02c")
+
+
+model_labels =  c("model 1" = "Model 1:\nGlobal trend",
+                  "model 2" = "Model 2:\nGlobal trend\nshared smooths" ,
+                  "model 3" = "Model 3:\nGlobal trend\nseperate smooths",
+                  "model 4" = "Model 4:\nNo trend\nshared smooths",
+                  "model 5" = "Model 5:\nno trend\nseperate smooths")
+
+model_labels =  c("Model 1:\nGlobal trend","Model 2:\nGlobal trend\nshared smooths" ,
+                  "Model 3:\nGlobal trend\nseperate smooths",
+                  "Model 4:\nNo trend\nshared smooths","Model 5:\nno trend\nseperate smooths")
+
+
 
 plot_base = list(geom_bar(stat="identity",color="black"),
                  scale_x_log10("number of observations", breaks=c(25,50,100,200)),
-                 scale_fill_manual("", breaks=model_list_simplified, values=color_list),
+                 scale_fill_manual("", values=color_list,
+                                   labels = model_labels),
                  scale_y_continuous("frequency model is\nchosen via AIC",
                                     limits=c(0,1),expand = c(0,0)),
                  theme_bw(),
@@ -222,9 +236,9 @@ ggsave("figures/comparing AIC fits plot 2.png",aic_compare_group_plot,
        width=8, height=4, units="in",dpi = 300)
 
 
-ggsave("figures/comparing out of sample RMSE fits plot 1.png",rmse_compare_main_plot,
+ggsave("figures/comparing RMSE fits plot 1.png",rmse_compare_main_plot,
        width=8, height=4, units="in",dpi = 300)
 
 
-ggsave("figures/comparing out of sample RMSE fits plot 2.png",rmse_compare_group_plot,
+ggsave("figures/comparing RMSE fits plot 2.png",rmse_compare_group_plot,
        width=8, height=4, units="in",dpi = 300)

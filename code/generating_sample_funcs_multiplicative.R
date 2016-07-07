@@ -10,8 +10,8 @@ source("code/functions.R")
 
 #starting parameters  ####  
 n_data = 36 #number of data points per group
-n_groups = 25 # number of groups
-holdout_frac= 0.5 #fraction of data held out from training models
+n_groups = 12 # number of groups
+holdout_frac= 0.33 #fraction of data held out from training models
 
 total_amp = 1
 noise  = total_amp/2 #variance of random noise around main function
@@ -19,7 +19,7 @@ main_func_amp = 0.6
 main_func_scale= 0.2
 indiv_func_scale = 0.1
 indiv_func_amp = total_amp-main_func_amp
-indiv_mult = 1
+indiv_mult = 0.5
 x = seq(0,1,length=n_data)
 
 #generating main function and group-level functions ####
@@ -180,6 +180,7 @@ random_fit_plot = ggplot(aes(x=x,y=y), data=full_data)+
   geom_line(aes(y= fit,color=model), data=fit_random_data,
             size=1)+
   scale_color_brewer(palette="Set1")+ 
+  guides(colour = guide_legend(nrow = 2))+
   theme(strip.background = element_blank(),
         strip.text.x = element_blank(),
         legend.position="bottom")
@@ -193,6 +194,7 @@ block_fit_plot = ggplot(aes(x=x,y=y), data=full_data)+
   geom_line(aes(y= fit,color=model), data=fit_block_data,
             size=1)+
   scale_color_brewer(palette="Set1")+ 
+  guides(colour = guide_legend(nrow = 2))+
   theme(strip.background = element_blank(),
         strip.text.x = element_blank(),
         legend.position="bottom")

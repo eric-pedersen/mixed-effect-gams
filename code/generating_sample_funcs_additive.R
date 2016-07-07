@@ -10,7 +10,7 @@ source("code/functions.R")
 
 #starting parameters  ####  
 n_data = 36 #number of data points per group
-n_groups = 25 # number of groups
+n_groups = 12 # number of groups
 holdout_frac= 0.33 #fraction of data held out from training models
 
 total_amp = 1
