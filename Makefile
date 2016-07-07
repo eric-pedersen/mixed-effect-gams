@@ -12,12 +12,10 @@ md: $(RMD_FILES)
 tex: $(TEX_FILES)
 %.tex: %.md
 				pandoc --natbib $< -o $@
-				rm $<
 
 
 main: paper.Rnw
 				R --vanilla --slave -e "knitr::knit('paper.Rnw')"
-				rm paper_sections/*.tex
 				pdflatex paper.tex
 				bibtex paper
 				pdflatex paper.tex
