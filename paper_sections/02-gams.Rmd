@@ -1,16 +1,16 @@
 # Generalized additive models
 
-One of the most common model formulations in statistics is the generalized linear model [@McCullagh:1989ti]-- that is a model that relates its response ($y_i$) to linear combinations of explanatory variables. We may allow allow the response to be distributed in some particularly useful way (e.g. letting the response be a Bernoulli trial, a count or a strictly positive number -- relating to binomial, Poisson or Gamma distributions, respectively). For the most part, we don't believe that our responses are really linear functions of the covariates (though this is a handy assumption to make). The generalized additive modelling (GAM) framework [@Hastie:1990vg, @Ruppert:2003uc, @Wood:2006vg] allows the relationships between the explanatory variables (henceforth covariates) and the response to be described by smooth functions using *splines* [@deBoor:1978wq]. In general we are then talking about models of the form:
+One of the most common model formulations in statistics is the generalized linear model [@McCullagh:1989ti] --- that is a model that relates its response ($y_i$) to linear combinations of explanatory variables. We may allow allow the response to be distributed in some particularly useful way (e.g. letting the response be a Bernoulli trial, a count or a strictly positive number -- relating to binomial, Poisson or Gamma distributions, respectively). For the most part, we don't believe that our responses are really linear functions of the covariates (though this is a handy assumption to make). The generalized additive modelling (GAM) framework [@Hastie:1990vg; @Ruppert:2003uc; @Wood:2006vg] allows the relationships between the explanatory variables (henceforth covariates) and the response to be described by smooth functions using *splines* [@deBoor:1978wq]. In general we are then talking about models of the form:
 $$
-\mathbb{E}\left( y \right) = \sum_{j=1}^J f_k(x_j),
+\mathbb{E}\left( y \right) = g^{-1}\left( \beta_0 + \sum_{j=1}^J f_k(x_j) \right),
 $$
-where $y$ is the response (with an appropriate distribution), $f_j$ is a smooth function of the covariate $x_j$. Here we are imagining that there are $J$ of these smooths and each is a function of only one of the covariates, though it is possible to construct smooths of multiple variables.
+where $y$ is the response (with an appropriate distribution and link function $g$), $f_j$ is a smooth function of the covariate $x_j$, $\beta_0$ is an intercept term and $g^{-1}$ is the inverse link function. Here we are imagining that there are $J$ of these smooths and each is a function of only one of the covariates, though it is possible to construct smooths of multiple variables.
 
-Each of the $f_k$s is represented by a spline. Splines use sums of simpler *basis functions* to build up complex relationships, each basis function has a corresponding parameter to be estimated in the model:
+Each of the $f_j$s is represented by a spline. Splines use sums of simpler *basis functions* to build up complex relationships, each basis function has a corresponding parameter to be estimated in the model:
 $$
 f_j(x_j) = \sum_{k=1}^K \beta_k b_k(x_j),
 $$
-where the $b_k$s are the basis functions (of which there are a great deal of flavours, see below) and the $\beta_k$s are to be estimated. The size of $K$ will dictate how flexible the resulting smooth can be (referred to as "basis size", "basis complexity" or "basis richness") and the influence of each basis function is dictated by the corresponding $\beta_k$ parameter. Though it seems like the basis can be overly complex ("how big should I make $k$?") and lead to overfitting, we need not worry about this as we use a penalty to ensure that the functions complexity is appropriate; hence the basis only need to be "large enough" and we let the penalty deal with the rest.
+where the $b_k$s are the basis functions (of which there are a great deal of flavours, see below) and the $\beta_k$s are to be estimated. The size of $K$ will dictate how flexible the resulting smooth can be (referred to as "basis size", "basis complexity" or "basis richness") and the influence of each basis function is dictated by the corresponding $\beta_k$ parameter. Though it seems like the basis can be overly complex ("how big should I make $k$?") and lead to overfitting, we need not worry about this as we use a penalty to ensure that the functions complexity is appropriate; hence the basis only need to be "large enough" and we let the penalty deal with the rest. Each smooth may have a different basis size, though we do not show this above for sake of notational brevity and simplicity.
 
 Each term in the model (henceforth *smooth*) has a corresponding *smoothing parameter* which controls how wiggly the smooth should be (so as to avoid interpolation). Figure XXX shows how varying the smoothing parameter can vary the shape of the smooth. The smoothing parameter multiplies the penalty (usually calculated from the derivatives of the smooth, measuring the wigglyness of the function), ensuring that the smooth does a good job of representing the underlying pattern in the data.
 
@@ -18,11 +18,10 @@ For the smoothing parameter to control how wiggly the smooth is, it first needs 
 
 There are many possible basis functions and there is a wide literature in both statistics and numerical analysis on which basis is suited for a particular task. In this article, we'll only concentrate on a few basis functions, though interested readers should consult @Wood:2006vg and @Ruppert:2003uc for further information.
 
-```{r lambda, echo=FALSE, results='hide', fig.width=8, fig.height=4, cache=TRUE, fig.cap="A caption", messages=FALSE, dev=c('pdf')}
+```{r lambda, echo=FALSE, results='hide', fig.width=6, fig.height=3, cache=TRUE, fig.cap="A caption", messages=FALSE, dev=c('pdf')}
 # example of varying lambda
 
 library(mgcv)
-
 set.seed(12)
 
 # generate some data
@@ -32,24 +31,24 @@ dat$x <- dat$x2
 true <- data.frame(x = sort(dat$x),
                    y = dat$f2[order(dat$x)])
 
-
 par(mfrow=c(1,3),las=1,mgp=c(2,1,0))
 
 # optimal
 b <- gam(y~s(x, k=100), data=dat)
-plot(b, se=FALSE, residuals=TRUE, ylab=expression(hat(f)(x)), xlab="x", ylim=c(-9,12),
-     cex.lab=1.5)
+plot(b, se=FALSE, ylim=c(-9,12), cex.lab=1.2)
+points(dat$x, dat$y-coef(b)[1], pch=19, cex=0.5)
 lines(true$x, true$y-coef(b)[1], type="l", col="blue")
-
 
 # lambda=0
 b.0 <- gam(y~s(x, k=100), data=dat, sp=0)
-plot(b.0, se=FALSE, residuals=TRUE, ylim=c(-9,12), cex.lab=1.5)
+plot(b.0, se=FALSE, ylim=c(-9,12), cex.lab=1.2)
+points(dat$x, dat$y-coef(b.0)[1], pch=19, cex=0.5)
 lines(true$x, true$y-coef(b.0)[1], type="l",col="blue")
 
 # lambda=infinity
 b.inf <- gam(y~s(x, k=100), data=dat, sp=1e10)
-plot(b.inf, se=FALSE, residuals=TRUE, ylim=c(-9,12), cex.lab=1.5)
+plot(b.inf, se=FALSE, ylim=c(-9,12), cex.lab=1.2)
+points(dat$x, dat$y-coef(b.inf)[1], pch=19, cex=0.5)
 lines(true$x, true$y-coef(b.inf)[1], type="l", col="blue")
 ```
 
@@ -68,7 +67,7 @@ As mentioned above, there are a large set of possible spline bases to use. Thoug
 
 #### Cubic splines
 
-Cubic splines are often used to prove theoretical properties of smoothers, though their utility extends beyond that. The basis consists of a series of cubic polynomials, defined at the knots of the spline. These add together to form a univariate basis. The basis then has directly interpretable coefficients (Wood 2006, 4.1.2).
+Cubic splines are often used to prove theoretical properties of smoothers, though their utility extends beyond that. The basis consists of a series of cubic polynomials, defined at the knots of the spline. These add together to form a univariate basis. The basis then has directly interpretable coefficients [@Wood:2006vg, Section 4.1.2].
 
 **something like Fig 4.1 from Wood 2006?**
 
@@ -81,7 +80,7 @@ Thin plate regression splines are more complex basis than cubic splines but offe
 
 TPRS are defined in two parts, one is a set of locally-acting radial basis functions and the second is a set of polynomials that act globally. The global parts look at the whole trend in the model and are unpenalized, the local radial basis functions model the finer scale variation.
 
-Rather than selecting knots, the TPRS places a knot at each observation, then uses an eigendecomposition to include only those linear combinations of knots that explain the most variation in the covariate (Wood 2003). This computational efficiency and side-stepping of the knot placement problem are the most appealing features of the basis.
+Rather than selecting knots, the TPRS places a knot at each observation, then uses an eigendecomposition to include only those linear combinations of knots that explain the most variation in the covariate [@wood_thin_2003]. This computational efficiency and side-stepping of the knot placement problem are the most appealing features of the basis.
 
 TPRS are defined for any number of predictors, so multivariate smoothers can be constructed easily, though with one caveat. Since the basis functions are radial, they treat each variable as being on the same scale (i.e., the basis is *isotropic*). This means that if one had, for example, a bivariate smooth of temperature and time, a one degree change in temperature would equate to a one second change in time -- this doesn't seem to be an obvious conversion to make, so it's important to ensure that the units of the terms in a multivariate TPRS model make sense to be combined.
 
@@ -102,7 +101,7 @@ We can think of the penalties as variances of random effects terms and the bases
 
 ## Comparison to hierarchical linear models
 
-Hierarchical linear models (HLMs; referred to as generalized linear mixed model, multilevel models etc; e.g., @Bolker:2009cs, @Gelman:2006jh) are an extension of regression modelling that allow the modeller to include structure in the data -- the structure is usually of the form of a nesting of the observations. For example individuals are nested within sample sites and sites are nested within forests and forests within states. The depth of the nesting is limited by the fitting procedure and number of parameters to estimate.
+Hierarchical linear models [HLMs; referred to as generalized linear mixed model, multilevel models etc; e.g., @Bolker:2009cs; @Gelman:2006jh] are an extension of regression modelling that allow the modeller to include structure in the data -- the structure is usually of the form of a nesting of the observations. For example individuals are nested within sample sites and sites are nested within forests and forests within states. The depth of the nesting is limited by the fitting procedure and number of parameters to estimate.
 
 HLMs are a highly flexible way to think about groupings in the data, the groupings used in the models often refer to the spatial or temporal scale of the data [@McMahon:2007ju] though can be based on any useful grouping.
 
