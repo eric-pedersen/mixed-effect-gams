@@ -63,7 +63,7 @@ Knots
 
 **Maybe talk about penalties here?**
 
-As mentioned above, there are a large set of possible spline bases to use. Though we note that asymptotically most are equivalent, there are other "flavours" that are useful in particular situations. Below we highlight a couple of the bases we'll talk about through the rest of the paper, though refer readers to Wood 2006, RWC and Hastie and Tibs for further details (oh also that Ruppert review paper in EJS).
+As mentioned above, there are a large set of possible spline bases to use. Though we note that asymptotically most are equivalent, there are other "flavours" that are useful in particular situations. Below we highlight a couple of the bases we'll talk about through the rest of the paper, though refer readers to @Wood:2006vg, @Ruppert:2003uc, @Hastie:1990vg and @Ruppert:2009bf for further details 
 
 
 #### Cubic splines
@@ -102,10 +102,9 @@ We can think of the penalties as variances of random effects terms and the bases
 
 ## Comparison to hierarchical linear models
 
-Hierarchical linear models (HLMs; referred to as generalized linear mixed model, multilevel models etc; cite Bolker, Gelman etc) are an extension of regression modelling that allow the modeller to include structure in the data -- the structure is usually of the form of a nesting of the observations. For example individuals are nested within sample sites and sites are nested within forests and forests within states. The depth of the nesting is limited by the fitting procedure and number of parameters to estimate.
+Hierarchical linear models (HLMs; referred to as generalized linear mixed model, multilevel models etc; e.g., @Bolker:2009cs, @Gelman:2006jh) are an extension of regression modelling that allow the modeller to include structure in the data -- the structure is usually of the form of a nesting of the observations. For example individuals are nested within sample sites and sites are nested within forests and forests within states. The depth of the nesting is limited by the fitting procedure and number of parameters to estimate.
 
-HLMs are a highly flexible way to think about groupings in the data, the groupings used in the models often refer to the spatial or temporal scale of the data (McMahon & Diez) though can be based on any useful grouping.
-
+HLMs are a highly flexible way to think about groupings in the data, the groupings used in the models often refer to the spatial or temporal scale of the data [@McMahon:2007ju] though can be based on any useful grouping.
 
 We would like to be able to think about the groupings in our data in a simple way, even when the covariates in our model are related to the response in a non-linear way. The next section investigates the extension of the smoothers we showed above to the case where each observation is in a group, with a group-level smooth.
 
