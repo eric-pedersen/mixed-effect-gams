@@ -72,6 +72,8 @@ As mentioned above, there are a large set of possible spline bases to use. Thoug
 
 #### Cubic splines
 
+**Should we include sample code for each smoother here? As this is a tutorial paper, it may help the reader**
+
 Cubic splines are often used to prove theoretical properties of smoothers, though their utility extends beyond that. The basis consists of a series of cubic polynomials, defined at the knots of the spline. These add together to form a univariate basis. The basis then has directly interpretable coefficients [@Wood:2006vg, Section 4.1.2].
 
 **something like Fig 4.1 from Wood 2006?**
@@ -85,7 +87,7 @@ Thin plate regression splines are more complex basis than cubic splines but offe
 
 TPRS are defined in two parts, one is a set of locally-acting radial basis functions and the second is a set of polynomials that act globally. The global parts look at the whole trend in the model and are unpenalized, the local radial basis functions model the finer scale variation.
 
-Rather than selecting knots, the TPRS places a knot at each observation, then uses an eigendecomposition to include only those linear combinations of knots that explain the most variation in the covariate [@wood_thin_2003]. This computational efficiency and side-stepping of the knot placement problem are the most appealing features of the basis.
+Rather than selecting knots, the TPRS places a knot at each observation, then uses an eigendecomposition to include only those linear combinations of knots that explain the most variation in the covariate [@wood_thin_2003]. This computational efficiency and side-stepping of the knot placement problem are the most appealing features of the basis. 
 
 TPRS are defined for any number of predictors, so multivariate smoothers can be constructed easily, though with one caveat. Since the basis functions are radial, they treat each variable as being on the same scale (i.e., the basis is *isotropic*). This means that if one had, for example, a bivariate smooth of temperature and time, a one degree change in temperature would equate to a one second change in time -- this doesn't seem to be an obvious conversion to make, so it's important to ensure that the units of the terms in a multivariate TPRS model make sense to be combined.
 
@@ -99,8 +101,9 @@ This connection between random effects and basis function smooths extends beyond
 
 #### Tensor products
 
-In the more general case where we want to construct smooth interactions of several variables where the variables in question are not on the same scale, we need to build a tensor product smooth. This takes two (e.g, univariate) spline bases and uses a tensor product to construct a larger (e.g., bivariate) basis of two or more variables. The resulting basis is scale invariant with respect to the covariates, leading to a much more flexible term. This flexibility comes at the cost of computational time, as constructing these bases can be time consuming.
+In the more general case where we want to construct smooth interactions of several variables where the variables in question are not on the same scale, we need to build a tensor product smooth. This takes two (e.g, univariate) spline bases and uses a tensor product to construct a larger (e.g., bivariate) basis of two or more variables, with one penalty term for each dimension of the smooth. The resulting basis is scale invariant with respect to the covariates, leading to a much more flexible term. This flexibility comes at the cost of computational time, as constructing these bases can be time consuming.
 
+**should we discuss ti() vs. te() smooths here?**
 
 **something like fig 4.7 from Wood 2006?**
 
