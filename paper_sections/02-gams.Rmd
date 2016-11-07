@@ -65,6 +65,8 @@ Knots
 
 **not sure how much mathematical detail is required at this point, don't want to overcomplicate -- what more can be gained from writing down the exact mathematical expressions here?**
 
+**EJP: I think we should avoid a lot of the mathematical detail; we can just refer to Simon's papers for interested readers.** 
+
 **Maybe talk about penalties here?**
 
 As mentioned above, there are a large set of possible spline bases to use. Though we note that asymptotically most are equivalent, there are other "flavours" that are useful in particular situations. Below we highlight a couple of the bases we'll talk about through the rest of the paper, though refer readers to @Wood:2006vg, @Ruppert:2003uc, @Hastie:1990vg and @Ruppert:2009bf for further details 
@@ -103,11 +105,12 @@ This connection between random effects and basis function smooths extends beyond
 
 In the more general case where we want to construct smooth interactions of several variables where the variables in question are not on the same scale, we need to build a tensor product smooth. This takes two (e.g, univariate) spline bases and uses a tensor product to construct a larger (e.g., bivariate) basis of two or more variables, with one penalty term for each dimension of the smooth. The resulting basis is scale invariant with respect to the covariates, leading to a much more flexible term. This flexibility comes at the cost of computational time, as constructing these bases can be time consuming.
 
-**should we discuss ti() vs. te() smooths here?**
+**should we discuss ti() vs. te() smooths here, as ti() smoothers become important when fitting both a global trend and an individual-level trend?**
 
 **something like fig 4.7 from Wood 2006?**
 
 
+**EJP: Should we add a short section on penalties (and the difference between null space and standard penalties) here? **
 
 
 ## Comparison to hierarchical linear models
