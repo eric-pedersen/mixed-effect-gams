@@ -1,0 +1,33 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# What do we mean by hierarchical smooths?
+
+Ecological data is often hiearchical, with observations occuring in groups (which may in turn may be grouped at higher levels). The smoothers we went over in section II allowed us to model global nonlinear relationships between our **x** and **y** variables. However, in many cases we want to fit a different functional relationship for each level of a grouping variable. In this section, we will cover the different ways to model inter-group variability in smooth curves, and how to fit the different models in mgcv.
+
+When modelling hierarchical smooths in mgcv, there are three broad choices to make:
+
+1. Should each group have its own smooth, or will a global smooth be sufficient? 
+
+2. Will the different smooth functions for each group have a similar shape to one another? That is, there a shared global average curve?
+
+3. Do all of the group-specific curves have similar smoothness to one another, or should they share a common smoothness penalty?
+
+The combination of these three questions results in 5 possible models (figure *models*) beyond the null model of no functional relation between **x** and **y**:
+
+1. A single common smooth function for all observations.
+
+2. A single common smooth function plus group-level functions that are all similarly smooth.
+
+3. A single common smooth plus group-level functions that vary in smoothness from one another.
+
+4. Group-specific smooth functions without an average trend, but with all functions being similiarly smooth.
+
+5. Group-specific functions that differ in smoothness. 
+
+
+
+![](../figures/alternate_models.png)
