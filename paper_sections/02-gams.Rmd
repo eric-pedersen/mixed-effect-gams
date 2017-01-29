@@ -5,25 +5,23 @@ output:
 ---
 # Generalized additive models
 
-One of the most common model formulations in statistics is the generalized linear model [@McCullagh:1989ti] --- that is a model that relates its response ($y_i$) to linear combinations of explanatory variables. We may allow allow the response to be distributed in some particularly useful way (e.g. letting the response be a Bernoulli trial, a count or a strictly positive number -- relating to binomial, Poisson or Gamma distributions, respectively). For the most part, we don't believe that our responses are really linear functions of the covariates (though this is a handy assumption to make). The generalized additive modelling (GAM) framework [@Hastie:1990vg; @Ruppert:2003uc; @Wood:2006vg] allows the relationships between the explanatory variables (henceforth covariates) and the response to be described by smooth functions using *splines* [@deBoor:1978wq]. In general we are then talking about models of the form:
+One of the most common model formulations in statistics is the generalized linear model [@McCullagh:1989ti] --- that is a model that relates its response ($y_i$) to linear combinations of explanatory variables. We may allow allow the response to be distributed in some particularly useful way (e.g., letting the response be a trial, a count or a strictly positive number -- relating to binomial, Poisson or Gamma distributions, respectively). For the most part, we don't believe that our responses are really linear functions of the covariates (though this is a handy assumption to make). The generalized additive modelling (GAM) framework [@Hastie:1990vg; @Ruppert:2003uc; @Wood:2006vg] allows the relationships between the explanatory variables (henceforth covariates) and the response to be described by smooth functions using *splines* [@deBoor:1978wq]. In general we are then talking about models of the form:
 $$
 \mathbb{E}\left( y \right) = g^{-1}\left( \beta_0 + \sum_{j=1}^J f_k(x_j) \right),
 $$
-where $y$ is the response (with an appropriate distribution and link function $g$), $f_j$ is a smooth function of the covariate $x_j$, $\beta_0$ is an intercept term and $g^{-1}$ is the inverse link function. Here we are imagining that there are $J$ of these smooths and each is a function of only one of the covariates, though it is possible to construct smooths of multiple variables.
+where $y$ is the response (with an appropriate distribution and link function $g$), $f_j$ is a smooth function of the covariate $x_j$, $\beta_0$ is an intercept term and $g^{-1}$ is the inverse link function. Here there are $J$ smooths and each is a function of only one covariates, though it is possible to construct smooths of multiple variables.
 
-Each of the $f_j$s is represented by a spline. Splines use sums of simpler *basis functions* to build up complex relationships, each basis function has a corresponding parameter to be estimated in the model:
+Each of the $f_j$s is represented by a spline. Splines use sums of simpler *basis functions* to build up complex relationships, each basis function has a corresponding coefficient to be estimated:
 $$
 f_j(x_j) = \sum_{k=1}^K \beta_k b_k(x_j),
 $$
-where the $b_k$s are the basis functions (of which there are a great deal of flavours, see below) and the $\beta_k$s are to be estimated. The size of $K$ will dictate how flexible the resulting smooth can be (referred to as "basis size", "basis complexity" or "basis richness") and the influence of each basis function is dictated by the corresponding $\beta_k$ parameter. Though it seems like the basis can be overly complex ("how big should I make $k$?") and lead to overfitting, we need not worry about this as we use a penalty to ensure that the functions complexity is appropriate; hence the basis only need to be "large enough" and we let the penalty deal with the rest. Each smooth may have a different basis size, though we do not show this above for sake of notational brevity and simplicity.
+where the $b_k$s are the basis functions (of which there are a great deal of flavours, see below) and the $\beta_k$s are to be estimated. The size of $K$ will dictate how flexible the resulting smooth can be (referred to as "basis size", "basis complexity" or "basis richness") and the influence of each basis function is dictated by the corresponding $\beta_k$ parameter. Though it seems like the basis can be overly complex ("how big should I make $K$?") and lead to overfitting, we need not worry about this as we use a penalty to ensure that the functions complexity is appropriate; hence the basis only need to be "large enough" and we let the penalty deal with the rest. Each smooth may have a different basis size, though we do not show this above for sake of notational brevity and simplicity.
 
-Each term in the model (henceforth *smooth*) has a corresponding *smoothing parameter* which controls how wiggly the smooth should be (so as to avoid interpolation). Figure XXX shows how varying the smoothing parameter can vary the shape of the smooth. The smoothing parameter multiplies the penalty (usually calculated from the derivatives of the smooth, measuring the wigglyness of the function), ensuring that the smooth does a good job of representing the underlying pattern in the data.
-
-For the smoothing parameter to control how wiggly the smooth is, it first needs a measure of wigglyness. This is provided by looking at the derivatives of the smooth (equivalently the sum of the basis functions) and integrating the derivatives out over the covariate values; we call this measure the *penalty* (or, when in matrix form, the *penalty matrix*). The form of the penalty (the order and combination of derivatives used) will effectively dictate the form of the basis functions (the basis functions are the solutions to the penalty) and hence this kind of model is often referred to as a *basis-penalty smoother*.
+The penalty for a term is usually based on derivatives of that term -- as the derivatives give the wigglyness of the function and hence its flexibility. We trade-off the fit of the model against the wigglyness penalty to obtain a model that both fits the data well but does not overfit. To control this trade-off we estimate a *smoothing parameter*. Figure XXXX shows optimal smoothing (where the smoothign parameter is estimated to give a parsimonious model) in the first plot; the second plot shows what happens when the smoothing parameter is set to zero, so the penalty has no effect (interpolation); the right plot shows when the smoothing parameter is set to a very large value, giving a straight line. Smooths of this kind are often referred to as a *basis-penalty smoothers*.
 
 There are many possible basis functions and there is a wide literature in both statistics and numerical analysis on which basis is suited for a particular task. In this article, we'll only concentrate on a few basis functions, though interested readers should consult @Wood:2006vg and @Ruppert:2003uc for further information.
 
-```{r lambda, echo=FALSE, results='hide', fig.width=6, fig.height=3, cache=TRUE, fig.cap="A caption", messages=FALSE, dev=c('pdf')}
+```{r lambda, echo=FALSE, results='hide', fig.width=6, fig.height=3, cache=TRUE, fig.cap="Examples of how different choices of the smoothing parameter effect the resulting function. Data (points) were generated from the blue function and noise added to them. In the left plot the smoothing parameter was estimated to give a good fit to the data, in the middle plot the smoothing parameter was set to zero, so the penalty has no effect and the function interpolates the data, the right plot shows when the smoothing parameter is set to a very large value, so the penalty removes all terms that have any wigglyness, giving a straight line. Numbers in the $y$ axis labels show the estimated degrees of freedom for the term.", messages=FALSE, dev=c('pdf')}
 # example of varying lambda
 
 library(mgcv)
@@ -57,35 +55,46 @@ points(dat$x, dat$y-coef(b.inf)[1], pch=19, cex=0.5)
 lines(true$x, true$y-coef(b.inf)[1], type="l", col="blue")
 ```
 
-Say something about bivariate splines here
+The number of basis functions, $K$, limits the maximum basis complexity for a given smooth term. To measure the wigglyness of a given term, we use the *effective degrees of freedom* (EDF) which, at a maximum is the number of coefficients to be estimated in the model, minus any constraints. The EDF can take non-integer values and a larger value indicates a more wiggly term. See @Wood:2006vg Section 4.4 for further details.
 
-Knots
 
 ### Basis function zoo
-
-**not sure how much mathematical detail is required at this point, don't want to overcomplicate -- what more can be gained from writing down the exact mathematical expressions here?**
-
-**EJP: I think we should avoid a lot of the mathematical detail; we can just refer to Simon's papers for interested readers.** 
-
-**Maybe talk about penalties here?**
 
 As mentioned above, there are a large set of possible spline bases to use. Though we note that asymptotically most are equivalent, there are other "flavours" that are useful in particular situations. Below we highlight a couple of the bases we'll talk about through the rest of the paper, though refer readers to @Wood:2006vg, @Ruppert:2003uc, @Hastie:1990vg and @Ruppert:2009bf for further details 
 
 
 #### Cubic splines
 
-**Should we include sample code for each smoother here? As this is a tutorial paper, it may help the reader**
-
 Cubic splines are often used to prove theoretical properties of smoothers, though their utility extends beyond that. The basis consists of a series of cubic polynomials, defined at the knots of the spline. These add together to form a univariate basis. The basis then has directly interpretable coefficients [@Wood:2006vg, Section 4.1.2].
 
-**something like Fig 4.1 from Wood 2006?**
+```{r cubic, echo=FALSE, results='hide', fig.width=5, fig.height=5, messages=FALSE, dev=c('pdf'), cache=TRUE, fig.cap="Cubic spline (solid line) and its constituent basis functions (non-solid lines) and the intercept (dashed horizontal line at 1)."}
+library(mgcv)
+set.seed(2)
+dat <- gamSim(1,n=400,dist="normal",scale=2)
+b <- gam(y~s(x0, k=5, bs="cr"),data=dat)
+
+# main plot
+plot(b, se=FALSE, ylim=c(-1, 1))
+
+# plot each basis
+cf <- coef(b)
+xp <- data.frame(x0=seq(0, 1, length.out=100))
+Xp <- predict(b, newdata=xp, type="lpmatrix")
+
+for(i in 1:length(cf)){
+  cf_c <- cf
+  cf_c[-i] <- 0
+  cf_c[i] <- 1
+  lines(xp$x0, as.vector(Xp%*%cf_c), lty=i+1)
+}
+```
 
 It is often the case that we have a covariate where the start and end points "join up". For example, time of day, day of year, angles, **more examples here** all take values that must match at both ends for the model to make sense. We can engineer this behaviour for the cubic spline by ensuring that the value of the function, plus its first and second derivatives match at the end points (as defined by the quantity in question, not the values in the data, necessarily).
 
 
 #### Thin plate regression splines
 
-Thin plate regression splines are more complex basis than cubic splines but offer more utility when it comes to modelling more complex data. For example, TPRS tend to be more computationally efficient and can extend to more than one dimension in a simpler way.
+Thin plate regression splines are more mathematically complicated basis than cubic splines but offer more utility when it comes to modelling more complex data. For example, TPRS tend to be more computationally efficient and can extend to more than one dimension in a simpler way.
 
 TPRS are defined in two parts, one is a set of locally-acting radial basis functions and the second is a set of polynomials that act globally. The global parts look at the whole trend in the model and are unpenalized, the local radial basis functions model the finer scale variation.
 
@@ -95,7 +104,7 @@ TPRS are defined for any number of predictors, so multivariate smoothers can be 
 
 #### Random effects
 
-So far we have simply covered smooths as "wiggly lines" (or planes or hyperplanes etc), but the basis-penalty setup allows us to think of smooths as a much wider class of models. This equivalence is extremely handy for computation as well as including flexible terms in our models, as we shall see later.
+So far we have simply covered smooths as "wiggly lines" (or planes or hyperplanes etc), but the basis-penalty setup allows us to think of "smooths" as a much wider class of models. This equivalence is extremely handy for computation as well as including flexible terms in our models, as we shall see later.
 
 For instance, it is straight forward to include a random effect modelling between group variation in intercepts in any `mgcv` model. In this case, there will be one basis function for each level of the grouping variable, that takes a value of 1 for any observation in that group and 0 for any observation not in the group. The penalty matrix for these terms is a $n_g$ by $n_g$ identity matrix, where $n_g$ is the number of groups. This means that each group-level coefficient will be penalized in proportion to its squared deviation from zero. This is equivilent to how random effects are estimated in standard mixed effect models. The penalty term here is proportionate to the inverse of the variance of the fixed effect estimated by standard hierarchical model solvers [add citation here].
 
