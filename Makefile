@@ -21,4 +21,5 @@ main: paper.Rnw
 				pdflatex paper.tex
 				pdflatex paper.tex
 				rm paper.tex
+				rm paper_sections/*.md paper_sections/*.tex
 
