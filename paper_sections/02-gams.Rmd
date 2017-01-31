@@ -112,11 +112,27 @@ This connection between random effects and basis function smooths extends beyond
 
 #### Tensor products
 
-In the more general case where we want to construct smooth interactions of several variables where the variables in question are not on the same scale, we need to build a tensor product smooth. This takes two (e.g, univariate) spline bases and uses a tensor product to construct a larger (e.g., bivariate) basis of two or more variables, with one penalty term for each dimension of the smooth. The resulting basis is scale invariant with respect to the covariates, leading to a much more flexible term. This flexibility comes at the cost of computational time, as constructing these bases can be time consuming.
+Just as in linear regression, we can construct interactions of several variables in a GAM. Multi-variate bases like thin plate splines are one approach, but assume that the interacting terms are measured on the same scale, which does not make sense (models assume, e.g., that a 1 degree change in temperature would be equivalent to a 1 g/mm^3 change in chlorophyll concentration). In the more general case where units are not alike, we can use *tensor products* to combine two or more univariate smooths into a more complex basis. Each component can be made up from a different basis (playing to their particular strengths).
 
-**should we discuss ti() vs. te() smooths here, as ti() smoothers become important when fitting both a global trend and an individual-level trend?**
+In the linear modelling literature we can specify a single interaction between terms (in R, `a:b`) or a "full interaction", which includes the marginal terms (`a*b` in R, which is equivalent to `a + b + a:b`). There are parallels for smooths too, allowing us to separate-out the main effect terms from the interactions (in R `te(a, b)` specifies the tensor product which is equivalent to `ti(a) + ti(b) + ti(a, b)`). The ability to separate out the interactions and main effects will become very useful in the next section, once we start looking at group-level smooths.
 
-**something like fig 4.7 from Wood 2006?**
+```{r mackerel-tensor, echo=FALSE, results='hide', fig.width=5, fig.height=5, messages=FALSE, dev=c('pdf'), cache=TRUE, fig.cap="Tensor product of depth and salinity with data taken from a 1992 survey of mackerel eggs. The two left plots show the marginal smooths of each term in the model (`ti(s.depth)` above and `ti(salinity)` below), the right plot shows the interaction effect (`ti(s.depth, salinity)`). Data are from @Wood:2006vg."}
+library(mgcv)
+library(gamair)
+
+# use the mackerel data example
+data(mack)
+
+b <- gam(egg.count~ti(s.depth) + ti(salinity) + ti(s.depth, salinity),
+         family=tw(), data=mack)
+
+layout(matrix(c(1,2,3,3), 2, 2), widths=c(1.5,1.5,1), height=c(1,1,2))
+par(mar=c(4, 3, 1, 2) + 0.1)
+plot(b, select=1)
+plot(b, select=2)
+par(mar=c(0, 0, 0, 0) + 0.1)
+vis.gam(b, view=c("s.depth","salinity"), theta=-60, phi=30, color="bw")
+```
 
 
 **EJP: Should we add a short section on penalties (and the difference between null space and standard penalties) here? **
