@@ -11,7 +11,7 @@
 \documentclass[fleqn,10pt,lineno]{wlpeerj} % for journal submissions
 % \documentclass[fleqn,10pt]{wlpeerj} % for preprint submissions
 
-\title{Article Title}
+\title{Hierarchical Generalized Additive Models}
 
 \author[1]{First Author}
 \author[2]{Second Author}
