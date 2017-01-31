@@ -45,6 +45,8 @@ library(knitr)
 
 \Sexpr{knit_child('paper_sections/02-gams.tex')}
 
+%\Sexpr{knit_child('paper_sections/03-hierarchical_gams.tex')}
+
 \section*{Results and Discussion}
 
 
