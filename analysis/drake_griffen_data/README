@@ -1,0 +1,22 @@
+Data adapted from:
+
+  Drake, J.M. & B.D. Griffen. 2010. Early warning signals of extinction in deteriorating environments. Nature 467:456-459. doi:10.1038/nature09389
+
+Downloaded at: http://datadryad.org/resource/doi:10.5061/dryad.q3p64
+
+
+Data adapted from the below files, using the script make_dat.R:
+
+timeseries.csv - Contains census records (triplicate counting) for all experimental populations
+  ID: Unique identifier for each experimental population
+  Subpop: Unique identifier for each chamber of a population
+  Date: Census date
+  sample1: First cenus
+  sample2: Second census
+  sample3: Third census
+  HoleNum: Experimental treatment - number of connecting passages (mm)
+  HoleSize: Experimental treatment - diameter of connecting passages (mm)
+  Deteriorating: Experimental treatment - indicator for whether or not population was in the deteriorating food treatment group
+  FoodLevel:  Volume of food suspension supplied on the census date
+
+preprocess.R - Auxilary script to format the data for analysis
