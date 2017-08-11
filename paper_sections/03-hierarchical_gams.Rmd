@@ -1,26 +1,28 @@
 ---
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 # What do we mean by hierarchical smooths?
 
-Ecological data is often hiearchical, with observations occuring in groups (which may in turn may be grouped at higher levels). The smoothers we went over in section II allowed us to model global nonlinear relationships between our **x** and **y** variables. However, in many cases we want to fit a different functional relationship for each level of a grouping variable. In this section, we will cover the different ways to model inter-group variability in smooth curves, and how to fit the different models in mgcv.
+Ecological data is often hierarchically structured, with observations occuring in groups (which may in turn may be grouped at higher levels). The smoothers we went over in section II allowed us to model global nonlinear relationships between our **x** and **y** variables. However, in many cases we want to fit a different functional relationship for each level of a grouping variable. In this section, we will cover the different ways to model inter-group variability in smooth curves, and how to fit the different models in mgcv.
 
 When modelling hierarchical smooths in mgcv, there are three broad choices to make:
 
-1. Should each group have its own smooth, or will a global smooth be sufficient? 
+1. Should each the functional relationship between x and y for each group have its own smooth, or will a global smooth term suffice? 
 
-2. Will the different smooth functions for each group have a similar shape to one another? That is, there a shared global average curve?
+2. Do all of the group-specific curves have similar smoothness to one another, or should each group have its own smoothness penalty?
 
-3. Do all of the group-specific curves have similar smoothness to one another, or should they share a common smoothness penalty?
+3. Will the different smooth functions for each group have a similar shape to one another? That is, there a shared global average curve?
+
+
 
 The combination of these three questions results in 5 possible models (figure *models*) beyond the null model of no functional relation between **x** and **y**:
 
 1. A single common smooth function for all observations.
 
-2. A single common smooth function plus group-level functions that are all similarly smooth.
+2. A single common smooth function plus group-level functions that are all similarly smooth to one another.
 
 3. A single common smooth plus group-level functions that vary in smoothness from one another.
 
@@ -28,6 +30,13 @@ The combination of these three questions results in 5 possible models (figure *m
 
 5. Group-specific functions that differ in smoothness. 
 
+We will discuss the tradeoffs between different models and  guidelines about
+when each of these models is appropriate in section IV. 
 
+
+Each of these models can be coded in `mgcv` 
+
+
+<!-- MOVE THIS TEXT TO SECTION IV: Choosing between these models requires tradeoffs. The first is the amount of time and computer resources it takes to fit a model. More smooth functions (moving from model 1 to 2-5) means that there will be more regression parameters to estimate, and estimating additional smoothing parameters (moving from model 2 to model 3, or moving from model 4 to 5) adds even more computational burden, as estimating penalty parameters is very computationally intensive (we will discuss this more in section IV). The second tradeoff is between bias and variance in fitting curves for any given group. Fitting a single common curve for all groups (model 1) makes use of all available data to fit a single curve -->
 
 ![](../figures/alternate_models.png)
