@@ -115,6 +115,6 @@ print(basis_penalty_plot)
 full_plot = plot_grid(basis_func_plot,basis_penalty_plot,ncol=2,
                       rel_widths = c(1.5,1),labels= c("A","B"))
 
-ggsave("figures/fig.1 - example spline basis and penalties.png", full_plot, 
+ggsave("figures/example spline basis and penalties.png", full_plot, 
        width=14, height= 4, units = "in",dpi = 300)
 
