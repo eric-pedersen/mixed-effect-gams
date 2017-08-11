@@ -2,22 +2,24 @@
 output:
   pdf_document: default
   html_document: default
+  word_document: default
 ---
 # Generalized additive models
 
-One of the most common model formulations in statistics is the generalized linear model [@McCullagh:1989ti] --- that is a model that relates its response ($y_i$) to linear combinations of explanatory variables. We may allow allow the response to be distributed in some particularly useful way (e.g., letting the response be a trial, a count or a strictly positive number -- relating to binomial, Poisson or Gamma distributions, respectively). For the most part, we don't believe that our responses are really linear functions of the covariates (though this is a handy assumption to make). The generalized additive modelling (GAM) framework [@Hastie:1990vg; @Ruppert:2003uc; @Wood:2006vg] allows the relationships between the explanatory variables (henceforth covariates) and the response to be described by smooth functions using *splines* [@deBoor:1978wq]. In general we are then talking about models of the form:
+One of the most common model formulations in statistics is the generalized linear model [@McCullagh:1989ti] --- that is a model that relates its response ($y$) to linear combinations of explanatory variables. We may allow allow the response to be distributed in some particularly useful way (e.g., letting the response be a trial, a count or a strictly positive number -- relating to binomial, Poisson or Gamma distributions, respectively). For the most part, we don't believe that our responses are really linear functions of the covariates (though this is a handy assumption to make). The generalized additive modelling (GAM) framework [@Hastie:1990vg; @Ruppert:2003uc; @Wood:2006vg] allows the relationships between the explanatory variables (henceforth covariates) and the response to be described by smooth functions using *splines* [@deBoor:1978wq]. In general we are then talking about models of the form:
 $$
-\mathbb{E}\left( y \right) = g^{-1}\left( \beta_0 + \sum_{j=1}^J f_k(x_j) \right),
+\mathbb{E}\left( y \right) = g^{-1}\left( \beta_0 + \sum_{j=1}^J f_j(x_j) \right),
 $$
-where $y$ is the response (with an appropriate distribution and link function $g$), $f_j$ is a smooth function of the covariate $x_j$, $\beta_0$ is an intercept term and $g^{-1}$ is the inverse link function. Here there are $J$ smooths and each is a function of only one covariates, though it is possible to construct smooths of multiple variables.
+where $y$ is the response (with an appropriate distribution and link function $g$), $f_j$ is a smooth function of the covariate $x_j$, $\beta_0$ is an intercept term and $g^{-1}$ is the inverse link function. Here there are $J$ smooths and each is a function of only one covariate, though it is possible to construct smooths of multiple variables.
 
 Each of the $f_j$s is represented by a spline. Splines use sums of simpler *basis functions* to build up complex relationships, each basis function has a corresponding coefficient to be estimated:
 $$
 f_j(x_j) = \sum_{k=1}^K \beta_k b_k(x_j),
 $$
+
 where the $b_k$s are the basis functions (of which there are a great deal of flavours, see below) and the $\beta_k$s are to be estimated. The size of $K$ will dictate how flexible the resulting smooth can be (referred to as "basis size", "basis complexity" or "basis richness") and the influence of each basis function is dictated by the corresponding $\beta_k$ parameter. Though it seems like the basis can be overly complex ("how big should I make $K$?") and lead to overfitting, we need not worry about this as we use a penalty to ensure that the functions complexity is appropriate; hence the basis only need to be "large enough" and we let the penalty deal with the rest. Each smooth may have a different basis size, though we do not show this above for sake of notational brevity and simplicity.
 
-The penalty for a term is usually based on derivatives of that term -- as the derivatives give the wigglyness of the function and hence its flexibility. We trade-off the fit of the model against the wigglyness penalty to obtain a model that both fits the data well but does not overfit. To control this trade-off we estimate a *smoothing parameter*. Figure XXXX shows optimal smoothing (where the smoothign parameter is estimated to give a parsimonious model) in the first plot; the second plot shows what happens when the smoothing parameter is set to zero, so the penalty has no effect (interpolation); the right plot shows when the smoothing parameter is set to a very large value, giving a straight line. Smooths of this kind are often referred to as a *basis-penalty smoothers*.
+The penalty for a term is usually based on derivatives of that term -- as the derivatives give the wigglyness of the function and hence its flexibility. We trade-off the fit of the model against the wigglyness penalty to obtain a model that both fits the data well but does not overfit. To control this trade-off we estimate a *smoothing parameter*. Figure XXXX shows optimal smoothing (where the smoothing parameter is estimated to give a parsimonious model) in the first plot; the second plot shows what happens when the smoothing parameter is set to zero, so the penalty has no effect (interpolation); the right plot shows when the smoothing parameter is set to a very large value, giving a straight line. Smooths of this kind are often referred to as a *basis-penalty smoothers*.
 
 There are many possible basis functions and there is a wide literature in both statistics and numerical analysis on which basis is suited for a particular task. In this article, we'll only concentrate on a few basis functions, though interested readers should consult @Wood:2006vg and @Ruppert:2003uc for further information.
 
@@ -74,7 +76,7 @@ dat <- gamSim(1,n=400,dist="normal",scale=2)
 b <- gam(y~s(x0, k=5, bs="cr"),data=dat)
 
 # main plot
-plot(b, se=FALSE, ylim=c(-1, 1))
+plot(b, se=FALSE, ylim=c(-1, 1), lwd=3,rug=F,xlab="x",ylab="f(x)")
 
 # plot each basis
 cf <- coef(b)
@@ -89,14 +91,14 @@ for(i in 1:length(cf)){
 }
 ```
 
-It is often the case that we have a covariate where the start and end points "join up". For example, time of day, day of year, angles, **more examples here** all take values that must match at both ends for the model to make sense. We can engineer this behaviour for the cubic spline by ensuring that the value of the function, plus its first and second derivatives match at the end points (as defined by the quantity in question, not the values in the data, necessarily).
+It is often the case that we have a covariate where the start and end points "join up". For example, time of day, day of year, or angles all take values that must match at both ends for the model to make sense. We can engineer this behaviour for the cubic spline by ensuring that the value of the function, plus its first and second derivatives match at the end points (as defined by the quantity in question, not the values in the data, necessarily).
 
 
 #### Thin plate regression splines
 
 Thin plate regression splines are more mathematically complicated basis than cubic splines but offer more utility when it comes to modelling more complex data. For example, TPRS tend to be more computationally efficient and can extend to more than one dimension in a simpler way.
 
-TPRS are defined in two parts, one is a set of locally-acting radial basis functions and the second is a set of polynomials that act globally. The global parts look at the whole trend in the model and are unpenalized, the local radial basis functions model the finer scale variation.
+TPRS are defined in two parts: one is a set of locally-acting radial basis functions (that is, functions whose value only depends on the distance from the center of the function, and whose value rapidly goes to zero away from the center) and the second is a set of polynomials that act globally. The global parts look at the whole trend in the model and are unpenalized, the local radial basis functions model the finer scale variation. **EJP: I tweaked the wording here to define radial basis functions for a non-technical reader**
 
 Rather than selecting knots, the TPRS places a knot at each observation, then uses an eigendecomposition to include only those linear combinations of knots that explain the most variation in the covariate [@wood_thin_2003]. This computational efficiency and side-stepping of the knot placement problem are the most appealing features of the basis. 
 
@@ -108,11 +110,11 @@ So far we have simply covered smooths as "wiggly lines" (or planes or hyperplane
 
 For instance, it is straight forward to include a random effect modelling between group variation in intercepts in any `mgcv` model. In this case, there will be one basis function for each level of the grouping variable, that takes a value of 1 for any observation in that group and 0 for any observation not in the group. The penalty matrix for these terms is a $n_g$ by $n_g$ identity matrix, where $n_g$ is the number of groups. This means that each group-level coefficient will be penalized in proportion to its squared deviation from zero. This is equivilent to how random effects are estimated in standard mixed effect models. The penalty term here is proportionate to the inverse of the variance of the fixed effect estimated by standard hierarchical model solvers [add citation here].
 
-This connection between random effects and basis function smooths extends beyond the varying-intercept case. [David, am I right in this? is any basis function reparameterizable as a random effect?] Any basis-function representation of a smooth function can be transformed so that it can be represented as a random effect with an associated variance. This is beyond the scope of this paper, but see @wood_straightforward_2012 for more details on this.
+This connection between random effects and basis function smooths extends beyond the varying-intercept case. Any basis-function representation of a smooth function can be transformed so that it can be represented as a random effect with an associated variance. While this is beyond the scope of this paper, see @wood_straightforward_2012 for a more detailed discussion on the connections between these approaches.
 
 #### Tensor products
 
-Just as in linear regression, we can construct interactions of several variables in a GAM. Multi-variate bases like thin plate splines are one approach, but assume that the interacting terms are measured on the same scale, which does not make sense (models assume, e.g., that a 1 degree change in temperature would be equivalent to a 1 g/mm^3 change in chlorophyll concentration). In the more general case where units are not alike, we can use *tensor products* to combine two or more univariate smooths into a more complex basis. Each component can be made up from a different basis (playing to their particular strengths).
+Just as in linear regression, we can construct interactions of several variables in a GAM. Multi-variate bases like thin plate splines are one approach, but assume that the interacting terms are measured on the same scale, which does not make sense (models assume, e.g., that a 1 degree change in temperature would be equivalent to a 1 g/mm^3 change in chlorophyll concentration). In the more general case where units are not alike, we can use *tensor products* to combine two or more univariate smooths into a more complex basis. Each component can be made up from a different basis, playing to their particular strengths.
 
 In the linear modelling literature we can specify a single interaction between terms (in R, `a:b`) or a "full interaction", which includes the marginal terms (`a*b` in R, which is equivalent to `a + b + a:b`). There are parallels for smooths too, allowing us to separate-out the main effect terms from the interactions (in R `te(a, b)` specifies the tensor product which is equivalent to `ti(a) + ti(b) + ti(a, b)`). The ability to separate out the interactions and main effects will become very useful in the next section, once we start looking at group-level smooths.
 
@@ -134,18 +136,18 @@ par(mar=c(0, 0, 0, 0) + 0.1)
 vis.gam(b, view=c("s.depth","salinity"), theta=-60, phi=30, color="bw")
 ```
 
+### Smoothing penalties vs. shrinkage penalties
 
-**EJP: Should we add a short section on penalties (and the difference between null space and standard penalties) here? **
+Going ahead, it is also important to understand that penalties can have two effects on how well a model fits: they can penalize how wiggly a given term is (smoothing) and they can penalize the absolute size of the function (shrinkage). The standard penalties for the first two smoothers we discussed (cubic and thin plate splines) penalize deviations from an a function the model considers perfectly smooth; in *mgcv*, this is a straight line by default for 1-dimensional smooths. In both cases, the straight line falls in what is called the *null space* of the penalty matrix. 
 
+Later, when fitting hierarchical GAMs, it is often useful to be able to penalize the functions defined by the null space as well, to be able to shrink them to zero if they do not contribute significantly to a given model fit. This can be done either by tweaking the penalty matrix so that it both smooths and shrinks as the single penalty term increases, or by adding a new penalty term that just penalizes the null space for the model. Figure XYX shows an example of what the basis functions, smoothing penalties, and shrinkage penalties look like for a 6-basis function cubic spline (Figure XYX a) and for a 6-basis function thin-plate spline (Figure XYX b). The random effects smoother we discussed earlier is an example of a pure shrinkage penalty; it penalizes all deviations away from zero, no matter the pattern of those deviations.
+
+![](../example spline basis and penalties.png)
 
 ## Comparison to hierarchical linear models
 
-Hierarchical linear models [HGLMs; referred to as generalized linear mixed model, multilevel models etc; e.g., @Bolker:2009cs; @Gelman:2006jh] are an extension of regression modelling that allow the modeller to include structure in the data -- the structure is usually of the form of a nesting of the observations. For example individuals are nested within sample sites and sites are nested within forests and forests within states. The depth of the nesting is limited by the fitting procedure and number of parameters to estimate.
+Hierarchical linear models [HGLMs; referred to as generalized linear mixed model, multilevel models etc; e.g., @Bolker:2009cs; @Gelman:2006jh] are an extension of regression modelling that allow the modeller to include structure in the data -- the structure is usually of the form of a nesting of the observations. For example individuals are nested within sample sites, sites are nested within forests and forests within states. The depth of the nesting is limited by the fitting procedure and number of parameters to estimate.
 
 HGLMs are a highly flexible way to think about groupings in the data, the groupings used in the models often refer to the spatial or temporal scale of the data [@McMahon:2007ju] though can be based on any useful grouping.
 
 We would like to be able to think about the groupings in our data in a simple way, even when the covariates in our model are related to the response in a non-linear way. The next section investigates the extension of the smoothers we showed above to the case where each observation is in a group, with a group-level smooth.
-
-
-
-
