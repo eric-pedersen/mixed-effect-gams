@@ -112,6 +112,22 @@ For instance, it is straight forward to include a random effect modelling betwee
 
 This connection between random effects and basis function smooths extends beyond the varying-intercept case. Any basis-function representation of a smooth function can be transformed so that it can be represented as a random effect with an associated variance. While this is beyond the scope of this paper, see @wood_straightforward_2012 for a more detailed discussion on the connections between these approaches.
 
+#### Markov Random Fields
+
+Random effect splines penalize all levels of a grouping variable toward a zero (and thus towards the overall intercept), but otherwise assume the levels of a given group are essentially unrelated; there is no sense in which some levels of a grouping variable should be closer to one another. However, in many ecological problems, we expect the grouping variables to have some form of structure. For instance, we would expect closely related or functionally similar species to respond to ecological drivers such as temperature more similarly to one another that distantly related species. Markov Random field smoothers are one way to incorporate these relationships into our models. 
+
+As with random effects, Markov random field smoothers assign one basis function to each level of a grouping variable. The penalty for the term is then based on a set of connections between groups specified by the user. Groups directly connected to one another will be more strongly penalized toward one another. As a simple example, imagine a survey with four sites A,B, C, and D, situated along a river in order, so site B is downstream of site A and so on. In this situation we expect estimates for site A to be more similar to B than to C, and more similar to C than to D. The penalty matrix for this case would look like:
+
+$$
+\left[ {\begin{array}{cccc}
+1  & -1 & 0 & 0 \\
+-1 & 2  & -1 & 0 \\
+0  & -1 & 2 & -1\\
+0& 0 & -1 & 1
+ \end{array} } \right]
+$$
+Interestingly, if you assume that all groups are equally connected to all other groups (so the matrix above would have -1 for all its off-diagonal entries and 4 for all its diagonal entries), you end up with a model that penalizes all groups towards a common mean. This is very similar to how the random effects smoother operates when only modelling group-level means. However, this trick will come in handy later on when we start using interactions between smooth terms to construct hierarchical gams.
+
 #### Tensor products
 
 Just as in linear regression, we can construct interactions of several variables in a GAM. Multi-variate bases like thin plate splines are one approach, but assume that the interacting terms are measured on the same scale, which does not make sense (models assume, e.g., that a 1 degree change in temperature would be equivalent to a 1 g/mm^3 change in chlorophyll concentration). In the more general case where units are not alike, we can use *tensor products* to combine two or more univariate smooths into a more complex basis. Each component can be made up from a different basis, playing to their particular strengths.
