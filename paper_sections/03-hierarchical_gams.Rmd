@@ -37,7 +37,6 @@ We will discuss the trade-offs between different models and  guidelines about wh
 
 # Coding hierarchical GAMs in R
 
-<!-- MOVE THIS TEXT TO SECTION IV: Choosing between these models requires tradeoffs. The first is the amount of time and computer resources it takes to fit a model. More smooth functions (moving from model 1 to 2-5) means that there will be more regression parameters to estimate, and estimating additional smoothing parameters (moving from model 2 to model 3, or moving from model 4 to 5) adds even more computational burden, as estimating penalty parameters is very computationally intensive (we will discuss this more in section IV). The second tradeoff is between bias and variance in fitting curves for any given group. Fitting a single common curve for all groups (model 1) makes use of all available data to fit a single curve -->
 
 Each of these models can be coded straightforwardly in `mgcv`. We will use two simulated example datasets to demonstrate how to code these models (see the appendix for code to generate these examples):
 

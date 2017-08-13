@@ -1,0 +1,10 @@
+---
+title: "03-Computational_issues"
+author: "Eric Pedersen"
+date: "August 13, 2017"
+output: html_document
+---
+
+**EJP: I think it makes sense for this section to include a lot of the more math/computationally heavy issues. This would also be a good section to discuss the choice of gam/bam/gamm/gamm4, and maybe a brief discussion of how to fit these models in a Bayesian context, using either jagam or rstanarm**
+
+Choosing between these models requires tradeoffs. The first is the amount of time and computer resources it takes to fit a model. Adding more smooth functions (moving from model 1 to 2-5) means that there will be more regression parameters to estimate, and estimating additional smoothing parameters (moving from model 2 to model 3, or moving from model 4 to 5) is even more costly, as estimating smoothing parameters is computationally intensive. The second tradeoff is between bias and variance in fitting curves for any given group. Fitting a single common curve for all groups (model 1) makes use of all available data to fit a single curve
