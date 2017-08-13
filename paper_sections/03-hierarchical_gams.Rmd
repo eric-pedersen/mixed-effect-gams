@@ -6,7 +6,7 @@ output:
 
 # What do we mean by hierarchical smooths?
 
-Ecological data is often hierarchically structured, with observations occuring in groups (which may in turn may be grouped at higher levels). The smoothers we went over in section II allowed us to model global nonlinear relationships between our **x** and **y** variables. However, in many cases we want to fit a different functional relationship for each level of a grouping variable. In this section, we will cover the different ways to model inter-group variability in smooth curves, and how to fit the different models in mgcv.
+Ecological data is often hierarchically structured, with observations occurring in groups (which may in turn may be grouped at higher levels). The smoothers we went over in section II allowed us to model global nonlinear relationships between our **x** and **y** variables. However, in many cases we want to fit a different functional relationship for each level of a grouping variable. In this section, we will cover the different ways to model inter-group variability in smooth curves, and how to fit the different models in mgcv.
 
 When modelling hierarchical smooths in mgcv, there are three broad choices to make:
 
@@ -26,17 +26,65 @@ The combination of these three questions results in 5 possible models (figure *m
 
 3. A single common smooth plus group-level functions that vary in smoothness from one another.
 
-4. Group-specific smooth functions without an average trend, but with all functions being similiarly smooth.
+4. Group-specific smooth functions without an average trend, but with all functions being similarly smooth.
 
 5. Group-specific functions that differ in smoothness. 
 
-We will discuss the tradeoffs between different models and  guidelines about
-when each of these models is appropriate in section IV. 
 
+![](../figures/alternate_models.png)
 
-Each of these models can be coded in `mgcv` 
+We will discuss the trade-offs between different models and  guidelines about when each of these models is appropriate in section IV. The remainder of this section will focus on how to model each of these 5 models using `mgcv`. 
 
+# Coding hierarchical GAMs in R
 
 <!-- MOVE THIS TEXT TO SECTION IV: Choosing between these models requires tradeoffs. The first is the amount of time and computer resources it takes to fit a model. More smooth functions (moving from model 1 to 2-5) means that there will be more regression parameters to estimate, and estimating additional smoothing parameters (moving from model 2 to model 3, or moving from model 4 to 5) adds even more computational burden, as estimating penalty parameters is very computationally intensive (we will discuss this more in section IV). The second tradeoff is between bias and variance in fitting curves for any given group. Fitting a single common curve for all groups (model 1) makes use of all available data to fit a single curve -->
 
-![](../figures/alternate_models.png)
+Each of these models can be coded straightforwardly in `mgcv`. We will use two simulated example datasets to demonstrate how to code these models (see the appendix for code to generate these examples):
+
+A. A hypothetical study of plant species recovery following a disturbance. The data for this example consists of five plant species whose biomass was measured for each species at multiple sites, with the sites varying in the time since they were last burned. The data set (`plant_biomass`) consists of the variables `log_biomass` (log10-transformed species specific biomass in each plot), `species`, and `burn_time` (the time in months since the plot was burned). 
+
+B. A hypothetical study of bird movement along a migration corridor. This dataset consists of counts of six species of bird were conducted at multiple locations along a latitudinal gradient, with one observation taken every two weeks. The data set (bird_move) consists of the variables `count`, `latitude`, `week` and `species`. This example will allow us to demonstrate how to fit these models with interactions and with non-normal (count) data. 
+
+
+## Model 1: a single global smooth term
+
+ This is the typical GAM setup, with a single smooth term for each variable. Specifying the model is similar to specifying a `glm` in R. One-dimensional or isotropic multidimensional smooth terms are specified with a function named `s()`. The first arguments (given without names) are the terms to be smoothed over. The type of smooth to be used for the term is specified by writing `bs=<basis name>`, and the number of basis functions is specified by `k=<number of functions>`. The `s()` function will also take additional arguments, depending on the type of smooth. Both `bs` and `k` have default values; `bs` defaults to a thin-plate spline (`bs="tp"`) and `k` defaults to a value determined by the type of smoother (`k=10` by default for `bs="tp"`). See the documentation in `mgcv` for more details on specifying smooth terms, with `?mgcv::s` and `?mgcv::smooth.terms`. For a given `gam` model, you can have an arbitrary number of smooth terms, connected by putting `+` between each `s()` function. This is equivalent to including linear terms without interactions in a standard `glm` model. 
+
+For our plant data set, we will use two basic smooth terms: a thin plate spline to model the average functional relationship between time since burning and log-biomass, and a simple random effect smoother for species to model species-specific intercepts. 
+
+```{r lambda, echo=TRUE,  fig.width=6, fig.height=3, cache=TRUE}
+library(mgcv)
+plant_model1 = gam(log_biomass ~ s(burn_time,k=10,m=2, bs="tp")+s(species, bs="re"), data= plant_biomass,method="REML")
+
+plot(plant_model1,page=1)
+
+ggplot(data=plant_model1, aes(x=burn_time, y= log_biomass, color=species))+
+    geom_line(aes(y=fitted(plant_model1)))+
+    scale_color_brewer(palette= "Set1")
+          
+```
+
+Note that we have also specified `method="REML"`. This tells `mgcv` to use Restricted Maximum Likelihood [CITE] to estimate model coefficients and penalty terms. We strongly recommend using either `method="REML"` or `method="ML"` (marginal likelihood) when fitting models, as the default `method="GCV.Cp"` is not as consistent at estimating smoothing penalties as the likelihood-based methods and tends to substantially undersmooth terms [CITE]. 
+
+
+Global smooth models with interactions are also straightforward to model. For isotrophic smooths such as thin-plate splines, extra terms can simply be added to the `s()` function. For non-isotrophic smooths, we use the tensor product (`te()`) function. It is specified similarly to the `s()` function, but requires additional information to specify the types of basis and number of basis functions used for each marginal term. `bs` can be specified as a single value, in which case that basis is used for all marginal terms in the model. `k` can also be given as a single value, and works similar to `bs`. As with `s()`, the user can also give `te()` more options depending on the basis types used. For more information, consult `?mgcv::te`.
+
+For our bird example, we will use two smooth terms. The first will be a tensor product of latitude and week, using a 5 basis function thin plate spline for the marginal latitude effects, and a 10 basis function cyclic cubic spline for the marginal week effect to account for the cyclic nature of weekly effects (we expect week 1 and week 52 to have very similar values). The second smooth term will be again a random effect for species. 
+
+```{r lambda, echo=TRUE,  fig.width=6, fig.height=3, cache=TRUE}
+library(mgcv)
+library(ggplot2)
+library(viridis) #for color plotting
+bird_model1 = gam(count ~ te(latitude, week, bs= c("tp","cc"), k=c(5,10))+ s(species, bs="re"), data= bird_move, method="REML")
+plot(bird_model1) 
+#note this will only show the random effect smooth, as there is no default plotting method for tensor products
+
+ggplot(data=bird_move, aes(x=latitude, y=count,color=week))+
+  geom_point()+
+  geom_line(aes(y= fitted(bird_model1,group=week)))+
+  facet_wrap(~species)+
+  scale_color_viridis()
+```
+
+Note that the total number of basis functions used for a given smooth is the product of the marginal `k` values, so in this example the first smooth would have 49 parameters (5*10, minus one to account for the presence of the global intercept). The `te` smooth term will also have two smoothing parameters estimated; one for each marginal basis.
+
