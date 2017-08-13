@@ -1,3 +1,5 @@
+library(assertthat)
+
 #funtions ####
 generate_smooth_func = function(x,n_funcs=1,length_scale=0.25,
                                 amp = 1){
@@ -23,4 +25,18 @@ calc_rmse = function(fit,y,digits=2) round(sqrt(sum((y-fit)^2)),2)
 get_r2 = function(model) {
   model_summary = summary(model)
   return(model_summary$dev.expl)
+}
+
+create_connected_pmat = function(grouping_var){
+  assert_that(is.factor(grouping_var),
+              msg = "Markov random fields in mgcv require factor variables, and will not work properly on either character or numeric variables")
+  grp_levels = levels(grouping_var)
+  n_levels = length(grp_levels)
+  if(!all(grp_levels%in% grouping_var)){
+    warning("not all grouping levels are present in the variable")
+  }
+  pmat = matrix(-1, nrow= n_levels,ncol=n_levels)
+  diag(pmat) = n_levels-1
+  rownames(pmat) =colnames(pmat)=  grp_levels
+  return(pmat)
 }
