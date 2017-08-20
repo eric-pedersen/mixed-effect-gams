@@ -1,7 +1,7 @@
 ---
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 # What do we mean by hierarchical smooths?
@@ -37,10 +37,11 @@ We will discuss the trade-offs between different models and  guidelines about wh
 
 # Coding hierarchical GAMs in R
 
+**EJP: Going with simulated data for the examples rather than real as it's a bit less messy, and lets us show true functions to compare with simulated.**
 
-Each of these models can be coded straightforwardly in `mgcv`. We will use two simulated example datasets to demonstrate how to code these models (see the appendix for code to generate these examples):
+Each of these models can be coded straightforwardly in `mgcv`. We will use two example datasets to demonstrate how to code these models, one real and one simulated (see the appendix for code to generate these examples):
 
-A. A hypothetical study of plant species recovery following a disturbance. The data for this example consists of five plant species whose biomass was measured for each species at multiple sites, with the sites varying in the time since they were last burned. The data set (`plant_biomass`) consists of the variables `log_biomass` (log10-transformed species specific biomass in each plot), `species`, and `burn_time` (the time in months since the plot was burned). 
+A. The CO2 dataset, available in R in the default *datasets* package. This data is from an experimental study by CITE of $CO_2$ uptake in grasses under varying concentrations of $CO_2$, measuring how concentration-uptake functions varied between plants from two locations (Mississippi and Quebec) and two temperature treatments (chilled and warm). A total of 12 plants were measured, and ptake measured at 7 concentration levels for each plant. Here we will focus on how to use these techniques to estimate inter-plant variation in functional responses. 
 
 B. A hypothetical study of bird movement along a migration corridor. This dataset consists of counts of six species of bird were conducted at multiple locations along a latitudinal gradient, with one observation taken every two weeks. The data set (bird_move) consists of the variables `count`, `latitude`, `week` and `species`. This example will allow us to demonstrate how to fit these models with interactions and with non-normal (count) data. 
 
@@ -49,40 +50,58 @@ B. A hypothetical study of bird movement along a migration corridor. This datase
 
  This is the typical GAM setup, with a single smooth term for each variable. Specifying the model is similar to specifying a `glm` in R. One-dimensional or isotropic multidimensional smooth terms are specified with a function named `s()`. The first arguments (given without names) are the terms to be smoothed over. The type of smooth to be used for the term is specified by writing `bs=<basis name>`, and the number of basis functions is specified by `k=<number of functions>`. The `s()` function will also take additional arguments, depending on the type of smooth. Both `bs` and `k` have default values; `bs` defaults to a thin-plate spline (`bs="tp"`) and `k` defaults to a value determined by the type of smoother (`k=10` by default for `bs="tp"`). See the documentation in `mgcv` for more details on specifying smooth terms, with `?mgcv::s` and `?mgcv::smooth.terms`. For a given `gam` model, you can have an arbitrary number of smooth terms, connected by putting `+` between each `s()` function. This is equivalent to including linear terms without interactions in a standard `glm` model. 
 
-For our plant data set, we will use two basic smooth terms: a thin plate spline to model the average functional relationship between time since burning and log-biomass, and a simple random effect smoother for species to model species-specific intercepts. 
+For our CO2 data set, we will use two basic smooth terms: a thin plate spline to model the average functional relationship between $CO_2$ concentration and uptake, and a simple random effect smoother for species to model species-specific intercepts. 
 
-```{r lambda, echo=TRUE,  fig.width=6, fig.height=3, cache=TRUE}
+```{r co2_mod1, echo=TRUE,  fig.width=6, fig.height=3,message=F, warning=F, cache=TRUE}
 library(mgcv)
-plant_model1 = gam(log_biomass ~ s(burn_time,k=10,m=2, bs="tp")+s(species, bs="re"), data= plant_biomass,method="REML")
+library(ggplot2)
 
-plot(plant_model1,page=1)
+CO2_mod1 = gam(log(uptake) ~ s(log(conc),k=7,m=2, bs="tp")+s(Plant, k =12,  bs="re"), data= CO2,method="REML")
 
-ggplot(data=plant_model1, aes(x=burn_time, y= log_biomass, color=species))+
-    geom_line(aes(y=fitted(plant_model1)))+
-    scale_color_brewer(palette= "Set1")
-          
+plot(CO2_mod1,page=1)
+
+
 ```
 
-Note that we have also specified `method="REML"`. This tells `mgcv` to use Restricted Maximum Likelihood [CITE] to estimate model coefficients and penalty terms. We strongly recommend using either `method="REML"` or `method="ML"` (marginal likelihood) when fitting models, as the default `method="GCV.Cp"` is not as consistent at estimating smoothing penalties as the likelihood-based methods and tends to substantially undersmooth terms [CITE]. 
+This shows how to fit the model, and shows the default plot for the model for `mgcv`. The plot has two panels: the first showing the estimated global functional relationship, and the second showing the estimated distribution of random effects for the plant-specific intercepts.
+
+Note that we're actually modelling ln(uptake); this can be a useful approach when dealing with estimating multiple functional relationships as it means that functions that differ from each other by a multiplicative constant (so $f_1(x) = \alpha\cdot f_2(x)$ will differ by an additive constant when log-transformed (which can be estimated by simple random effects): $ln(f_1(x)) = ln(\alpha)+ ln(f_2(x))$. We have also ln-transformed concentration. Since the concentration-uptake relationship changes rapidly at low concentration values and slowly at higher values, estimating the relationship without log-transforming it can lead to a small estimated penalty value, and an overly wiggly function at higher concentration values.
+
+Note also that we have also specified `method="REML"`. This tells `mgcv` to use Restricted Maximum Likelihood [CITE] to estimate model coefficients and penalty terms. We strongly recommend using either `method="REML"` or `method="ML"` (marginal likelihood) when fitting models, as the default `method="GCV.Cp"` is not as consistent at estimating smoothing penalties as the likelihood-based methods and tends to substantially undersmooth terms [CITE]. 
+
+Here is how you could plot this to illustrate inter-plant variation in the functional response with estimated functional variability, plotting untransformed uptake and concentration to make the figure easier to comprehend. You can see the effect log-transforming concentration has on model fits; even though plants Mc1 -- Mc3 show a much flatter response in untransformed space, the same functional response fits relatively well after accounting for the random effect (a multiplicative difference between functional responses).
+
+```{r co2_mod1_ggplot, echo=TRUE,  fig.width=6, fig.height=3,message=F, warning=F, cache=TRUE}
+CO2_mod1_pred = predict(CO2_mod1,se.fit = T)
+CO2$mod1 = CO2_mod1_pred$fit
+CO2$mod1_se = CO2_mod1_pred$se.fit
+
+ggplot(data=CO2, aes(x=conc, y= uptake, group=Plant))+
+  facet_wrap(~Plant)+
+  geom_point()+
+  geom_line(aes(y=exp(mod1)))+
+  geom_ribbon(aes(ymin=exp(mod1-2*mod1_se), ymax=exp(mod1+2*mod1_se)),alpha=0.5)
+```
+
 
 
 Global smooth models with interactions are also straightforward to model. For isotrophic smooths such as thin-plate splines, extra terms can simply be added to the `s()` function. For non-isotrophic smooths, we use the tensor product (`te()`) function. It is specified similarly to the `s()` function, but requires additional information to specify the types of basis and number of basis functions used for each marginal term. `bs` can be specified as a single value, in which case that basis is used for all marginal terms in the model. `k` can also be given as a single value, and works similar to `bs`. As with `s()`, the user can also give `te()` more options depending on the basis types used. For more information, consult `?mgcv::te`.
 
 For our bird example, we will use two smooth terms. The first will be a tensor product of latitude and week, using a 5 basis function thin plate spline for the marginal latitude effects, and a 10 basis function cyclic cubic spline for the marginal week effect to account for the cyclic nature of weekly effects (we expect week 1 and week 52 to have very similar values). The second smooth term will be again a random effect for species. 
 
-```{r lambda, echo=TRUE,  fig.width=6, fig.height=3, cache=TRUE}
-library(mgcv)
-library(ggplot2)
-library(viridis) #for color plotting
-bird_model1 = gam(count ~ te(latitude, week, bs= c("tp","cc"), k=c(5,10))+ s(species, bs="re"), data= bird_move, method="REML")
-plot(bird_model1) 
-#note this will only show the random effect smooth, as there is no default plotting method for tensor products
-
-ggplot(data=bird_move, aes(x=latitude, y=count,color=week))+
-  geom_point()+
-  geom_line(aes(y= fitted(bird_model1,group=week)))+
-  facet_wrap(~species)+
-  scale_color_viridis()
+```{r bird_mod1, echo=TRUE,  fig.width=6, fig.height=3, cache=TRUE}
+# library(mgcv)
+# library(ggplot2)
+# library(viridis) #for color plotting
+# bird_model1 = gam(count ~ te(latitude, week, bs= c("tp","cc"), k=c(5,10))+ s(species, bs="re"), data= bird_move, method="REML")
+# plot(bird_model1) 
+# #note this will only show the random effect smooth, as there is no default plotting method for tensor products
+# 
+# ggplot(data=bird_move, aes(x=latitude, y=count,color=week))+
+#   geom_point()+
+#   geom_line(aes(y= fitted(bird_model1,group=week)))+
+#   facet_wrap(~species)+
+#   scale_color_viridis()
 ```
 
 Note that the total number of basis functions used for a given smooth is the product of the marginal `k` values, so in this example the first smooth would have 49 parameters (5*10, minus one to account for the presence of the global intercept). The `te` smooth term will also have two smoothing parameters estimated; one for each marginal basis.
