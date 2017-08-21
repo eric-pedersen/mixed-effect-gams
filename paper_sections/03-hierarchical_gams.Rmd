@@ -1,7 +1,7 @@
 ---
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 # What do we mean by hierarchical smooths?
@@ -89,7 +89,7 @@ Global smooth models with interactions are also straightforward to model. For is
 
 For our bird example, we will use two smooth terms. The first will be a tensor product of latitude and week, using a 5 basis function thin plate spline for the marginal latitude effects, and a 9 basis function cyclic cubic spline for the marginal week effect to account for the cyclic nature of weekly effects (we expect week 1 and week 52 to have very similar values). The second smooth term will be again a random effect for species. 
 
-```{r bird_mod1, echo=TRUE,  fig.width=6, fig.height=3, message=F, warning=F, cache=TRUE}
+```{r bird_mod1, echo=TRUE,  fig.width=6, fig.height=6, message=F, warning=F, cache=TRUE}
 library(mgcv)
 library(ggplot2)
 library(tidyr)
@@ -97,20 +97,24 @@ library(viridis) #for color plotting
 
 bird_move = read.csv("../data/bird_move.csv")
 
-bird_mod1 = gam(count ~ te(latitude, week, bs= c("tp","cc"), k=c(9,9))+ s(species, bs="re"), data= bird_move, method="REML", family= poisson)
+bird_mod1 = gam(count ~ te(latitude, week, bs= c("tp","cc"), k=c(9,9)), data= bird_move, method="REML", family= poisson)
 
 plot(bird_mod1, page=1, scheme=2)
 
-bird_mod1_pred = predict(bird_mod1,se.fit = T)
-bird_move$mod1 = exp(as.numeric(bird_mod1_pred$fit))
+```
 
-bird_move_long = gather(bird_move, key = model,value = value, count,mod1)
+```{r bird_mod1_ggplot, echo=TRUE,  fig.width=8, fig.height=3, message=F, warning=F, cache=TRUE}
+bird_move$mod1 = predict(bird_mod1,type ="response")
 
-ggplot(data=bird_move, aes(x=latitude, y=count, color=species))+
-  geom_point()+
-  geom_line(aes(y=exp(mod1)))+
+bird_move_plot = gather(bird_move, key = model,value = value, count,mod1)
+
+ggplot(data=bird_move_plot, aes(x=week, y=latitude, fill = value,color=value))+
+  geom_tile(size=1)+
   facet_grid(model~species)+
-  scale_color_viridis(discrete = T)
+  scale_fill_viridis("individuals")+
+  scale_color_viridis("individuals")+
+  scale_x_continuous(expand=c(0,0),breaks = c(12,24,36,48))+
+  scale_y_continuous(expand=c(0,0))
 ```
 
 Note that the total number of basis functions used for a given smooth is the product of the marginal `k` values, so in this example the first smooth would have 49 parameters (5*10, minus one to account for the presence of the global intercept). The `te` smooth term will also have two smoothing parameters estimated; one for each marginal basis.
