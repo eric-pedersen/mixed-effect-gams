@@ -43,7 +43,7 @@ Each of these models can be coded straightforwardly in `mgcv`. We will use two e
 
 A. The CO2 dataset, available in R in the default *datasets* package. This data is from an experimental study by CITE of $CO_2$ uptake in grasses under varying concentrations of $CO_2$, measuring how concentration-uptake functions varied between plants from two locations (Mississippi and Quebec) and two temperature treatments (chilled and warm). A total of 12 plants were measured, and ptake measured at 7 concentration levels for each plant. Here we will focus on how to use these techniques to estimate inter-plant variation in functional responses. 
 
-B. A hypothetical study of bird movement along a migration corridor. This dataset consists of counts of nine species of bird were conducted at ten locations along a latitudinal gradient, with one observation taken every six weeks. The data set (bird_move) consists of the variables `count`, `latitude`, `week` and `species`. This example will allow us to demonstrate how to fit these models with interactions and with non-normal (count) data. 
+B. A hypothetical study of bird movement along a migration corridor. This dataset consists of records of numbers of observed locations of 100 tagged individuals each from six species of bird, at ten locations along a latitudinal gradient, with one observation taken every four weeks. Not every bird was observed at each time point, so counts vary randomly between location and week. The data set (bird_move) consists of the variables `count`, `latitude`, `week` and `species`. This example will allow us to demonstrate how to fit these models with interactions and with non-normal (count) data. 
 
 
 ## Model 1: a single global smooth term
@@ -87,9 +87,11 @@ ggplot(data=CO2, aes(x=conc, y= uptake, group=Plant))+
 
 Global smooth models with interactions are also straightforward to model. For isotrophic smooths such as thin-plate splines, extra terms can simply be added to the `s()` function. For non-isotrophic smooths, we use the tensor product (`te()`) function. It is specified similarly to the `s()` function, but requires additional information to specify the types of basis and number of basis functions used for each marginal term. `bs` can be specified as a single value, in which case that basis is used for all marginal terms in the model. `k` can also be given as a single value, and works similar to `bs`. As with `s()`, the user can also give `te()` more options depending on the basis types used. For more information, consult `?mgcv::te`.
 
-For our bird example, we will use two smooth terms. The first will be a tensor product of latitude and week, using a 5 basis function thin plate spline for the marginal latitude effects, and a 9 basis function cyclic cubic spline for the marginal week effect to account for the cyclic nature of weekly effects (we expect week 1 and week 52 to have very similar values). The second smooth term will be again a random effect for species. 
+For our bird example, we will use one smooth term, a tensor product of latitude and week. We will use using a 10 basis function thin plate spline for the marginal latitude effects, and a 10 basis function cyclic cubic spline for the marginal week effect to account for the cyclic nature of weekly effects (we expect week 1 and week 52 to have very similar values). We will also assume the date (counts of individuals at each location in each week) follow a Poisson distribution. 
 
-```{r bird_mod1, echo=TRUE,  fig.width=6, fig.height=6, message=F, warning=F, cache=TRUE}
+Note that the total number of basis functions used for a given smooth is the product of the marginal `k` values, so in this example the smooth would have 99 parameters (10*10, minus one to account for the presence of the global intercept). It will also have two smoothing parameters estimated; one for each marginal basis.
+
+```{r bird_mod1, echo=TRUE,  fig.width=6, fig.height=6, message=F, warning=F, cache=F}
 library(mgcv)
 library(ggplot2)
 library(tidyr)
@@ -97,13 +99,17 @@ library(viridis) #for color plotting
 
 bird_move = read.csv("../data/bird_move.csv")
 
-bird_mod1 = gam(count ~ te(latitude, week, bs= c("tp","cc"), k=c(9,9)), data= bird_move, method="REML", family= poisson)
+bird_mod1 = gam(count ~ te(week,latitude, bs= c("tp","cc"), k=c(10,10)), 
+                data= bird_move, method="REML", family= poisson)
 
-plot(bird_mod1, page=1, scheme=2)
+plot(bird_mod1, page=1, scheme=2,rug = F)
 
 ```
 
-```{r bird_mod1_ggplot, echo=TRUE,  fig.width=8, fig.height=3, message=F, warning=F, cache=TRUE}
+This plot illustrates the average (log) abundance of all bird species at each latitude for each week, with yellow colours indicating more individuals and red colours fewer. This graph implies that these birds are starting at low latiudes in the winter then migrating to high latitudes from the 10th to 20th week, staying ther for 15-20 weeks, then migrating back. However, this plot indicates a large amount of uncertainty in the timing of migration. 
+
+
+```{r bird_mod1_ggplot, echo=TRUE,  fig.width=8, fig.height=3, message=F, warning=F, cache=F}
 bird_move$mod1 = predict(bird_mod1,type ="response")
 
 bird_move_plot = gather(bird_move, key = model,value = value, count,mod1)
@@ -113,9 +119,8 @@ ggplot(data=bird_move_plot, aes(x=week, y=latitude, fill = value,color=value))+
   facet_grid(model~species)+
   scale_fill_viridis("individuals")+
   scale_color_viridis("individuals")+
-  scale_x_continuous(expand=c(0,0),breaks = c(12,24,36,48))+
-  scale_y_continuous(expand=c(0,0))
+  scale_x_continuous(expand=c(0,0),breaks = c(1,26,52))+
+  scale_y_continuous(expand=c(0,0), breaks=c(0,30,60))
 ```
 
-Note that the total number of basis functions used for a given smooth is the product of the marginal `k` values, so in this example the first smooth would have 49 parameters (5*10, minus one to account for the presence of the global intercept). The `te` smooth term will also have two smoothing parameters estimated; one for each marginal basis.
 
