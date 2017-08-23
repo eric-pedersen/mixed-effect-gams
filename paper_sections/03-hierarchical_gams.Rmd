@@ -153,7 +153,7 @@ a) by explicitly specifying one term for the global smooth (as in model 1 above)
 
 b) The second way of specifying this type of smoother is by using a tensor product of whatever basis you choose for the continuous terms and a Markov Random Field smoother for the factor, with all of the groups in the MRF smoother being fully connected to one another. There is no need to specify a separate term here for the global smooth and group-level smoothers. Instead, this method will directly penalize differences between smooths, simultaneously fitting both the global effect and group-level deviations. e.g.: `y~te(x,fac,bs=c("tp","mrf"),xt=list(penalty=fac_pen_mat))`. This requires a helper function to create the fully connected penalty matrix, which we provide in the supplemental code as `create_connected_pmat`. 
 
-The two forms of this model tend to have similar fits on the same data set. Approach  **a** is useful as it gives a direct estimate of the overall smooth, and it is more straight-forward to incorporate "fixed" effects, where the global term captures large-scale differences between large classes in the data (say between treated and untreated levels in an experiment), and the group-level term models residual among-group functional variance (see [cite Wieling paper here] for a demonstration of this). Approach **b** does not directly estimate a global smooth, although it can be derived by averaging equivilent basis functions across groups **EJP: should we demonstrate how to do this in paper?**. However, it does require estimating fewer penalty terms, and the general approach can be used to model more complex structural relationships between groups; for instance, if groups are patches in a metapopulation, the fully connected penalty matrix used above could be replaced by a connectivity matrix to determine if interpatch connectivity predicts functional similiarity between patches. We will discuss the computational differences between the two approaches more in section V.
+
 
 [^f4]: As part of the penalty construction, each group will also have its own intercept (part of the penalized null space), so there is no need to add a separate term for group specific intercepts as we did in model 1. 
 
@@ -177,7 +177,7 @@ plot(CO2_mod2a,page=1)
 
 
 
-The above plot shows the global function (left) and group-specific deviations from the global function (right) for `CO2_mod2a`. We did not include a call to the plot function for `CO2_mod2b` as there is no default plotting method for a tensor product of a mrf smooth and a continous smoother. However, as is visible below, both smoothers have very similar behaviour when predicting group-specific variation: 
+The above plot shows the global function (left) and group-specific deviations from the global function (right) for `CO2_mod2a`. The plots of group specific smooths indicate that plants differ not only in average log-uptake (which would correspond to each plant having a straight line at different levels for the group-level smooth), but differ slightly in the shape of their functional responses. We did not include a call to the plot function for `CO2_mod2b` as there is no default plotting method for a tensor product of a mrf smooth and a continous smoother. However, as is visible below, both smoothers have very similar behaviour when predicting group-specific variation: 
 
 ```{r co2_mod2ab_ggplot, echo=TRUE,  fig.width=6, fig.height=3,message=F, warning=F, cache=T}
 CO2_mod2a_pred = predict(CO2_mod2a,se.fit = T)
@@ -199,7 +199,7 @@ ggplot(data=CO2, aes(x=conc, y= uptake, group=Plant))+
                              ymax=exp(mod2b+2*mod2b_se)),alpha=0.25)
 ```
 
-The model 2a fit is shown in black, and the model 2b fit is shown in red. As mentioned above, both models show similar fit to the data.
+The model 2a fit is shown in black, and the model 2b fit is shown in red. As mentioned above, both models show essentially identical fits to the this data set. 
 
 
 The "fs"-based approach mentioned above for model 2a does not work for two or higher-dimensional smooths. Instead, the group-specific term can be specified with a tensor product of the continuous smooths and a random effect for the grouping parameter. This term will again have a separate set of basis functions for each group, one penalty for the smooth term, and a second penalty drawing all basis functions toward zero[^f5]. e.g.: `y~te(x1,x2,bs="tp",m=2)+te(x1,x2, fac,bs=c("tp","tp","fs"),m=1)`. The structure for model 2b does not substantially change in more than one dimension; a two dimensional model would be specified:`y~te(x1, x2, fac, bs=c("tp","tp","mrf"), xt=list(penalty=fac_pen_mat))`. We illustrate the two approaches below on the bird migration data.
@@ -241,6 +241,9 @@ ggplot(data=bird_move_plot2, aes(x=week, y=latitude, fill = value,color=value))+
   scale_x_continuous(expand=c(0,0),breaks = c(1,26,52))+
   scale_y_continuous(expand=c(0,0), breaks=c(0,30,60))
 ```
+
+The two forms of model 2 tend to have similar fits on the same data set. So why not just focus on one or the other? Approach  **a** is useful as it gives a direct estimate of the overall smooth, and it is more straight-forward to incorporate "fixed" effects, where the global term captures large-scale differences between large classes in the data (say between treated and untreated levels in an experiment), and the group-level term models residual among-group functional variance (see [cite Wieling paper here] for a demonstration of this). For instance, in the $CO_2$ uptake analysis above, we could have allowed for average uptake differences between treatments by adding a `by` term: `log(uptake)~s(log(conc), by= Treatment, k=6)+ s(log(conc), Plant, bs="fs",k=6)`. We will discuss using the `by=` argument more in the discussion on model 3. Approach **b** does not directly estimate a global smooth, although it can be derived by averaging equivilent basis functions across groups **EJP: should we demonstrate how to do this in paper?**. However, it does require estimating fewer penalty terms, and the general approach can be used to model more complex structural relationships between groups; for instance, if groups are patches in a metapopulation, the fully connected penalty matrix used above could be replaced by a connectivity matrix to determine if interpatch connectivity predicts functional similiarity between patches. In the bird migration case above, we could have used an inverse phylogenetic covariance matrix as the penalty term, to test if closely related species are more similiarly related in migration patterns than distantly related ones. The two models also differ in their computational properties; we will discuss the computational differences between the two approaches more in section V.
+
 
 
 ```{r mod3, echo=TRUE,  fig.width=6, fig.height=3,message=F, warning=F, cache=T}
