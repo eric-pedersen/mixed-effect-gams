@@ -253,7 +253,9 @@ The two forms of model 2 tend to have similar fits on the same data set. So why 
 This model class is very similar to model 2; the only change is that we will allow each group-specific smooth to have its own penalty term. This increases the computational cost of the model (more penalties means more computer time in general), and means that the only information shared between groups is through the global smoothing term. It is useful, however, if different groups differ substantially in how variable they are. 
 
 
-```{r mod3, echo=TRUE,  fig.width=5, fig.height=3,message=F, warning=F, cache=T}
+This model is straight-forward to fit to the `CO2` dataset: 
+
+```{r mod3_CO2, echo=TRUE,  fig.width=5, fig.height=3,message=F, warning=F, cache=T}
 
 
 CO2_mod3 = gam(log(uptake) ~ s(log(conc),k=6,m=2, bs="tp")+
@@ -268,6 +270,12 @@ plot(CO2_mod3,scale=0,select=2, ylab = "Plant Qn1",seWithMean = T)
 plot(CO2_mod3,scale=0,select=5, ylab = "Plant Qc1",seWithMean = T)
 plot(CO2_mod3,scale=0,select=9, ylab = "Plant Mn2",seWithMean = T)
 plot(CO2_mod3,scale=0,select=12,ylab = "Plant Mc3",seWithMean = T)
+```
+
+We have just plotted a subsample of the group-specific smooths from this model, to prevent crowding. It is appearent from this that some groups (e.g. Qc1, Mn2) have very similar shapes to the global smooth (differing only in intercept), whereas others, such as Mc3, do differ from the global trend, with higher ln-uptake at low concentrations, and lower uptake at higher concentrations.
+
+
+```{r mod3_bird, echo=TRUE,  fig.width=5, fig.height=3,message=F, warning=F, cache=T}
 
 bird_mod3 = gam(count ~ te(week,latitude, bs= c("cc", "tp"), 
                            k=c(10,10),m=c(2,2)) +
