@@ -70,7 +70,7 @@ CO2$Plant_uo = factor(CO2$Plant, levels = levels(CO2$Plant), ordered = F)
 CO2_mod1 = gam(log(uptake) ~ s(log(conc),k=7,m=2, bs="tp")+s(Plant_uo, k =12,  bs="re"), 
                data= CO2,method="REML")
 
-plot(CO2_mod1,page=1)
+plot(CO2_mod1,page = 1, seWithMean = T)
 
 
 ```
@@ -175,7 +175,7 @@ CO2_mod2b = gam(log(uptake) ~ te(log(conc),Plant_uo, k=c(6,12),m=2,
                                  bs=c("tp","mrf"), xt= list(penalty = CO2_penmat)), 
                 data= CO2,method="REML")
 
-plot(CO2_mod2a,page=1)
+plot(CO2_mod2a,page=1, seWithMean = T)
 ```
 
 
@@ -224,7 +224,7 @@ bird_mod2b = gam(count ~ te(week,latitude,species, bs= c("cc", "tp","mrf"),
                             xt =list(penalty= bird_pen)), 
                 data= bird_move, method="REML", family= poisson)
 
-plot(bird_mod2a, page=1, scheme=2,rug = F)
+plot(bird_mod2a, page=1, scheme=2,rug = F, seWithMean = T)
 
 ```
 
@@ -262,12 +262,12 @@ CO2_mod3 = gam(log(uptake) ~ s(log(conc),k=6,m=2, bs="tp")+
                 data= CO2,method="REML")
 
 par(mfrow=c(2,3),mar =c(4, 4,1, 1))
-plot(CO2_mod3,scale=0,select=1, ylab = "global smooth")
 plot(CO2_mod3,scale=0,select=14,ylab = "Intercepts",main=NA)
-plot(CO2_mod3,scale=0,select=2, ylab = "Plant Qn1")
-plot(CO2_mod3,scale=0,select=5, ylab = "Plant Qc1")
-plot(CO2_mod3,scale=0,select=9, ylab = "Plant Mn2")
-plot(CO2_mod3,scale=0,select=12,ylab = "Plant Mc3")
+plot(CO2_mod3,scale=0,select=1, ylab = "global smooth",seWithMean = T)
+plot(CO2_mod3,scale=0,select=2, ylab = "Plant Qn1",seWithMean = T)
+plot(CO2_mod3,scale=0,select=5, ylab = "Plant Qc1",seWithMean = T)
+plot(CO2_mod3,scale=0,select=9, ylab = "Plant Mn2",seWithMean = T)
+plot(CO2_mod3,scale=0,select=12,ylab = "Plant Mc3",seWithMean = T)
 
 bird_mod3 = gam(count ~ te(week,latitude, bs= c("cc", "tp"), 
                            k=c(10,10),m=c(2,2)) +
