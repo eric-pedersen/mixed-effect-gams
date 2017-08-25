@@ -27,18 +27,17 @@ comp_resources_table =comp_resources %>%
   ungroup()%>%
   arrange(data_source,model_number)%>%
   transmute(data_source =data_source, model=model_number,
-            `penalties` = n_smooths,`coefficients` = n_coef,
-            `inner` = n_iter,
-            `outer` = n_iter_out,
-            `computer time (relative)` = time)%>%
+            `relative time` = time,
+            `penalties` = n_smooths,`coefficients` = n_coef
+            )%>%
   group_by(data_source) %>%
-  mutate(`computer time (relative)` = round(`computer time (relative)`/`computer time (relative)`[1],0))%>%#scales processing time relative to model 1 
+  mutate(`relative time` = round(`relative time`/`relative time`[1],0))%>%#scales processing time relative to model 1 
   ungroup()%>%
   select(-data_source)
 
-kable(comp_resources_table,format ="html")%>% #NOTE: change this to "latex" when compiling to pdf!
+kable(comp_resources_table,format ="html")%>% #NOTE: change format to "latex" when compiling to pdf!
   kable_styling(full_width = F)%>%
-  add_header_above(c(" " = 1,"# of terms"=2, "# of iterations"=2," "=1))%>%
+  add_header_above(c(" " = 1," "=1, "# of terms"=2))%>%
   group_rows("CO2 data", 1,6)%>%
   group_rows("bird_move data", 7,12)
 
