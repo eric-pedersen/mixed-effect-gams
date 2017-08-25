@@ -1,5 +1,5 @@
 ---
-title: "03-Computational_issues"
+title: "05 Computational issues"
 author: "Eric Pedersen"
 date: "August 13, 2017"
 output: html_document
@@ -7,4 +7,45 @@ output: html_document
 
 **EJP: I think it makes sense for this section to include a lot of the more math/computationally heavy issues. This would also be a good section to discuss the choice of gam/bam/gamm/gamm4, and maybe a brief discussion of how to fit these models in a Bayesian context, using either jagam or rstanarm**
 
-Choosing between these models requires tradeoffs. The first is the amount of time and computer resources it takes to fit a model. Adding more smooth functions (moving from model 1 to 2-5) means that there will be more regression parameters to estimate, and estimating additional smoothing parameters (moving from model 2 to model 3, or moving from model 4 to 5) is even more costly, as estimating smoothing parameters is computationally intensive. The second tradeoff is between bias and variance in fitting curves for any given group. Fitting a single common curve for all groups (model 1) makes use of all available data to fit a single curve
+## Tradeoffs between models
+
+To include in this section:
+
+- bias/variance tradeoffs
+- computational time / complexity tradeoff
+
+Which of the five models should you choose for a given data set? There are two major tradeoffs to take into account. The first is the amount of time and computer resources it takes to fit a model. Adding more smooth functions (moving from model 1 to 2-5) means that there will be more regression parameters to estimate, and estimating additional smoothing parameters (moving from model 2 to model 3, or moving from model 4 to 5) is even more costly, as estimating smoothing parameters is computationally intensive **EJP: I am planning on adding a figure here showing how long each model takes to run, the number of coefficients estimated, and the number of penalties estimated)**. The second tradeoff is between bias and variance in fitting curves for any given group. Fitting a single common curve for all groups (model 1) makes use of all available data to fit that single curve
+
+```{r comp_calc, echo=F,  fig.width=4, fig.height=6,message=F, warning=F, cache=T}
+source("../code/Sec_5_computational_code.R")
+```
+
+```{r comp_calc_table, echo=F,  fig.width=4, fig.height=6,message=F, warning=F, cache=T}
+library(kableExtra)
+library(knitr)
+comp_resources_table =comp_resources %>%
+  ungroup()%>%
+  arrange(data_source,model_number)%>%
+  transmute(data_source =data_source, model=model_number,
+            `penalties` = n_smooths,`coefficients` = n_coef,
+            `inner` = n_iter,
+            `outer` = n_iter_out,
+            `computer time (relative)` = time)%>%
+  group_by(data_source) %>%
+  mutate(`computer time (relative)` = round(`computer time (relative)`/`computer time (relative)`[1],0))%>%#scales processing time relative to model 1 
+  ungroup()%>%
+  select(-data_source)
+
+kable(comp_resources_table,format ="html")%>% #NOTE: change this to "latex" when compiling to pdf!
+  kable_styling(full_width = F)%>%
+  add_header_above(c(" " = 1,"# of terms"=2, "# of iterations"=2," "=1))%>%
+  group_rows("CO2 data", 1,6)%>%
+  group_rows("bird_move data", 7,12)
+
+```
+
+## Issues with colinearity when estimating global and groupwise smooths
+
+## speeding up large models: bam, gamm, and gamm4
+
+## A brief foray into the land of Bayes
