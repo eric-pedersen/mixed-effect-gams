@@ -2,23 +2,35 @@
 title: "05 Computational issues"
 author: "Eric Pedersen"
 date: "August 13, 2017"
-output: html_document
+output: pdf_document
 ---
 
 **EJP: I think it makes sense for this section to include a lot of the more math/computationally heavy issues. This would also be a good section to discuss the choice of gam/bam/gamm/gamm4, and maybe a brief discussion of how to fit these models in a Bayesian context, using either jagam or rstanarm**
 
 ## Tradeoffs between models
 
-To include in this section:
+Which of the five models should you choose for a given data set? There are two major tradeoffs to take into account. The first tradeoff is model complexity versus computer time; more complex models can include more potential sources of variation and give more information about a given data set, but will generally take more time and computational resources to fit and debug. The second is the bias-variance tradeoff. 
 
-- bias/variance tradeoffs
-- computational time / complexity tradeoff
 
-Which of the five models should you choose for a given data set? There are two major tradeoffs to take into account. The first is the amount of time and computer resources it takes to fit a model. Adding more smooth functions (moving from model 1 to 2-5) means that there will be more regression parameters to estimate, and estimating additional smoothing parameters (moving from model 2 to model 3, or moving from model 4 to 5) is even more costly, as estimating smoothing parameters is computationally intensive **EJP: I am planning on adding a figure here showing how long each model takes to run, the number of coefficients estimated, and the number of penalties estimated)**. The second tradeoff is between bias and variance in fitting curves for any given group. Fitting a single common curve for all groups (model 1) makes use of all available data to fit that single curve
+### Complexity -- computatation tradeoffs
 
 ```{r comp_calc, echo=F,  fig.width=4, fig.height=6,message=F, warning=F, cache=T}
 source("../code/Sec_5_computational_code.R")
 ```
+
+GAMs and GLMMs have substantially increased the range of flexible models available to the average researcher, and the HGAM models we discussed in section III extend this broad base. However, the more flexible a model is, the larger an effective parameter space any fitting software has to search to find parameters that can predict the observed data. While numerical algorithms for solving complex models are always improving, it can still be surprisingly easy to use up massive computational resources trying to fit a complex model to even very simple data. While we typically want to choose a model based on model fit (see section IV) and our goals for the model, computing resources can often act as an effective upper limit on model complexity regardless of other considerations. Fitting an HGAM means adding extra computational complexity on top of either a GAM model with only global terms or a GLMM without smooth terms. For a given data set (with a fixed number `n` data points) and assuming a fixed family and link function, the time it takes to compute a given HGAM will depend, roughly, on four factors: the number of basis functions to be estimated, the number of smooth penalties to be estimated, whether the model needs to estimate both a global smooth and groupwise smooths, and the algorithm used to estimate parameters and fitting criteria used. 
+
+
+The most straightforward factor that will affect the amount of computational resources is the number of parameters in the model. Adding group-level smooths (moving from model 1 to 2-5) means that there will be more regression parameters to estimate, since each grouping level needs a seperate coefficient for each basis function in the smooth. For a dataset with `g` different groups and `n` data points, fitting a model will just a global smooth, `y~s(x,k=k)` will require only `k` coefficients, and takes $\mathcal{O}(nk^2)$ operations[^bigO] to evaluate, but fitting the same data using a group-level smooth (model 4, `y~s(x,fac,bs="fs",k=k)`) will require $\mathcal{O}(nk^2g^2)$ operations to evaluate; in effect, adding a group-level smooth will increase computational time by an order of the number of groups squared[^globalnpar]. The effect of this is visible in the examples we fit in section III when comparing the number of coefficients and relative time it takes to compute model 1 versus the other models (Table \ref{tab:comp_time}). One way to deal with this issue would be to reduce the number of basis functions (`k`) used when fitting group-level smooths when the number of groups is large; in effect, this would increase the flexibility of the model to accomodate inter-group differences, while reducing its ability to model variance within any given group. It can also make sense to use more computationally efficient basis functions when fitting large data sets, such as p-splines or cubic splines, rather than thin-plate splines, as thin-plate splines can take a substantial amount of overhead to compute the actual basis functions to use [CITE].
+
+
+[^bigO]:To understand the effects of these terms, we will use "big-O" notation; when we say a given computation is of order $\mathcal{O}(n\log{}n)$, it means that, for that computation, as $n$ gets large, the amount of time the computation will take will grown proportionally to $n\log{}n$, so more quickly than linearly with $n$, but not as fast as say $n$ squared. 
+
+[^globalnpar]: Including a global smooth (models 2-3) or not (models 4-5) will not generally substantially affect the number of coefficients needed to estimate (compare the number of coefficients in Table \ref{tab:comp_time}, model 2a vs. model 4, or model 3 versus model 5). Adding a global term will naively only add `k` extra terms, and it actually ends up being less that that, as `mgcv` drops basis functions from co-linear smooths to ensure that the model matrix is full rank. **EJP: I need to dig into this here. Looking at the table,there's something wonky going on with the number of parameters.**  
+
+
+and estimating additional smoothing parameters (moving from model 2 to model 3, or moving from model 4 to 5) is even more costly, as estimating smoothing parameters is computationally intensive [CITE]. Further, including both a global smooth term and a group-wise smooth can increase  These tradeoffs is visible from looking at the time it takes to run the various example models we used in section III (Table \ref{tab:comp_time}). The longest 
+
 
 ```{r comp_calc_table, echo=F,  fig.width=4, fig.height=6,message=F, warning=F, cache=T}
 library(kableExtra)
@@ -27,15 +39,15 @@ comp_resources_table =comp_resources %>%
   ungroup()%>%
   arrange(data_source,model_number)%>%
   transmute(data_source =data_source, model=model_number,
-            `relative time` = time,
-            `penalties` = n_smooths,`coefficients` = n_coef
+            `relative time` = time,`coefficients` = n_coef,
+            `penalties` = n_smooths
             )%>%
   group_by(data_source) %>%
   mutate(`relative time` = round(`relative time`/`relative time`[1],0))%>%#scales processing time relative to model 1 
   ungroup()%>%
   select(-data_source)
 
-kable(comp_resources_table,format ="html")%>% #NOTE: change format to "latex" when compiling to pdf!
+kable(comp_resources_table,format ="latex", caption="\\label{tab:comp_time}")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
   kable_styling(full_width = F)%>%
   add_header_above(c(" " = 1," "=1, "# of terms"=2))%>%
   group_rows("CO2 data", 1,6)%>%
@@ -43,8 +55,14 @@ kable(comp_resources_table,format ="html")%>% #NOTE: change format to "latex" wh
 
 ```
 
-## Issues with colinearity when estimating global and groupwise smooths
 
-## speeding up large models: bam, gamm, and gamm4
+
+**EJP: This seems like a good place to discussing algorithms for fitting models (bam, gamm, gamm4 as compared to gam). Does anyone want to tackle this paragraph?**
+
+
+### Bias-variance tradeoffs
+
+ Fitting a single common curve for all groups (model 1) makes use of all available data to fit that single curve
+
 
 ## A brief foray into the land of Bayes
