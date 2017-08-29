@@ -40,3 +40,20 @@ create_connected_pmat = function(grouping_var){
   rownames(pmat) =colnames(pmat)=  grp_levels
   return(pmat)
 }
+
+
+refit_model = function(model, algorithm = c("bam", "gamm", "gamm4")) {
+  if(!algorithm[1] %in% c("bam", "gamm", "gamm4")) stop("can only refit models using bam, gamm, and gamm4")
+
+  family = get(model$family$family)(link = model$family$link)
+  data = model$data
+  formula = model$formula
+  
+  if(algorithm[1]=="gamm4"){
+    if(!require(gamm4)) stop("refitting the model using gamm4 requires the gamm4 package to be installed")
+    formula = as.formula(gsub("te\\(", "t2\\(",x =  deparse(formula)))
+  }
+  
+  timing = system.time(refit_model <- get(algorithm[1])(formula = formula, data=data,family=family))
+  return(list(timing = as.numeric(timing[3]), refit_model =refit_model))
+}
