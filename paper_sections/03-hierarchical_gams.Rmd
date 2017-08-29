@@ -71,7 +71,7 @@ library(ggplot2)
 #This recodes it to an unordered factor (see above for why). 
 CO2$Plant_uo = factor(CO2$Plant, ordered = F)
 
-CO2_mod1 = gam(log(uptake) ~ s(log(conc),k=7,m=2, bs="tp")+s(Plant_uo, k =12,  bs="re"), 
+CO2_mod1 = gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+s(Plant_uo, k =12,  bs="re"), 
                data= CO2,method="REML")
 
 plot(CO2_mod1,page = 1, seWithMean = T)
@@ -170,11 +170,11 @@ This is how the two approaches would be used to model variability in $CO_2$ upta
 source("../code/functions.R")
 CO2_penmat = create_connected_pmat(CO2$Plant_uo)
 
-CO2_mod2a = gam(log(uptake) ~ s(log(conc),k=6,m=2, bs="tp")+
-                  s(log(conc), Plant_uo, k =6,  bs="fs",m=1), 
+CO2_mod2a = gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
+                  s(log(conc), Plant_uo, k =5,  bs="fs",m=1), 
                 data= CO2,method="REML")
 
-CO2_mod2b = gam(log(uptake) ~ te(log(conc),Plant_uo, k=c(6,12),m=2, 
+CO2_mod2b = gam(log(uptake) ~ te(log(conc),Plant_uo, k=c(5,12),m=2, 
                                  bs=c("tp","mrf"), xt= list(penalty = CO2_penmat)), 
                 data= CO2,method="REML")
 
@@ -248,7 +248,7 @@ ggplot(data=bird_move_plot2, aes(x=week, y=latitude, fill = value,color=value))+
   scale_y_continuous(expand=c(0,0), breaks=c(0,30,60))
 ```
 
-The two forms of model 2 tend to have similar fits on the same data set. So why not just focus on one or the other? Approach  **a** is useful as it gives a direct estimate of the overall smooth, and it is more straight-forward to incorporate "fixed" effects, where the global term captures large-scale differences between large classes in the data (say between treated and untreated levels in an experiment), and the group-level term models residual among-group functional variance (see [cite Wieling paper here] for a demonstration of this). For instance, in the $CO_2$ uptake analysis above, we could have allowed for average uptake differences between treatments by adding a `by` term: `log(uptake)~s(log(conc), by= Treatment, k=6)+ s(log(conc), Plant_uo, bs="fs",k=6)` (we discuss using the `by=` argument more in the discussion on model 3). Approach **b** does not directly estimate a global smooth, although it can be derived by averaging equivilent basis functions across groups **EJP: should we demonstrate how to do this in paper?**. However, it does require estimating fewer penalty terms, and the general approach can be used to model more complex structural relationships between groups; for instance, if groups are patches in a metapopulation, the fully connected penalty matrix used above could be replaced by a connectivity matrix to determine if interpatch connectivity predicts functional similiarity between patches. In the bird migration case above, we could have used an inverse phylogenetic covariance matrix as the penalty term, to test if closely related species are more similiarly related in migration patterns than distantly related ones. The two models also differ in their computational properties; model 2b is typically faster to estimate, possibly due to issues with colinearity between the global and group smooths in model 2a.  We will discuss the computational differences between the two approaches more in section V.
+The two forms of model 2 tend to have similar fits on the same data set. So why not just focus on one or the other? Approach  **a** is useful as it gives a direct estimate of the overall smooth, and it is more straight-forward to incorporate "fixed" effects, where the global term captures large-scale differences between large classes in the data (say between treated and untreated levels in an experiment), and the group-level term models residual among-group functional variance (see [cite Wieling paper here] for a demonstration of this). For instance, in the $CO_2$ uptake analysis above, we could have allowed for average uptake differences between treatments by adding a `by` term: `log(uptake)~s(log(conc), by= Treatment, k=5)+ s(log(conc), Plant_uo, bs="fs",k=5)` (we discuss using the `by=` argument more in the discussion on model 3). Approach **b** does not directly estimate a global smooth, although it can be derived by averaging equivilent basis functions across groups **EJP: should we demonstrate how to do this in paper?**. However, it does require estimating fewer penalty terms, and the general approach can be used to model more complex structural relationships between groups; for instance, if groups are patches in a metapopulation, the fully connected penalty matrix used above could be replaced by a connectivity matrix to determine if interpatch connectivity predicts functional similiarity between patches. In the bird migration case above, we could have used an inverse phylogenetic covariance matrix as the penalty term, to test if closely related species are more similiarly related in migration patterns than distantly related ones. The two models also differ in their computational properties; model 2b is typically faster to estimate, possibly due to issues with colinearity between the global and group smooths in model 2a.  We will discuss the computational differences between the two approaches more in section V.
 
 
 ## Global function plus group-specific functions with different smoothness (Model 3)
@@ -263,8 +263,8 @@ This model is straight-forward to fit to the `CO2` dataset:
 ```{r mod3_CO2, echo=TRUE,  fig.width=5, fig.height=3,message=F, warning=F, cache=T}
 
 
-CO2_mod3 = gam(log(uptake) ~ s(log(conc),k=6,m=2, bs="tp")+
-                  s(log(conc),by= Plant_uo, k =6,  bs="ts",m=1)+
+CO2_mod3 = gam(log(uptake) ~ s(log(conc),k=5, m=2, bs="tp")+
+                  s(log(conc),by= Plant_uo, k=5, bs="ts",m=1)+
                  s(Plant_uo,bs="re",k=12), 
                 data= CO2,method="REML")
 
@@ -298,7 +298,7 @@ It is simple to modify the above models to exclude the global term (and it is ge
 
 ###Model 4:
 ```{r mod4, echo=TRUE,  fig.width=6, fig.height=3,message=F, warning=F, cache=T}
-CO2_mod4 = gam(log(uptake) ~ s(log(conc), Plant_uo, k =6,  bs="fs",m=2), 
+CO2_mod4 = gam(log(uptake) ~ s(log(conc), Plant_uo, k=5,  bs="fs",m=2), 
                 data= CO2,method="REML")
 
 bird_mod4 = gam(count ~ te(week,latitude,species, bs= c("cc", "tp","re"), 
@@ -311,7 +311,7 @@ bird_mod4 = gam(count ~ te(week,latitude,species, bs= c("cc", "tp","re"),
 ```{r mod5, echo=TRUE,  fig.width=6, fig.height=3,message=F, warning=F, cache=T}
 
 
-CO2_mod5 = gam(log(uptake) ~ s(log(conc),by= Plant_uo, k =6,  bs="tp",m=2)+
+CO2_mod5 = gam(log(uptake) ~ s(log(conc),by= Plant_uo, k=5,  bs="tp",m=2)+
                  s(Plant_uo,bs="re",k=12), data= CO2,method="REML")
 
 bird_mod5 = gam(count ~ te(week,latitude,by=species, bs= c("cc", "tp"), 
