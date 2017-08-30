@@ -125,13 +125,7 @@ comp_resources = comp_resources %>%
   mutate(n_smooths = get_n_pen(model[[1]]),
          n_coef = get_n_coef(model[[1]]),
          n_iter = get_n_iter(model[[1]]),
-         n_iter_out = get_n_out_iter(model[[1]]),
-         bam_model = list(refit_model(model[[1]], "bam")),
-         bam_timing = bam_model[[1]]$timing, 
-         gamm_model = list(refit_model(model[[1]], "gamm")),
-         gamm_timing = gamm_model[[1]]$timing,
-         gamm4_model = list(refit_model(model[[1]], "gamm4")),
-         gamm4_timing = gamm4_model[[1]]$timing)
+         n_iter_out = get_n_out_iter(model[[1]]))
 
 
 
