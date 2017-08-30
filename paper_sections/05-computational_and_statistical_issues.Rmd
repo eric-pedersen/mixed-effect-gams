@@ -7,29 +7,35 @@ output: pdf_document
 
 **EJP: I think it makes sense for this section to include a lot of the more math/computationally heavy issues. This would also be a good section to discuss the choice of gam/bam/gamm/gamm4, and maybe a brief discussion of how to fit these models in a Bayesian context, using either jagam or rstanarm**
 
-## Tradeoffs between models
-
-Which of the five models should you choose for a given data set? There are two major tradeoffs to take into account. The first tradeoff is model complexity versus computer time; more complex models can include more potential sources of variation and give more information about a given data set, but will generally take more time and computational resources to fit and debug. The second is the bias-variance tradeoff. 
+Which of the five models should you choose for a given data set? There are two major tradeoffs to take into account. The first is the bias-variance tradeoff: more complex models can account for more fluctuations in the data, but also tend to give more variable predictions, and can overfit.  The second tradeoff is model complexity versus computer time: more complex models can include more potential sources of variation and give more information about a given data set, but will generally take more time and computational resources to fit and debug. We will discuss both of these tradeoffs in this section.
 
 
-### Complexity -- computatation tradeoffs
+
+## Bias-variance tradeoffs
+
+**EJP: This needs to be heavily extended **
+ Fitting a single common curve for all groups (model 1) makes use of all available data to fit that single curve
+
+## Complexity -- computatation tradeoffs
 
 ```{r comp_calc, echo=F,  fig.width=4, fig.height=6,message=F, warning=F, cache=T}
+#Note: this code takes quite a long time to run! It's fitting all 12 models four times each (with gam, bam, gamm, and gamm4).
+#Run once if possible, then rely on the cached code. There's a reason it's split off from the rest of the chunks of code.
 source("../code/Sec_5_computational_code.R")
 ```
 
-GAMs and GLMMs have substantially increased the range of flexible models available to the average researcher, and the HGAM models we discussed in section III extend this broad base. However, the more flexible a model is, the larger an effective parameter space any fitting software has to search to find parameters that can predict the observed data. While numerical algorithms for solving complex models are always improving, it can still be surprisingly easy to use up massive computational resources trying to fit a complex model to even very simple data. While we typically want to choose a model based on model fit (see section IV) and our goals for the model, computing resources can often act as an effective upper limit on model complexity regardless of other considerations. Fitting an HGAM means adding extra computational complexity on top of either a GAM model with only global terms or a GLMM without smooth terms. For a given data set (with a fixed number `n` data points) and assuming a fixed family and link function, the time it takes to compute a given HGAM will depend, roughly, on four factors: the number of basis functions to be estimated, the number of smooth penalties to be estimated, whether the model needs to estimate both a global smooth and groupwise smooths, and the algorithm used to estimate parameters and fitting criteria used. 
+GAMs and GLMMs have substantially increased the range of flexible models available to the average researcher, and the HGAM models we discussed in section III extend on this broad base. However, the more flexible a model is, the larger an effective parameter space any fitting software has to search to find parameters that can predict the observed data. While numerical algorithms for solving complex models are always improving, it can still be surprisingly easy to use up massive computational resources trying to fit a complex model to even relatively small datasets. While we typically want to choose a model based on model fit (see above and section IV) and our goals for what the model will be used for, computing resources can often act as an effective upper limit on possible model complexity. Fitting an HGAM means adding extra computational complexity on top of either a GAM model with only global terms or a GLMM without smooth terms. For a given data set (with a fixed number `n` data points) and assuming a fixed family and link function, the time it takes to compute a given HGAM will depend, roughly, on four factors: the number of basis functions to be estimated, the number of smooth penalties to be estimated, whether the model needs to estimate both a global smooth and groupwise smooths, and the algorithm used to estimate parameters and fitting criteria used. 
 
 
 The most straightforward factor that will affect the amount of computational resources is the number of parameters in the model. Adding group-level smooths (moving from model 1 to 2-5) means that there will be more regression parameters to estimate, since each grouping level needs a seperate coefficient for each basis function in the smooth. For a dataset with `g` different groups and `n` data points, fitting a model will just a global smooth, `y~s(x,k=k)` will require only `k` coefficients, and takes $\mathcal{O}(nk^2)$ operations[^bigO] to evaluate, but fitting the same data using a group-level smooth (model 4, `y~s(x,fac,bs="fs",k=k)`) will require $\mathcal{O}(nk^2g^2)$ operations to evaluate; in effect, adding a group-level smooth will increase computational time by an order of the number of groups squared[^globalnpar]. The effect of this is visible in the examples we fit in section III when comparing the number of coefficients and relative time it takes to compute model 1 versus the other models (Table \ref{tab:comp_time}). One way to deal with this issue would be to reduce the number of basis functions (`k`) used when fitting group-level smooths when the number of groups is large; in effect, this would increase the flexibility of the model to accomodate inter-group differences, while reducing its ability to model variance within any given group. It can also make sense to use more computationally efficient basis functions when fitting large data sets, such as p-splines or cubic splines, rather than thin-plate splines, as thin-plate splines can take a substantial amount of overhead to compute the actual basis functions to use [CITE].
 
 
-[^bigO]:To understand the effects of these terms, we will use "big-O" notation; when we say a given computation is of order $\mathcal{O}(n\log{}n)$, it means that, for that computation, as $n$ gets large, the amount of time the computation will take will grown proportionally to $n\log{}n$, so more quickly than linearly with $n$, but not as fast as say $n$ squared. 
+[^bigO]:To understand the effects of these terms, we will use "big-O" notation; when we say a given computation is of order $\mathcal{O}(n\log{}n)$, it means that, for that computation, as $n$ gets large, the amount of time the computation will take will grown proportionally to $n\log{}n$, so more quickly than linearly with $n$, but not as fast as $n$ squared. 
 
-[^globalnpar]: Including a global smooth (models 2-3) or not (models 4-5) will not generally substantially affect the number of coefficients needed to estimate (compare the number of coefficients in Table \ref{tab:comp_time}, model 2a vs. model 4, or model 3 versus model 5). Adding a global term will naively only add `k` extra terms, and it actually ends up being less that that, as `mgcv` drops basis functions from co-linear smooths to ensure that the model matrix is full rank. **EJP: I need to dig into this here. Looking at the table,there's something wonky going on with the number of parameters.**  
+[^globalnpar]: Including a global smooth (models 2-3) or not (models 4-5) will not generally substantially affect the number of coefficients needed to estimate (compare the number of coefficients in Table \ref{tab:comp_time}, model 2a vs. model 4, or model 3 versus model 5). Adding a global term will only add at most `k` extra terms, and it actually ends up being less that that, as `mgcv` drops basis functions from co-linear smooths to ensure that the model matrix is full rank.
 
 
-and estimating additional smoothing parameters (moving from model 2 to model 3, or moving from model 4 to 5) is even more costly, as estimating smoothing parameters is computationally intensive [CITE]. Further, including both a global smooth term and a group-wise smooth can increase  These tradeoffs is visible from looking at the time it takes to run the various example models we used in section III (Table \ref{tab:comp_time}). The longest 
+Adding additional smoothing parameters (moving from model 2 to model 3, or moving from model 4 to 5) is even more costly than increasing the number of coefficients to estimate, as estimating smoothing parameters is computationally intensive [CITE Wood 2011]. This means that models 2 and 4 will generally be substantially faster than 3 and 5 when the number of groups is reasonably large, as models 3 and 5 fit a separate set of penalties for each group level. The effect of this is visible in comparing the time it takes to fit models 2a/2b to model 3 (which has a smooth for each group) or models 4 and 5 for the example data (Table \ref{tab:comp_time}).  It could also account partially for why model 2b is faster to fit than model 2a in our examples, since 2b has fewer smooth terms (there is no need to fit penalties for the global term seperately in model 2b). Note that this will not hold for every model, though; for instance, model 5 takes less time to fit the bird movement data than model 4 does (Table \ref{tab:comp_time}B). 
 
 
 ```{r comp_calc_table, echo=F,  fig.width=4, fig.height=6,message=F, warning=F, cache=T}
@@ -43,26 +49,34 @@ comp_resources_table =comp_resources %>%
             `penalties` = n_smooths
             )%>%
   group_by(data_source) %>%
-  mutate(`relative time` = round(`relative time`/`relative time`[1],0))%>%#scales processing time relative to model 1 
+  mutate(`relative time` = `relative time`/`relative time`[1],#scales processing time relative to model 1 
+         `relative time` = ifelse(`relative time`<10, signif(`relative time`,1), signif(`relative time`, 2)) #rounds to illustrate differences in timing.
+         )%>%
   ungroup()%>%
   select(-data_source)
 
 kable(comp_resources_table,format ="latex", caption="\\label{tab:comp_time}")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
   kable_styling(full_width = F)%>%
   add_header_above(c(" " = 1," "=1, "# of terms"=2))%>%
-  group_rows("CO2 data", 1,6)%>%
-  group_rows("bird_move data", 7,12)
+  group_rows("A. CO2 data", 1,6)%>%
+  group_rows("B. bird movement data", 7,12)
 
 ```
 
-
+## Alternative formulations: bam, gamm, and gamm4 (with a brief foray into Bayes)
 
 **EJP: This seems like a good place to discussing algorithms for fitting models (bam, gamm, gamm4 as compared to gam). Does anyone want to tackle this paragraph?**
 
 
-### Bias-variance tradeoffs
+## Estimation issues when fitting both global and groupwise smooths
 
- Fitting a single common curve for all groups (model 1) makes use of all available data to fit that single curve
+When fitting models with separate global and groupwise smooths (models 2a and 3), one issue to be aware of is concurvity between the global smooth and groupwise terms. Concurvity measures how well one smooth term can be approximated by some combination of the other smooth terms in the model (see `?mgcv::concurvity` for details). For models 2a and 3, the global term is entirely concurve with the groupwise smooths. This is because, in the absence of the global smooth term, it would be possible to recreate that average effect by shifting all the groupwise smooths so they were centered around the global mean. In practical terms, this has the consquence of increasing uncertainty around the global mean relative to a model with only a global smooth. In some cases, it can result in the estimated global smooth being close to flat, even in simulated examples with a known strong global effect. This concurvity issue may also increase the time it takes to fit these models (for example, compare the time it takes to fit models 3 and 5 in Table \ref{tab:comp_time}). That these models can still be estimated is because of the penalty terms; ideally, we want a model that penalizes the groupwise terms more heavily than the global term. In standard GLMMs, the global mean for any random effect is assumed to be unpenalized (or to have a weak prior, in Bayesian models), and only group-specific terms are penalized. This will not typically work for HGAMs however; and unpenalized global smooth will generally overfit the data, which is what we are trying to avoid. 
+
+What we recommend is to use a combination of smoother choice and setting model degrees of freedom so that the groupwise terms are either slightly less flexible or have a smaller null space. For instance, in the examples in section III, we used smoothers with an unpenalized nullspace (standard thin-plate splines) for the global smooth and ones no nullspace for the groupwise terms[^gsnull]. When using thin-plate splines, it may also help to use splines with a lower order of derivative penalized in the groupwise smooths than the global smooths, as lower-order "tp" splines have fewer basis functions in the null space. For example, we used `m=2` (penalizing squared second derivatives) for the global smooth, and `m=1` (penalizing squared first derivatives) for groupwise smooths in models 2a and 3. Another option would be to use a lower number of basis functions (`k`) for groupwise relative to global terms, as this will reduce the maximum flexibility possible in the groupwise terms. We do caution that these are just rules of thumb. As of this writing, there is no published work looking what the effect of adding groupwise smooths has on the statistical properties of estimating a global smooth. In cases where an accurately estimated global smooth is essential, we recommend either fitting model 1, or model 2b and calculate the global smooth by averaging across grouping levels. 
+
+[^gsnull]: For model 2a, the "fs" smoother, and tensor products of random effect ("re") and other smooth terms do not have a penalized null space by construction (they are full rank). For model 3 groupwise terms, we used basis types that had a penalty added to the nullspace: bs="tp", "cs", or "ps" have this property.
+
+
 
 
 ## A brief foray into the land of Bayes
