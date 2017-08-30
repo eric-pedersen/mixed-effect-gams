@@ -7,8 +7,6 @@ output:
     fig_caption: yes
 ---
 
-**EJP: I think it makes sense for this section to include a lot of the more math/computationally heavy issues. This would also be a good section to discuss the choice of gam/bam/gamm/gamm4, and maybe a brief discussion of how to fit these models in a Bayesian context, using either jagam or rstanarm**
-
 Which of the five models should you choose for a given data set? There are two major tradeoffs to take into account. The first is the bias-variance tradeoff: more complex models can account for more fluctuations in the data, but also tend to give more variable predictions, and can overfit.  The second tradeoff is model complexity versus computer time: more complex models can include more potential sources of variation and give more information about a given data set, but will generally take more time and computational resources to fit and debug. We will discuss both of these tradeoffs in this section.
 
 

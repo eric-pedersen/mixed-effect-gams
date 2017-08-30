@@ -149,7 +149,6 @@ Here the top row denotes the observed counts of each species (with color indicat
 
 ##Global function plus group-specific functions with similar smoothness (Model 2)
 
-**EJP: I'm debating: should we re-arrange the order these are presented in, so just show an `fs` smooth by itself before having both `fs` group-level smooths and a global smooth in the same model? **
 
 The second type of model is a close analogue to a GLMM with varying slopes. This class of model assumes that all groups will have similar functional responses, but allows for inter-group variation in responses. This approach works by allowing each grouping level to have its own functional response, but penalizing functions that are too far from the average. 
 
