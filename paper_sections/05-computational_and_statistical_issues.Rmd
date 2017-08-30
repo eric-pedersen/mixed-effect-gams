@@ -2,7 +2,9 @@
 title: "05 Computational issues"
 author: "Eric Pedersen"
 date: "August 13, 2017"
-output: pdf_document
+output: 
+  pdf_document:
+    fig_caption: yes
 ---
 
 **EJP: I think it makes sense for this section to include a lot of the more math/computationally heavy issues. This would also be a good section to discuss the choice of gam/bam/gamm/gamm4, and maybe a brief discussion of how to fit these models in a Bayesian context, using either jagam or rstanarm**
@@ -67,12 +69,34 @@ kable(comp_resources_table,format ="latex", caption="\\label{tab:comp_time}")%>%
 
 **EJP: This seems like a good place to discussing algorithms for fitting models (bam, gamm, gamm4 as compared to gam). Does anyone want to tackle this paragraph?**
 
+```{r alt_model_timing, echo=F,  fig.width=6, fig.height=4,message=F, warning=F, cache=T}
+source("../code/Sec_5_alt_model_timing.R")
+```
+
+```{r alt_model_timing_plot, echo=F,  fig.width=6, fig.height=4,message=F, warning=F, cache=T,fig.cap = "Elapsed time to estimate the same model using each of the four approaches. Each data set was generated with 20 observations per group using a unimodal global function and random group-specific functions consisting of an intercept, a quadratic term, and logistic trend for each group. Observation error was normally distributed. Models were fit using a model 2: y~s(x,k=10, bs='cp') + s(x,fac, k=10, bs='fs', xt=list(bs='cp'),m=1) All models were run on a single core machine."}
+
+timing_plot = ggplot(aes(n_groups, timing, color=model), 
+                     data=fit_timing_long)+
+  geom_line()+
+  geom_point()+
+  scale_color_manual(values = c("black", "#1b9e77","#d95f02", "#7570b3"))+
+  scale_y_log10("run time (seconds)", breaks = c(0.1,1,10,100), labels = c("0.1", "1","10", "100"))+
+  scale_x_log10("number of groups", breaks = c(2,8,32,128))+
+  theme_bw()+
+  theme(panel.grid.minor  = element_blank(),panel.grid.major.x = element_blank(),
+        legend.position = "bottom")
+
+print(timing_plot)
+
+```
+
+
 
 ## Estimation issues when fitting both global and groupwise smooths
 
 When fitting models with separate global and groupwise smooths (models 2a and 3), one issue to be aware of is concurvity between the global smooth and groupwise terms. Concurvity measures how well one smooth term can be approximated by some combination of the other smooth terms in the model (see `?mgcv::concurvity` for details). For models 2a and 3, the global term is entirely concurve with the groupwise smooths. This is because, in the absence of the global smooth term, it would be possible to recreate that average effect by shifting all the groupwise smooths so they were centered around the global mean. In practical terms, this has the consquence of increasing uncertainty around the global mean relative to a model with only a global smooth. In some cases, it can result in the estimated global smooth being close to flat, even in simulated examples with a known strong global effect. This concurvity issue may also increase the time it takes to fit these models (for example, compare the time it takes to fit models 3 and 5 in Table \ref{tab:comp_time}). That these models can still be estimated is because of the penalty terms; ideally, we want a model that penalizes the groupwise terms more heavily than the global term. In standard GLMMs, the global mean for any random effect is assumed to be unpenalized (or to have a weak prior, in Bayesian models), and only group-specific terms are penalized. This will not typically work for HGAMs however; and unpenalized global smooth will generally overfit the data, which is what we are trying to avoid. 
 
-What we recommend is to use a combination of smoother choice and setting model degrees of freedom so that the groupwise terms are either slightly less flexible or have a smaller null space. For instance, in the examples in section III, we used smoothers with an unpenalized nullspace (standard thin-plate splines) for the global smooth and ones no nullspace for the groupwise terms[^gsnull]. When using thin-plate splines, it may also help to use splines with a lower order of derivative penalized in the groupwise smooths than the global smooths, as lower-order "tp" splines have fewer basis functions in the null space. For example, we used `m=2` (penalizing squared second derivatives) for the global smooth, and `m=1` (penalizing squared first derivatives) for groupwise smooths in models 2a and 3. Another option would be to use a lower number of basis functions (`k`) for groupwise relative to global terms, as this will reduce the maximum flexibility possible in the groupwise terms. We do caution that these are just rules of thumb. As of this writing, there is no published work looking what the effect of adding groupwise smooths has on the statistical properties of estimating a global smooth. In cases where an accurately estimated global smooth is essential, we recommend either fitting model 1, or model 2b and calculate the global smooth by averaging across grouping levels. 
+What we recommend is to use a combination of smoother choice and setting model degrees of freedom so that the groupwise terms are either slightly less flexible or have a smaller null space. For instance, in the examples in section III, we used smoothers with an unpenalized nullspace (standard thin-plate splines) for the global smooth and ones no nullspace for the groupwise terms[^gsnull]. When using thin-plate splines, it may also help to use splines with a lower order of derivative penalized in the groupwise smooths than the global smooths, as lower-order "tp" splines have fewer basis functions in the null space. For example, we used `m=2` (penalizing squared second derivatives) for the global smooth, and `m=1` (penalizing squared first derivatives) for groupwise smooths in models 2a and 3. Another option would be to use a lower number of basis functions (`k`) for groupwise relative to global terms, as this will reduce the maximum flexibility possible in the groupwise terms. We do caution that these are just rules of thumb. As of this writing, there is no published work looking what the effect of adding groupwise smooths has on the statistical properties of estimating a global smooth. In cases where an accurately estimated global smooth is essential, we recommend either fitting model 1, or model 2b and calculate the global smooth by averaging across grouping levels.
 
 [^gsnull]: For model 2a, the "fs" smoother, and tensor products of random effect ("re") and other smooth terms do not have a penalized null space by construction (they are full rank). For model 3 groupwise terms, we used basis types that had a penalty added to the nullspace: bs="tp", "cs", or "ps" have this property.
 
