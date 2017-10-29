@@ -111,7 +111,7 @@ library(viridis) # for color plotting
 
 bird_move = read.csv("../data/bird_move.csv") # load data
 
-bird_mod1 = gam(count ~ te(week, latitude, bs = c("cc", "tp"), k =c(10, 10)), 
+bird_mod1 = gam(count ~ te(week, latitude, bs = c("cc", "tp"), k = c(10, 10)), 
                 data = bird_move, method = "REML", family = poisson)
 
 plot(bird_mod1, pages = 1, scheme = 2, rug = FALSE)
@@ -120,22 +120,20 @@ box()
 
 The default plot for this GAM illustrates the average log-abundance of all bird species at each latitude for each week, with yellow colours indicating more individuals and red colours fewer. This graph implies that these birds are starting at low latitudes in the winter then migrating to high latitudes from the 10th to 20th week, staying there for 15-20 weeks, then migrating back. However, the plot also indicates a large amount of uncertainty in the timing of migration. The source of this variability is apparent when the migration timing of each species is plotted in conjunction with the model fit:
 
-
-```{r bird_mod1_ggplot, echo=TRUE,  fig.width=8, fig.height=3, message=F, warning=F, cache=T}
-
-bird_move$mod1 = predict(bird_mod1,type ="response")
+```{r bird_mod1_ggplot, echo = TRUE, fig.width=8, fig.height=3, message=FALSE, warning=FALSE, cache=TRUE}
+bird_move = transform(bird_move, mod1 = predict(bird_mod1, type = "response"))
 #gets the fitted model values, at the response scale
 
-bird_move_plot = gather(bird_move, key = model,value = value, count,mod1)
+bird_move_plot = gather(bird_move, key = model, value = value, count, mod1)
 #combines observed and fitted estimates into a single column called "value"
 
-ggplot(data=bird_move_plot, aes(x=week, y=latitude, fill = value,color=value))+
-  geom_tile(size=1)+
-  facet_grid(model~species)+
-  scale_fill_viridis("individuals")+
-  scale_color_viridis("individuals")+
-  scale_x_continuous(expand=c(0,0),breaks = c(1,26,52))+
-  scale_y_continuous(expand=c(0,0), breaks=c(0,30,60))
+ggplot(bird_move_plot, aes(x = week, y = latitude, fill = value)) +
+    geom_raster() +
+    facet_grid(model ~ species)+
+    scale_fill_viridis() +
+    scale_x_continuous(expand = c(0,0), breaks = c(1,26,52)) +
+    scale_y_continuous(expand = c(0,0), breaks = c(0,30,60)) +
+    labs(fill = "Individuals")
 ```
 
 
