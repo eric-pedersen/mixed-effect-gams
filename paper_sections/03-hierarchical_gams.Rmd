@@ -83,18 +83,19 @@ This shows how to fit the model, and shows the default plot for the model for `m
 The next block of code shows how you could plot this to illustrate inter-plant variation in the functional response with estimated functional variability, plotting untransformed uptake and concentration to make the figure easier to comprehend. You can see the effect log-transforming concentration has on model fits; even though plants Mc1 -- Mc3 show a much flatter response in untransformed space, the same functional response fits relatively well after accounting for the random effect (a multiplicative difference between functional responses).
 
 
-```{r co2_mod1_ggplot, echo=TRUE,  fig.width=6, fig.height=3,message=F, warning=F, cache=T}
+```{r co2_mod1_ggplot, echo=TRUE,  fig.width=6, fig.height=3, message=FALSE, warning=FALSE, cache=TRUE}
+newconc <- with(CO2,
+                expand.grid(conc = seq(min(conc), max(conc), length = 100),
+                            Plant_uo = levels(Plant_uo)))
+CO2_mod1_pred <- cbind(newconc, predict(CO2_mod1, newconc, se.fit = TRUE))
 
-CO2_mod1_pred = predict(CO2_mod1,se.fit = T)
-CO2$mod1 = CO2_mod1_pred$fit
-CO2$mod1_se = CO2_mod1_pred$se.fit
-
-ggplot(data=CO2, aes(x=conc, y= uptake, group=Plant_uo))+
-  facet_wrap(~Plant_uo)+
-  geom_point()+
-  geom_line(aes(y=exp(mod1)))+
-  geom_ribbon(aes(ymin=exp(mod1-2*mod1_se), ymax=exp(mod1+2*mod1_se)),alpha=0.5)
-```
+ggplot(data = CO2, aes(x = conc, y = uptake, group = Plant_uo)) +
+    facet_wrap(~ Plant_uo) +
+    geom_point() +
+    geom_line(aes(y = exp(fit)), data = CO2_mod1_pred) +
+    geom_ribbon(aes(ymin = exp(fit - 2*se.fit), ymax = exp(fit+ 2*se.fit), x = conc),
+                data = CO2_mod1_pred, alpha = 0.3, inherit.aes = FALSE)
+```	
 
 
 
