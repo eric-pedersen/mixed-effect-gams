@@ -63,20 +63,19 @@ For our CO2 data set, we will use two basic smooth terms: a thin plate spline to
 [^f2]: Note also that we have also specified `method="REML"`. This tells `mgcv` to use Restricted Maximum Likelihood [CITE] to estimate model coefficients and penalty terms. We strongly recommend using either `method="REML"` or `method="ML"` (marginal likelihood) when fitting models, as the default `method="GCV.Cp"` is not as consistent at estimating smoothing penalties as the likelihood-based methods and tends to substantially under-smooth terms [CITE]. 
 
 
-```{r co2_mod1, echo=TRUE,  fig.width=6, fig.height=3,message=F, warning=F, cache=F}
+```{r co2_mod1, echo=TRUE,  fig.width=6, fig.height=3, message=FALSE, warning=FALSE, cache=FALSE}
 library(mgcv)
 library(ggplot2)
 
 #The default CO2 plant variable is ordered; 
 #This recodes it to an unordered factor (see above for why). 
-CO2$Plant_uo = factor(CO2$Plant, ordered = F)
+CO2 = transform(CO2, Plant_uo = factor(Plant, ordered = FALSE))
 
-CO2_mod1 = gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+s(Plant_uo, k =12,  bs="re"), 
+CO2_mod1 = gam(log(uptake) ~ s(log(conc), k = 5, bs = "tp") +
+                   s(Plant_uo, k = 12, bs = "re"), 
                data= CO2,method="REML")
 
-plot(CO2_mod1,page = 1, seWithMean = T)
-
-
+plot(CO2_mod1, pages = 1, seWithMean = TRUE)
 ```
 
 This shows how to fit the model, and shows the default plot for the model for `mgcv`. The plot has two panels: the first showing the estimated global functional relationship, and the second showing the estimated distribution of random effects for the plant-specific intercepts.
