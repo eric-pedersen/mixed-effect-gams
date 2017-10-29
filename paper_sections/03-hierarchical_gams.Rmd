@@ -97,8 +97,6 @@ ggplot(data = CO2, aes(x = conc, y = uptake, group = Plant_uo)) +
                 data = CO2_mod1_pred, alpha = 0.3, inherit.aes = FALSE)
 ```	
 
-
-
 Global smooth models with interactions are also straightforward to model. For isotropic smooths such as thin-plate splines, extra terms can simply be added to the `s()` function (`y~s(x1,x2)`). For non-isotropic smooths, we use the tensor product (`te()`) function. It is specified similarly to the `s()` function, but requires additional information to specify the types of basis and number of basis functions used for each marginal term. `bs` can be specified as a single value, in which case that basis is used for all marginal terms in the model. `k` can also be given as a single value, and works similar to `bs`. For example, `y~te(x1,x2, k=c(10,5), bs=c("tp","cs"))`, would specify a non-isotropic smooth of **x1** and **x2**, with the marginal basis for **x1** being a thin-plate spline with 10 basis functions, and **x2** having  a cubic regression spline with a penalty on the null space. As with `s()`, the user can also give `te()` more options depending on the basis types used. For more information, consult `?mgcv::te`.
 
 For our bird example, we will use one smooth term, a tensor product of latitude and week. We will use using a 10 basis function thin plate spline for the marginal latitude effects, and a 10 basis function cyclic cubic spline for the marginal week effect to account for the cyclic nature of weekly effects (we expect week 1 and week 52 to have very similar values). We will also assume the date (counts of individuals at each location in each week) follow a Poisson distribution. For simplicity of code we will exclude a species-specific random effect like the one we had in the $CO_2$ uptake example[^f3].
@@ -107,21 +105,18 @@ For our bird example, we will use one smooth term, a tensor product of latitude 
 
 Note that the total number of basis functions used for a given smooth is the product of the marginal `k` values, so in this example the global smooth would have 99 parameters (10*10, minus one to account for the presence of the global intercept). It will also have two smoothing parameters estimated; one for each marginal basis (week and latitude).
 
-```{r bird_mod1, echo=TRUE,  fig.width=4, fig.height=4, message=F, warning=F, cache=T}
-library(mgcv)
-library(ggplot2)
+```{r bird_mod1, echo = TRUE,  fig.width = 4, fig.height = 4, message = FALSE, warning = FALSE, cache = TRUE}
 library(tidyr)
-library(viridis) #for color plotting
+library(viridis) # for color plotting
 
-bird_move = read.csv("../data/bird_move.csv")
+bird_move = read.csv("../data/bird_move.csv") # load data
 
-bird_mod1 = gam(count ~ te(week,latitude, bs= c("cc", "tp"), k=c(10,10)), 
-                data= bird_move, method="REML", family= poisson)
+bird_mod1 = gam(count ~ te(week, latitude, bs = c("cc", "tp"), k =c(10, 10)), 
+                data = bird_move, method = "REML", family = poisson)
 
-plot(bird_mod1, page=1, scheme=2,rug = F)
-
+plot(bird_mod1, pages = 1, scheme = 2, rug = FALSE)
+box()
 ```
-
 
 The default plot for this GAM illustrates the average log-abundance of all bird species at each latitude for each week, with yellow colours indicating more individuals and red colours fewer. This graph implies that these birds are starting at low latitudes in the winter then migrating to high latitudes from the 10th to 20th week, staying there for 15-20 weeks, then migrating back. However, the plot also indicates a large amount of uncertainty in the timing of migration. The source of this variability is apparent when the migration timing of each species is plotted in conjunction with the model fit:
 
