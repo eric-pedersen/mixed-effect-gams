@@ -1,32 +1,35 @@
 {
-"title": "General Additive Models with Mixed-Effect Smooths",
-"license": "CC-BY",
-"creators": [
-{
-"name": "Eric J. Pedersen",
-"affiliation": "Fisheries and Oceans Canada (DFO) Newfoundland and Labrador",
-"orcid": "0000-0003-1016-540X"
-},
-{
-"name": "David L. Miller",
-"affiliation": "Centre for Research into Ecological & Environmental Modelling, University of St. Andrews",
-"orcid": "0000-0002-9640-6755"
-},
-{
-"name": "Gavin L. Simson",
-"affiliation": "Institute of Environmental Change and Society, University Regina",
-"orcid": "0000-0002-9084-8413"
-},
-{
-"name": "Noam Ross",
-"affiliation": "EcoHealth Alliance, New York, NY, USA",
-"orcid": "0000-0002-2136-0000"
-}],
-"description": "This (in progress) repository includes the code, data, documentation, metadata and figure source files that accompany this research.",
-"access_right": "open",
-"related_identifiers":[{
-"identifier": "https://github.com/noamross/mixed-effect-gams",
-"relation": "isIdenticalTo",
-"scheme": "url"
-}]
+  "title":"General Additive Models with Mixed-Effect Smooths",
+  "license":"cc-by",
+  "creators":[
+    {
+      "name":"Eric J. Pedersen",
+      "affiliation":"Fisheries and Oceans Canada (DFO) Newfoundland and Labrador",
+      "orcid":"0000-0003-1016-540X"
+    },
+    {
+      "name":"David L. Miller",
+      "affiliation":"Centre for Research into Ecological & Environmental Modelling, University of St. Andrews",
+      "orcid":"0000-0002-9640-6755"
+    },
+    {
+      "name":"Gavin L. Simson",
+      "affiliation":"Institute of Environmental Change and Society, University Regina",
+      "orcid":"0000-0002-9084-8413"
+    },
+    {
+      "name":"Noam Ross",
+      "affiliation":"EcoHealth Alliance, New York, NY, USA",
+      "orcid":"0000-0002-2136-0000"
+    }
+  ],
+  "description":"This (in progress) repository includes the code, data, documentation, metadata and figure source files that accompany this research.",
+  "access_right":"open",
+  "related_identifiers":[
+    {
+      "identifier":"https://github.com/noamross/mixed-effect-gams",
+      "relation":"isIdenticalTo",
+      "scheme":"url"
+    }
+  ]
 }
