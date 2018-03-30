@@ -67,8 +67,8 @@ comp_resources_table =comp_resources %>%
 kable(comp_resources_table,format ="latex", caption="\\label{tab:comp_time}")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
   kable_styling(full_width = F)%>%
   add_header_above(c(" " = 1," "=1, "# of terms"=2))%>%
-  group_rows("A. CO2 data", 1,6)%>%
-  group_rows("B. bird movement data", 7,12)
+  group_rows("A. CO2 data", 1,5)%>%
+  group_rows("B. bird movement data", 6,10)
 
 ```
 
