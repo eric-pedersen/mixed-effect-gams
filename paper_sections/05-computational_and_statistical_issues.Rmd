@@ -33,7 +33,7 @@ print(deriv_plot)
 source("../code/Sec_5_computational_code.R")
 ```
 
-GAMs and GLMMs have substantially increased the range of flexible models available to the average researcher, and the HGAM models we discussed in section III extend on this broad base. However, the more flexible a model is, the larger an effective parameter space any fitting software has to search to find parameters that can predict the observed data. While numerical algorithms for solving complex models are always improving, it can still be surprisingly easy to use up massive computational resources trying to fit a complex model to even relatively small datasets. While we typically want to choose a model based on model fit (see above and section IV) and our goals for what the model will be used for, computing resources can often act as an effective upper limit on possible model complexity. Fitting an HGAM means adding extra computational complexity on top of either a GAM model with only global terms or a GLMM without smooth terms. For a given data set (with a fixed number `n` data points) and assuming a fixed family and link function, the time it takes to compute a given HGAM will depend, roughly, on four factors: the number of basis functions to be estimated, the number of smooth penalties to be estimated, whether the model needs to estimate both a global smooth and groupwise smooths, and the algorithm used to estimate parameters and fitting criteria used. 
+GAMs and GLMMs have substantially increased the range of flexible models available to the average researcher, and the HGAM models we discussed in section III extend on this broad base. However, the more flexible a model is, the larger an effective parameter space any fitting software has to search to find parameters that can predict the observed data. While numerical algorithms for solving complex models are always improving, it can still be surprisingly easy to use up massive computational resources trying to fit a model to even relatively small datasets. While we typically want to choose a model based on model fit (see above and section IV) and our goals for what the model will be used for, computing resources can often act as an effective upper limit on possible model complexity. Fitting an HGAM means adding extra computational complexity on top of either a GAM model with only global terms or a GLMM without smooth terms. For a given data set (with a fixed number `n` data points) and assuming a fixed family and link function, the time it takes to compute a given HGAM will depend, roughly, on four factors: the number of basis functions to be estimated, the number of smooth penalties to be estimated, whether the model needs to estimate both a global smooth and groupwise smooths, and the algorithm used to estimate parameters and fitting criteria used. 
 
 
 The most straightforward factor that will affect the amount of computational resources is the number of parameters in the model. Adding group-level smooths (moving from model 1 to 2-5) means that there will be more regression parameters to estimate, since each grouping level needs a separate coefficient for each basis function in the smooth. For a dataset with `g` different groups and `n` data points, fitting a model will just a global smooth, `y~s(x,k=k)` will require only `k` coefficients, and takes $\mathcal{O}(nk^2)$ operations[^bigO] to evaluate, but fitting the same data using a group-level smooth (model 4, `y~s(x,fac,bs="fs",k=k)`) will require $\mathcal{O}(nk^2g^2)$ operations to evaluate; in effect, adding a group-level smooth will increase computational time by an order of the number of groups squared[^globalnpar]. The effect of this is visible in the examples we fit in section III when comparing the number of coefficients and relative time it takes to compute model 1 versus the other models (Table \ref{tab:comp_time}). One way to deal with this issue would be to reduce the number of basis functions (`k`) used when fitting group-level smooths when the number of groups is large; in effect, this would increase the flexibility of the model to accommodate inter-group differences, while reducing its ability to model variance within any given group. It can also make sense to use more computationally efficient basis functions when fitting large data sets, such as p-splines or cubic splines, rather than thin-plate splines, as thin-plate splines can take a substantial amount of overhead to compute the actual basis functions to use [CITE].
@@ -72,23 +72,89 @@ kable(comp_resources_table,format ="latex", caption="\\label{tab:comp_time}")%>%
 
 ```
 
+
+
 ## Alternative formulations: bam, gamm, and gamm4 (with a brief foray into Bayes)
 
-**EJP: This seems like a good place to discussing algorithms for fitting models (bam, gamm, gamm4 as compared to gam). Does anyone want to tackle this paragraph?**
+When fitting models with large numbers of different group levels, it is often 
+possible to speed up computation substantially by using one of the alternative fitting
+algorithms available through mgcv. 
+
+The first tool available, that requires the least changes to your code compared
+to the base `gam` function, is the `bam` function. This function is designed to
+improve  performance when fitting data sets with large amounts of data. It uses
+two tools to do this. First, it saves on the amount of memory needed to compute
+a given model by using a random subset of the data to calculate the basis
+functions for the smoothers, then breaking the data up into blocks and updating
+model fit within each block [*CITE*]. While this is primarily designed to reduce
+the amount of memory needed to fit these models, it can also substantially
+reduce computation time. Second, the `bam` function, when fitting using its
+default "fREML" (for "Fast REML") method, you can use the `discrete` when
+fitting the model. This option causes bam to simplify each covariate to a set of
+discrete levels (instead of a continuous range), substantially reducing the
+amount of computation needed. Setting "discrete = TRUE" lets `bam` estimate the
+number of bins to use for each covariate. It is also possible to manually
+specify the number of bins by passing `discrete` a vector of values. See
+`?mgcv::bam` for more details.
+
+It also takes more computational overhead compared to `gam` to set a `bam` model
+up, so for small numbers of groups, it can actually be slower than `gam` (Figure
+[*alt_timing*]), however, as the number of groups increases, computational time
+for `bam` increases more slowly than for `gam`; in our simulation tests, when
+the number of groups is greater than 16, `bam` can be upward of an order of
+magnitude faster (Figure [*alt_timing*]). Note that `bam` can be somewhat less
+computationally stable when estimating these models (i.e. less likely to
+converge) so it does typically make sense to still use `gam` for smaller data
+sets.
+
+
+The second option is to fit these models using one of two dedicated mixed effect
+model estimation packages, `nlme` and `lme4`. The `mgcv` package includes the
+function `gamm` that allows you to call `nlme` to solve a given GAM,
+automatically handling the transformation of smooth terms into random effects
+(and back into basis-function representations for plotting and other statistical
+analyses). To use `lme4`, you will have to install the `gamm4` package, and use
+the `gamm4` function from this package. Using `gamm` or `gamm4` to fit models
+rather than `gam` can substantially speed up computation when the number of
+groups is large, as both `nlme` and `lme4` take advantage of the sparse
+structure of the random effects, where most basis functions will be zero for
+most groups (i.e. any group-specific basis function will only take a non-zero
+value for observations in that group level). As with `bam`, `gamm` and `gamm4`
+are generally slower than `gam` for fitting HGAMs when the number of group
+levels is small (in our simulations, <8 group levels), however they do show
+substantial speed improvements even with a moderate number of groups, and were
+as fast as or faster to calculate than *bam* for all numbers of grouping levels
+we tested (Figure [*alt_timing*])[^parallel].
+
+[^parallel]: It is also possible to speed up both `gam` and `bam` by using
+multiple processors in parallel, whereas this is not currently possible for
+`gamm` and `gamm4`. For large numbers of grouping levels, this should speed up
+computation as well, at the cost of using more memory. However, computation time
+will likely not decline linearly with the number of cores used, since not all
+model fitting sets are parallizable, and performance of the cores can vary. As
+parallel processing can be complicated and dependent on the type of computer
+you are using to configure properly, we do not go into how to use these methods
+here. The help file `?mgcv::mgcv.parallel` explains how to use parallel
+computations for `gam` and `bam` in detail.
+
+
+
 
 ```{r alt_model_timing, echo=F,  fig.width=6, fig.height=4,message=F, warning=F, cache=T}
 source("../code/Sec_5_alt_model_timing.R")
 ```
 
-```{r alt_model_timing_plot, echo=F,  fig.width=6, fig.height=4,message=F, warning=F, cache=T,fig.cap = "Elapsed time to estimate the same model using each of the four approaches. Each data set was generated with 20 observations per group using a unimodal global function and random group-specific functions consisting of an intercept, a quadratic term, and logistic trend for each group. Observation error was normally distributed. Models were fit using model 2: y~s(x,k=10, bs='cp') + s(x,fac, k=10, bs='fs', xt=list(bs='cp'),m=1) All models were run on a single core machine."}
+```{r alt_model_timing_plot, echo=F,  fig.width=6, fig.height=4,message=F, warning=F, cache=T,fig.cap = "Elapsed time to estimate the same model using each of the four approaches. Each data set was generated with 20 observations per group using a unimodal global function and random group-specific functions consisting of an intercept, a quadratic term, and logistic trend for each group. Observation error was normally distributed. Models were fit using model 2: y~s(x,k=10, bs='cp') + s(x,fac, k=10, bs='fs', xt=list(bs='cp'),m=1) All models were run on a single core."}
 
-timing_plot = ggplot(aes(n_groups, timing, color=model), 
+timing_plot = ggplot(aes(n_groups, timing, color=model, linetype= model), 
                      data=fit_timing_long)+
   geom_line()+
   geom_point()+
-  scale_color_manual(values = c("black", "#1b9e77","#d95f02", "#7570b3"))+
+  scale_color_manual(values = c("black", "#1b9e77","#1b9e77", "#d95f02", "#7570b3"))+
+  scale_linetype_manual(values =c(1,1,2,1,1))+
   scale_y_log10("run time (seconds)", breaks = c(0.1,1,10,100), labels = c("0.1", "1","10", "100"))+
   scale_x_log10("number of groups", breaks = c(2,8,32,128))+
+  
   theme_bw()+
   theme(panel.grid.minor  = element_blank(),panel.grid.major.x = element_blank(),
         legend.position = "bottom")
@@ -97,6 +163,40 @@ print(timing_plot)
 
 ```
 
+
+Setting up models 1-5 in `bam` uses the same code as we have previously covered;
+the only difference is that you use the `bam` instead of `gam` function, and
+have the additional option of discretizing your covariates. The advantage of
+this approach is that `bam` allows you to use almost all of the same families
+available to the `gam` function, and `bam` model output can be evaluated using
+the same functions (e.g. `summary`, `AIC`, `plot`, etc.) so it is simple to
+substitute for `gam` if you need to speed a model up.
+
+Both `gamm` and `gamm4` require at least a few changes to how you code models.
+First, there are a few limitations on how you are able to specify models 1-5 in both frameworks. Factor smooth (`bs="fs"`) basis setups work in both `gamm` and `gamm4`. However, as the `nlme` package does not support crossed random effects, it is not possible to have two "fs" terms for the same grouping variable in `gamm` models (e.g. `y~s(x1, grp,bs="fs"+s(x2, grp, bs="fs")`. These type of crossed random effects are allowed in `gamm4`. The use of `te` and `ti` terms are not possible in `gamm4` however, due to 
+issues with how random effects are specified in the `lme4` package, making it impossible to code models where multiple penalties apply to a single basis function. Instead, for
+multidimensional group-level smooths, the alternate function `t2` needs to be used
+to generate these terms, as it creates tensor products with only a single penalty for
+each basis function (see `?mgcv::t2` for details on these smoothers, and [*CITE*] for 
+the theoretical basis behind this type of tensor product). So for instance, model 2 for the 
+bird movement data we discussed in section III would need to be coded as:
+
+```
+bird_mod4_gamm4 = gamm4(count ~ t2(week,latitude,species, bs= c("cc", "tp","re"), 
+                     k=c(10,10,6),m = 2), 
+                data= bird_move, family= poisson)
+```
+
+
+These packages also do not support the same range of families for the dependent
+variable; `gamm` only supports non-Gaussian families by using a fititng method
+called penalized quasi-likelihood (PQL) that is slower and not as numerically
+stable as the methods used in `gam`, `bam`, and `gamm4`. Non-Gaussian families
+are well supported by `lme4` (and thus `gamm4`), but can only fit them using
+marginal likelihood (ML) rather than REML, so may tend to over-smooth relative
+to `gam` using REML estimation. Further, neither `gamm` nor `gamm4` supports
+several of the extended families avaiable through `mgcv`, such as zero-inflated,
+negative binomial, or ordered catagorical and multinomial distributions. 
 
 
 ## Estimation issues when fitting both global and groupwise smooths

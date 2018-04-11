@@ -14,7 +14,9 @@ n_steps = 7
 
 fit_timing_data = data_frame(n_groups = 2^(1:n_steps),
                              gam=rep(0,length=n_steps),
-                             bam=gam,gamm=gam, gamm4= gam)
+                             `bam (discrete = FALSE)`= 0,
+                             `bam (discrete = TRUE)` = 0,
+                             gamm = 0, gamm4 = 0)
 
 fac_all = paste("g", 1:max(fit_timing_data$n_groups),sep = "")
 
@@ -46,8 +48,11 @@ for(i in 1:n_steps){
   fit_timing_data$gam[i] = system.time(gam(y~s(x,k=10, bs="cp") + s(x,fac, k=10, bs="fs", xt=list(bs="cp"), m=1),
                              data= model_data, method="REML"))[3]
   
-  fit_timing_data$bam[i] = system.time(bam(y~s(x,k=10, bs="cp") + s(x,fac, k=10, bs="fs", xt=list(bs="cp"),m=1),
-                             data= model_data))[3]
+  fit_timing_data$`bam (discrete = FALSE)`[i] = system.time(bam(y~s(x,k=10, bs="cp") + s(x,fac, k=10, bs="fs", xt=list(bs="cp"),m=1),
+                             data= model_data, discrete = FALSE))[3]
+  
+  fit_timing_data$`bam (discrete = TRUE)`[i] = system.time(bam(y~s(x,k=10, bs="cp") + s(x,fac, k=10, bs="fs", xt=list(bs="cp"),m=1),
+                                                                data= model_data,discrete=TRUE))[3]
   
   
   fit_timing_data$gamm[i] = system.time(gamm(y~s(x,k=10, bs="cp") + s(x,fac, k=10, bs="fs", xt=list(bs="cp"),m=1),
@@ -60,7 +65,12 @@ for(i in 1:n_steps){
 
 
 fit_timing_long = fit_timing_data %>% 
-  gather(model, timing, gam, bam, gamm, gamm4)%>%
-  mutate(model =factor(model, levels = c("gam","bam","gamm", "gamm4")))
+  gather(model, timing, gam,`bam (discrete = FALSE)`, 
+         `bam (discrete = TRUE)`, gamm, gamm4)%>%
+  mutate(model =factor(model, levels = c("gam",
+                                         "bam (discrete = FALSE)",
+                                         "bam (discrete = TRUE)",
+                                         "gamm", 
+                                         "gamm4")))
 
 
