@@ -1,0 +1,27 @@
+---
+title: 'Section VI: examples'
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+***EJP: I think we should aim for 3-4 good examples here, highlighting different
+aspects of the model fitting problem. The example I'll be showing is a set of
+zooplankton community time series data, where multiple species were tracked
+throughout the year for a period of roughtly 20 years. This example can
+highlight both testing models 4/5 (for comparing different species' season
+cycles) and models 2/3 (for testing for differences between years for a single
+species). I think we need at least one example showing how to use these methods
+for multivariate regression (e.g. spatial analysis), and potentially an example
+showing how to these models work for non-normal data, and for including other
+covariates. In all examples, I think we should focus on how to fit each data set, visual
+models, and compare different model fits.***
+
+## Example XX: Inter- and intra-specific variation in zooplankton seasonal cycles over time
+
+This example will demonstrate how to use these models to fit community data, to show when using a global trend may or may not be justified, and to illustrate how to use these models to fit seasonal time series. 
