@@ -8,7 +8,8 @@ library(Hmisc)
 zooplankton_data = read.csv("data/madisonlakeszoopoldnet.csv",stringsAsFactors = F)%>%
   filter(lakeid == "ME",
          !taxon  %in% c("DAPHNIA MENDOTAE JUVENILE", 
-                        "DAPHNIA PULICARIA JUVENILE"))%>%
+                        "DAPHNIA PULICARIA JUVENILE",
+                        "COPEPOD NAUPLII"))%>%
   mutate(date = lubridate::as_date(sampledate),
          day  = yday(date),
          taxon = tolower(taxon),
@@ -21,6 +22,13 @@ zooplankton_data = read.csv("data/madisonlakeszoopoldnet.csv",stringsAsFactors =
   ungroup()%>%
   complete(nesting(day, year), 
            taxon, 
-           fill = list(density=0, avg_length=NA))
+           fill = list(density=NA, avg_length=NA))%>%
+  mutate(present = as.numeric(!is.na(avg_length)))%>%
+  group_by(taxon)%>%
+  mutate(density = ifelse(is.na(density), min(density,na.rm = T),density))%>%
+  group_by(taxon,year)%>%
+  filter(any(present))%>%
+  mutate(density_scaled = scale(log10(density)))%>%
+  ungroup()
 
 write.csv(zooplankton_data, "data/zooplankton_example.csv")
