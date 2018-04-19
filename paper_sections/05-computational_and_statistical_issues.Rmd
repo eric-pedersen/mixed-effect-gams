@@ -15,6 +15,41 @@ Which of the five models should you choose for a given data set? There are two m
 
 **This is just some code I've put together to highlight the fact that a shared smoothers doesn't necessarily act conservatively in the presence of variation in smoothness between grouping levels; when you have both wiggly groups and non-wiggly groups with a lot of data, forcing all groups to have the same smoothness can result in substantially over-fitting the smoothest levels, rather than under-smoothing the wiggliest terms.**
 
+The bias-variance tradeoff is a fundamental concept in classical statistical
+analysis. When trying to estimate any value (in the cases we are focusing on, a
+smooth functional relationship between predictors and data), bias measures how
+on average an estimate is from the true value of the thing we are trying to
+estimate, and the variance of an estimator corresponds to how much that
+estimator would fluctuate if applied to multiple different samples taken from the
+same population. These two properties tend to be traded off when fitting models;
+for instance, rather than estimating a population mean from data, we could
+simply use a fixed value regardless of the observed data. This estimate would
+have no variance (as it is always the same) but would have high bias unless the
+true population mean happened to equal zero [^mean_note]. The core insight into
+why penalization is useful is that the penalty term slightly increases the bias
+but can substantially decrease the variance of an estimator, relative to its
+unpenalized version [CITE: Effron and Morris 1977].
+
+In GAMs and HGLMs, the bias-variance tradeoff is managed by the penalty terms
+(random effect variances in HGLM terminology). Larger penalties correspond to
+lower variance, as the estimated function is unable to wiggle a great deal, but
+also correspond to higher bias unless the true function is close to the null
+space for a given smoother (e.g. a straight line for thin-plate splines with 2nd
+derivative penalties, or zero for a standard random effect). The computational
+machinery used by mgcv to fit smooth terms is designed to find penalty terms
+that best trade off bias for variance to find a smooth that can effectively to
+predict new data.
+
+The bias--variance tradeoff comes into play with HGAMs when choosing whether to
+fit separate penalties for each group level or assign a common penalty for all
+group levels (i.e. deciding between models 2 & 3 or models 4 & 5). Setting the 
+penalty for all group-level smooths equal (models 2&4).
+
+
+ 
+[^mean_note]: While this example may seem contrived, this is exactly what happens
+when we assume a given fixed effect is equal to zero (and thus exclude it from a model). 
+
 
 ```{r single_smooth_bias, echo=F,  fig.width=7, fig.height=4,message=F, warning=F, cache=T}
 source("../code/overfit_from_pooling.R")
@@ -22,16 +57,31 @@ print(overfit_vis_plot)
 print(deriv_plot)
 ```
 
-**EJP: This needs to be heavily extended **
- Fitting a single common curve for all groups (model 1) makes use of all available data to fit that single curve 
 
-## Complexity -- computatation tradeoffs
 
-```{r comp_calc, echo=F,  fig.width=4, fig.height=6,message=F, warning=F, cache=T}
-#Note: this code takes quite a long time to run! It's fitting all 10 models.
-#Run once if possible, then rely on the cached code. There's a reason it's split off from the rest of the chunks of code.
-source("../code/Sec_5_computational_code.R")
-```
+It may seem like there is also a bias--variance tradeoff between choosing to use
+a single global smoother (model 1) or a global smoother plus group-level terms
+(model 2-3), as in model 1, all the data is used to estimate a single smooth
+term, and thus should have lower variance than models 2-3, but higher bias for
+any given group in the presence of inter-group functional variability. However,
+in practice, this tradeoff will already be handled by mgcv via estimating
+penalties; if there are no average differences between functional responses,
+mgcv will penalize the group--specific functions toward zero, and thus toward
+the global model. The choice between using model 1 versus models 2-3 should
+generally be driven by  computational costs; model 1 is typically much faster to
+fit than models 2-3, even in the absence of among--group differences, so if
+there is no need to estimate inter-group variability, model 1 will typically be
+more efficient. 
+
+A similar issue exists when choosing between models 2/3 and
+4/5; if all group levels have very different functional shapes, the global term
+will get penalized toward zero in models 2/3, so they will reduce to models 4/5. 
+Again, the choice to include a global term or not should be made based on scientific 
+considerations (is the global term of interest to estimate) and computational 
+considerations (which we will discuss next).  
+
+
+## Complexity -- computation tradeoffs
 
 GAMs and GLMMs have substantially increased the range of flexible models available to the average researcher, and the HGAM models we discussed in section III extend on this broad base. However, the more flexible a model is, the larger an effective parameter space any fitting software has to search to find parameters that can predict the observed data. While numerical algorithms for solving complex models are always improving, it can still be surprisingly easy to use up massive computational resources trying to fit a model to even relatively small datasets. While we typically want to choose a model based on model fit (see above and section IV) and our goals for what the model will be used for, computing resources can often act as an effective upper limit on possible model complexity. Fitting an HGAM means adding extra computational complexity on top of either a GAM model with only global terms or a GLMM without smooth terms. For a given data set (with a fixed number `n` data points) and assuming a fixed family and link function, the time it takes to compute a given HGAM will depend, roughly, on four factors: the number of basis functions to be estimated, the number of smooth penalties to be estimated, whether the model needs to estimate both a global smooth and groupwise smooths, and the algorithm used to estimate parameters and fitting criteria used. 
 
@@ -45,6 +95,14 @@ The most straightforward factor that will affect the amount of computational res
 
 
 Adding additional smoothing parameters (moving from model 2 to model 3, or moving from model 4 to 5) is even more costly than increasing the number of coefficients to estimate, as estimating smoothing parameters is computationally intensive [CITE Wood 2011]. This means that models 2 and 4 will generally be substantially faster than 3 and 5 when the number of groups is reasonably large, as models 3 and 5 fit a separate set of penalties for each group level. The effect of this is visible in comparing the time it takes to fit model 2 to model 3 (which has a smooth for each group) or models 4 and 5 for the example data (Table \ref{tab:comp_time}). Note that this will not hold for every model, though; for instance, model 5 takes less time to fit the bird movement data than model 4 does (Table \ref{tab:comp_time}B). 
+
+
+
+```{r comp_calc, echo=F,  fig.width=4, fig.height=6,message=F, warning=F, cache=T}
+#Note: this code takes quite a long time to run! It's fitting all 10 models.
+#Run once if possible, then rely on the cached code. There's a reason it's split off from the rest of the chunks of code.
+source("../code/Sec_5_computational_code.R")
+```
 
 
 ```{r comp_calc_table, echo=F,  fig.width=4, fig.height=6,message=F, warning=F, cache=T}
@@ -189,14 +247,14 @@ bird_mod4_gamm4 = gamm4(count ~ t2(week,latitude,species, bs= c("cc", "tp","re")
 
 
 These packages also do not support the same range of families for the dependent
-variable; `gamm` only supports non-Gaussian families by using a fititng method
+variable; `gamm` only supports non-Gaussian families by using a fitting method
 called penalized quasi-likelihood (PQL) that is slower and not as numerically
 stable as the methods used in `gam`, `bam`, and `gamm4`. Non-Gaussian families
 are well supported by `lme4` (and thus `gamm4`), but can only fit them using
 marginal likelihood (ML) rather than REML, so may tend to over-smooth relative
 to `gam` using REML estimation. Further, neither `gamm` nor `gamm4` supports
-several of the extended families avaiable through `mgcv`, such as zero-inflated,
-negative binomial, or ordered catagorical and multinomial distributions. 
+several of the extended families available through `mgcv`, such as zero-inflated,
+negative binomial, or ordered categorical and multinomial distributions. 
 
 
 ## Estimation issues when fitting both global and groupwise smooths
@@ -220,13 +278,13 @@ model 2 ("fs" terms or random effect tensor products) automatically create a
 penalty for the null space of the group-level terms, so that only the global
 term has its own unpenalized null space, and both the REML and ML criteria work
 to balance penalties between nested smooth terms (this is why nested random
-effects can be fitted). We have noted, however, that `mgcv` still occassionally
+effects can be fitted). We have noted, however, that `mgcv` still occasionally
 finds degenerate solutions with simulated data where the fitted global term ends
 up over-smoothed.
 
-What we recommend to avoid this issue is to use a combination of smoother choice and setting model degrees of freedom so that the groupwise terms are either slightly less flexible or have a smaller null space. For instance, in the examples in section III, we used smoothers with an unpenalized nullspace (standard thin-plate splines) for the global smooth and ones with no nullspace for the groupwise terms[^gsnull]. When using thin-plate splines, it may also help to use splines with a lower order of derivative penalized in the groupwise smooths than the global smooths, as lower-order "tp" splines have fewer basis functions in the null space. For example, we used `m=2` (penalizing squared second derivatives) for the global smooth, and `m=1` (penalizing squared first derivatives) for groupwise smooths in models 2 and 3. Another option would be to use a lower number of basis functions (`k`) for groupwise relative to global terms, as this will reduce the maximum flexibility possible in the groupwise terms. We do caution that these are just rules of thumb. As of this writing, there is no published work looking what the effect of adding groupwise smooths has on the statistical properties of estimating a global smooth. In cases where an accurately estimated global smooth is essential, we recommend either fitting model 1, or using Markov Random Fields (Appendix A) and calculate the global smooth by averaging across grouping levels.
+What we recommend to avoid this issue is to use a combination of smoother choice and setting model degrees of freedom so that the groupwise terms are either slightly less flexible or have a smaller null space. For instance, in the examples in section III, we used smoothers with an unpenalized null space (standard thin-plate splines) for the global smooth and ones with no null space for the groupwise terms[^gsnull]. When using thin-plate splines, it may also help to use splines with a lower order of derivative penalized in the groupwise smooths than the global smooths, as lower-order "tp" splines have fewer basis functions in the null space. For example, we used `m=2` (penalizing squared second derivatives) for the global smooth, and `m=1` (penalizing squared first derivatives) for groupwise smooths in models 2 and 3. Another option would be to use a lower number of basis functions (`k`) for groupwise relative to global terms, as this will reduce the maximum flexibility possible in the groupwise terms. We do caution that these are just rules of thumb. As of this writing, there is no published work looking what the effect of adding groupwise smooths has on the statistical properties of estimating a global smooth. In cases where an accurately estimated global smooth is essential, we recommend either fitting model 1, or using Markov Random Fields (Appendix A) and calculate the global smooth by averaging across grouping levels.
 
-[^gsnull]: For model 2, the "fs" smoother, and tensor products of random effect ("re") and other smooth terms do not have a penalized null space by construction (they are full rank), as noted above. For model 3 groupwise terms, we used basis types that had a penalty added to the nullspace: bs="tp", "cs", or "ps" have this property.
+[^gsnull]: For model 2, the "fs" smoother, and tensor products of random effect ("re") and other smooth terms do not have a penalized null space by construction (they are full rank), as noted above. For model 3 groupwise terms, we used basis types that had a penalty added to the null space: bs="tp", "cs", or "ps" have this property.
 
 
 
