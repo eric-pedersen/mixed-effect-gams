@@ -30,21 +30,21 @@ comp_resources = crossing(model_number = c("1","2","3","4","5"),
 CO2$Plant_uo = factor(CO2$Plant, levels = levels(CO2$Plant), ordered = F)
 
 
-comp_resources[1,"time"] = system.time(CO2_mod1 <- bam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+s(Plant_uo, k =12,  bs="re"), 
+comp_resources[1,"time"] = system.time(CO2_mod1 <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+s(Plant_uo, k =12,  bs="re"), 
                                                     data= CO2,method="REML",
                                                     control = list(keepData=TRUE)))[3]
 
-comp_resources[2,"time"] = system.time(bird_mod1 <- bam(count ~ te(week,latitude, bs= c("cc", "tp"), k=c(10,10)), 
+comp_resources[2,"time"] = system.time(bird_mod1 <- gam(count ~ te(week,latitude, bs= c("cc", "tp"), k=c(10,10)), 
                                                      data= bird_move, method="REML", family= poisson,
                                                      control = list(keepData=TRUE)))[3]
 
-comp_resources[3,"time"] = system.time(CO2_mod2 <- bam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
+comp_resources[3,"time"] = system.time(CO2_mod2 <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
                                                        s(log(conc), Plant_uo, k=5, bs="fs",m=1), 
                                                      data= CO2,method="REML",
                                                      control = list(keepData=TRUE)))[3]
 
 
-comp_resources[4,"time"] = system.time(bird_mod2 <- bam(count ~ te(week,latitude, bs= c("cc", "tp"), 
+comp_resources[4,"time"] = system.time(bird_mod2 <- gam(count ~ te(week,latitude, bs= c("cc", "tp"), 
                                                                  k=c(10,10),m=c(2,2))+
                                                         te(week,latitude,species, bs= c("cc", "tp","re"), 
                                                            k=c(10,10,6),m = c(1,1,1)), 
@@ -53,7 +53,7 @@ comp_resources[4,"time"] = system.time(bird_mod2 <- bam(count ~ te(week,latitude
 
 
 comp_resources[5,"time"] = system.time(
-  CO2_mod3 <- bam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
+  CO2_mod3 <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
                     s(log(conc),by= Plant_uo, k =5,  bs="ts",m=1)+
                     s(Plant_uo,bs="re",k=12), 
                   data= CO2,method="REML",
@@ -62,7 +62,7 @@ comp_resources[5,"time"] = system.time(
 
 
 comp_resources[6,"time"] = system.time(
-  bird_mod3 <- bam(count ~ te(week,latitude, bs= c("cc", "tp"), 
+  bird_mod3 <- gam(count ~ te(week,latitude, bs= c("cc", "tp"), 
                               k=c(10,10),m=c(2,2)) +
                      te(week,latitude, bs= c("cc", "tp"), 
                         k=c(10,10),m=c(1,1),by= species), 
@@ -71,13 +71,13 @@ comp_resources[6,"time"] = system.time(
 
 
 comp_resources[7,"time"] = system.time(
-  CO2_mod4 <- bam(log(uptake) ~ s(log(conc), Plant_uo, k=5,  bs="fs",m=2), 
+  CO2_mod4 <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5,  bs="fs",m=2), 
                   data= CO2,method="REML",
                   control = list(keepData=TRUE)))[3]
 
 
 comp_resources[8,"time"] = system.time(
-  bird_mod4 <- bam(count ~ te(week,latitude,species, bs= c("cc", "tp","re"), 
+  bird_mod4 <- gam(count ~ te(week,latitude,species, bs= c("cc", "tp","re"), 
                               k=c(10,10,6),m = 2), 
                    data= bird_move, method="REML", family= poisson,
                    control = list(keepData=TRUE))
@@ -85,14 +85,14 @@ comp_resources[8,"time"] = system.time(
 
 
 comp_resources[9,"time"] = system.time(
-  CO2_mod5 <- bam(log(uptake) ~ s(log(conc),by= Plant_uo, k =5,  bs="tp",m=2)+
+  CO2_mod5 <- gam(log(uptake) ~ s(log(conc),by= Plant_uo, k =5,  bs="tp",m=2)+
                     s(Plant_uo,bs="re",k=12), data= CO2,method="REML",
                   control = list(keepData=TRUE))
   
 )[3]
 
 comp_resources[10,"time"] = system.time(
-  bird_mod5 <- bam(count ~ te(week,latitude,by=species, bs= c("cc", "tp"), 
+  bird_mod5 <- gam(count ~ te(week,latitude,by=species, bs= c("cc", "tp"), 
                               k=c(10,10),m = 2), 
                    data= bird_move, method="REML", family= poisson,
                    control = list(keepData=TRUE))
