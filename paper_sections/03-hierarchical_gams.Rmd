@@ -14,7 +14,7 @@ When modelling hierarchical smooths in `mgcv`, there are three broad choices to 
 
 
 
-The combination of these three questions results in five possible models (figure *models*) beyond the null model of no functional relation between **x** and **y**:
+The combination of these three questions results in five possible models (Figure \ref{fig:models}) beyond the null model of no functional relation between **x** and **y**:
 
 1. A single common smooth function for all observations.
 
@@ -27,7 +27,7 @@ The combination of these three questions results in five possible models (figure
 5. Group-specific functions that differ in smoothness. 
 
 
-![](../figures/alternate_models.png)
+![\label{fig:models}](../figures/alternate_models.png)
 
 We will discuss the trade-offs between different models and  guidelines about when each of these models is appropriate in section IV. The remainder of this section will focus on how to model each of these five models using `mgcv`. 
 
