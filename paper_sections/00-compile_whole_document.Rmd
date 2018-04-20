@@ -1,0 +1,31 @@
+---
+title: "Hierarchical Generalized Additive Models: an introduction with mgcv"
+output:
+  pdf_document:
+    fig_caption: yes
+bibliography: bibliography.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r child = '01-intro.Rmd'}
+```
+
+
+```{r child = '02-gams.Rmd'}
+```
+
+```{r child = '03-hierarchical_gams.Rmd'}
+```
+
+```{r child = '05-computational_and_statistical_issues.Rmd'}
+```
+
+
+```{r child = '06-examples.Rmd'}
+```
+
+#Bibliography

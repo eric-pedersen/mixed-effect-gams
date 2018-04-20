@@ -1,14 +1,6 @@
----
-title: 'Section VI: examples'
-output:
-  pdf_document: default
-  html_document: default
-  word_document: default
----
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+# VI: Examples
+
 
 ***EJP: I think we should aim for 3-4 good examples here, highlighting different
 aspects of the model fitting problem. The example I'll be showing is a set of
@@ -19,7 +11,7 @@ cycles) and models 2/3 (for testing for differences between years for a single
 species). I think we need at least one example showing how to use these methods
 for multivariate regression (e.g. spatial analysis), and potentially an example
 showing how to these models work for non-normal data, and for including other
-covariates. In all examples, I think we should focus on how to fit each data set, visual
+covariates. In all examples, I think we should focus on how to fit each data set, visualize
 models, and compare different model fits.***
 
 ## Example XX: Inter- and intra-specific variation in zooplankton seasonal cycles over time

@@ -1,19 +1,11 @@
----
-title: "05 Computational issues"
-author: "Eric Pedersen"
-date: "August 13, 2017"
-output: 
-  pdf_document:
-    fig_caption: yes
----
+
+# V: Statistical and computational issues
 
 Which of the five models should you choose for a given data set? There are two major trade-offs to take into account. The first is the bias-variance trade-off: more complex models can account for more fluctuations in the data, but also tend to give more variable predictions, and can overfit.  The second tradeoff is model complexity versus computer time: more complex models can include more potential sources of variation and give more information about a given data set, but will generally take more time and computational resources to fit and debug. We will discuss both of these trade-offs in this section.
 
 
 
 ## Bias-variance tradeoffs
-
-**This is just some code I've put together to highlight the fact that a shared smoothers doesn't necessarily act conservatively in the presence of variation in smoothness between grouping levels; when you have both wiggly groups and non-wiggly groups with a lot of data, forcing all groups to have the same smoothness can result in substantially over-fitting the smoothest levels, rather than under-smoothing the wiggliest terms.**
 
 The bias-variance tradeoff is a fundamental concept in classical statistical
 analysis. When trying to estimate any value (in the cases we are focusing on, a
@@ -42,8 +34,57 @@ predict new data.
 
 The bias--variance tradeoff comes into play with HGAMs when choosing whether to
 fit separate penalties for each group level or assign a common penalty for all
-group levels (i.e. deciding between models 2 & 3 or models 4 & 5). Setting the 
-penalty for all group-level smooths equal (models 2&4).
+group levels (i.e. deciding between models 2 & 3 or models 4 & 5). If the
+functional relationships we are trying to estimate for different group levels
+actually vary in how wiggly they are, setting the penalty for all group-level
+smooths equal (models 2&4) will either lead to overly variable estimates for the
+least variable group levels, overly smoothed (biased) estimates for the most
+wiggly terms, or a mixture of these two, depending on how the fitting criteria
+used (ML, REML, or GCV) determines where the optimal smoothing parameter should
+be set. 
+
+```{r single_smooth_bias, echo=F, message=F, warning=F, cache=T}
+source("../code/overfit_from_pooling.R")
+```
+
+
+We developed a simple numerical experiment to determine whether mgcv fitting
+criteria tend to set estimated smoothness penalties high or low in the presence
+of among-group variability in smoothness. We simulated data from five different
+groups, with all groups having the same levels of the covariate x, ranging from
+0 to $2\pi$. For each group, the true function relating x to y was a sine wave,
+but the frequency varied from 0.25 (equal to half a cycle across the range of x)
+to 4 (corresponding to 4 full cycles across the range). We added normally
+distributed error to all y-values, with a standard deviation of 0.2. We then fit
+both model 4 (where all curves were assumed to be equally smooth) and model 5
+(with varying smoothness) to the entire data set, using REML criteria to
+estimate penalties. For this example (Fig. \ref{fig:var_pen}a), requiring equal
+smoothness for all group levels resulted mgcv underestimating the penalty for
+the lowest frequency (most smooth) terms, but accurately estimating the true
+smoothness of the highest frequency terms as measured by the squared second derivative
+of the smooth fit versus that of the true function (Fig. \ref{fig:var_pen}b).
+
+This implies that assuming equal smoothness will tend to lead to underestimating
+the true smoothness of low-variability terms, and thus leading to more variable
+estimates of these terms. If this is a potential issue, we recommend fitting
+both models and using the model evalution techniques discussed in Section IV to
+determine if there is evidence for among-group variability in smoothness. For
+instance, the AIC for model 4 fit to this data is `r round(AIC(mod1))`, whereas
+it is `r round(AIC(mod2))`, implying a substantial improvement in fit by
+allowing smoothness to vary. However, it may be the case that there is too few
+data points per group to estimate seperate smoothness levels, in which case
+model 2 or model 4 may still be the better option even in the face of varying
+smoothness.
+
+The ideal case would be to assume that among group penalties follow their own
+distribution (estimated from the data), to allow variation in smoothness while
+still getting the benefit of pooling information on smoothness between groups.
+However, this is currently not implemented in mgcv (and would be difficult to
+set up via mgcv's method of structuring penalties). It is possible to set up
+this type of varying penalty model in flexible Bayesian modelling software such
+as Stan or INLA (see below for a discussion of these tools), but how to set up
+this type of model has not been well studied, and is  beyond the scope of this
+paper.
 
 
  
@@ -51,10 +92,8 @@ penalty for all group-level smooths equal (models 2&4).
 when we assume a given fixed effect is equal to zero (and thus exclude it from a model). 
 
 
-```{r single_smooth_bias, echo=F,  fig.width=7, fig.height=4,message=F, warning=F, cache=T}
-source("../code/overfit_from_pooling.R")
-print(overfit_vis_plot)
-print(deriv_plot)
+```{r single_smooth_bias_plot, echo=F,  fig.width=6, fig.height=6,message=F, warning=F, cache=T, fig.cap="\\label{fig:var_pen}plotting example"}
+print(cowplot::plot_grid(overfit_vis_plot,deriv_plot,ncol = 1,labels = "auto"))
 ```
 
 

@@ -1,10 +1,6 @@
----
-output:
-  pdf_document: default
-  html_document: default
----
+# III: What are hierarchical GAMs?
 
-# What do we mean by hierarchical smooths?
+## What do we mean by hierarchical smooths?
 
 The smoothers we went over in section II allowed us to model nonlinear relationships between our **x** and **y** variables. In this section, we will cover the different ways to adapt those smooths to model inter-group variability in smooth curves and how to fit the different models in `mgcv`.
 
@@ -35,7 +31,7 @@ The combination of these three questions results in five possible models (figure
 
 We will discuss the trade-offs between different models and  guidelines about when each of these models is appropriate in section IV. The remainder of this section will focus on how to model each of these five models using `mgcv`. 
 
-# Coding hierarchical GAMs in R
+## Coding hierarchical GAMs in R
 
 **EJP: Going with canned and simulated data for the examples rather than real as it's a bit less messy**
 
@@ -52,7 +48,7 @@ One important point to note here before digging into the code is that the groupi
 [^ord_note]: The levels of an ordered factor can be explicitly ranked, even if they cannot be assigned precise numerical values. For instance, an ecosystem assessment where lakes are coded as "healthy", "marginal", and "unhealthy" is ordered. An unordered factor cannot be given a ranking. For example, a factor recording the color of the lakes ("brown", "green", or "clear"). Typically, group ids in hierachical models are assumed to be unordered. 
 
 
-## A single global smooth term (model 1)
+### A single global smooth term (model 1)
 
  This is the typical GAM setup, with a single smooth term for each variable. Specifying the model is similar to specifying a `glm` in R. One-dimensional or isotropic multidimensional smooth terms are specified with a function named `s()`. The first arguments (given without names) are the terms to be smoothed over. The type of smooth to be used for the term is specified by writing `bs=<basis name>`, and the number of basis functions is specified by `k=<number of functions>`. The `s()` function will also take additional arguments, depending on the type of smooth. Both `bs` and `k` have default values; `bs` defaults to a thin-plate spline (`bs="tp"`) and `k` defaults to a value determined by the type of smoother (`k=10` by default for `bs="tp"`). See the documentation in `mgcv` for more details on specifying smooth terms, with `?mgcv::s` and `?mgcv::smooth.terms`. For a given `gam` model, you can have an arbitrary number of smooth terms, connected by putting `+` between each `s()` function. This is equivalent to including linear terms without interactions in a standard `glm` model. Models like this look like `y~s(x)` for a simple smooth relationship between **x** and **y** or `y~s(x)+s(fac, bs="re")`, to model both a global smooth relationship between **x** and **y** and between-group variation in intercepts (modelled with a random effect smoother).
 
@@ -140,7 +136,7 @@ ggplot(bird_move_plot, aes(x = week, y = latitude, fill = value)) +
 Here the top row denotes the observed counts of each species (with color indicating abundance in that location in that week), and the bottom indicates the model fit. All six species show relatively precise migration patterns, but they differ in the timing of when they leave their winter grounds and the time they spend at their summer grounds. Averaging over all of this variation results in a relatively imprecise (diffuse) average estimate of migration timing (bottom row). This model could potentially be improved by adding inter-group variation in migration timing. The rest of this section will focus on how to model this type of variation. 
 
 
-##Global function plus group-specific functions with similar smoothness (Model 2)
+### Global function plus group-specific functions with similar smoothness (Model 2)
 
 
 The second type of model is a close analogue to a GLMM with varying slopes. This class of model assumes that all groups will have similar functional responses, but allows for inter-group variation in responses. This approach works by allowing each grouping level to have its own functional response, but penalizing functions that are too far from the average. 
@@ -215,7 +211,7 @@ ggplot(data=bird_move_plot2, aes(x=week, y=latitude, fill = value,color=value))+
 ```
 
 
-## Global function plus group-specific functions with different smoothness (Model 3)
+### Global function plus group-specific functions with different smoothness (Model 3)
 
 This model class is very similar to model 2; the only change is that we will allow each group-specific smooth to have its own penalty term. This increases the computational cost of the model (more penalties means more computer time in general), and means that the only information shared between groups is through the global smoothing term. It is useful, however, if different groups differ substantially in how variable they are. 
 
@@ -255,12 +251,12 @@ bird_mod3 = gam(count ~ te(week,latitude, bs= c("cc", "tp"),
 ```
 
 
-## Models without global smooth terms (models 4 and 5)
+### Models without global smooth terms (models 4 and 5)
 
 It is simple to modify the above models to exclude the global term (and it is generally faster to estimate these models than ones with a global term; see section V). Model 4 (shared smooths) is simply model 2 without the global smooth term: `y~s(x,fac,bs="fs")` or `y~te(x1,x2,fac,bs=c("tp","tp","re")`. This model assumes all groups have the same smoothness, but that the individual shapes of the smooth terms are not related. Similiarly, model 5 is simply model 3 without the first term: `y~s(x,by=fac)` or `y~te(x1,x2, by=fac)`. Below is how to code the two examples for model 4 and 5 (we will not plot out the results for models 4 and 5, as for the examples used here, the plots are very similar to models 2 and 3). 
 
 
-###Model 4:
+#### Model 4:
 ```{r mod4, echo=TRUE,  fig.width=6, fig.height=3,message=F, warning=F, cache=T}
 CO2_mod4 = gam(log(uptake) ~ s(log(conc), Plant_uo, k=5,  bs="fs",m=2), 
                 data= CO2,method="REML")
@@ -271,7 +267,7 @@ bird_mod4 = gam(count ~ te(week,latitude,species, bs= c("cc", "tp","re"),
 
 ```
 
-###Model 5: 
+#### Model 5: 
 ```{r mod5, echo=TRUE,  fig.width=6, fig.height=3,message=F, warning=F, cache=T}
 
 

@@ -1,10 +1,5 @@
----
-title: "Introduction"
-output:
-  pdf_document: default
-  html_document: default
-bibliography: bibliography.bib
----
+
+#I: Introduction
 
 As ecology has progressed as a quantitative discipline and the questions ecologists ask have become more complicated, the statistical techniques ecologists use have increased in their flexibility to model complex relationships. Two of the most popular and powerful techniques now in use are generalized additive models [GAMs; @Wood:2006vg] for modelling non-linear regression functions, and generalized linear mixed models ["hierarchical generalized linear models" HGLMs or simply "hierarchical models"; @Bolker:2009cs, @gelman2013bayesian] for modelling between-group variability in regression relationships. 
 
