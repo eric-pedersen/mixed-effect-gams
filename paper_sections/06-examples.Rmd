@@ -2,6 +2,7 @@
 # VI: Examples
 
 
+
 ***EJP: I think we should aim for 3-4 good examples here, highlighting different
 aspects of the model fitting problem. The example I'll be showing is a set of
 zooplankton community time series data, where multiple species were tracked
@@ -14,6 +15,225 @@ showing how to these models work for non-normal data, and for including other
 covariates. In all examples, I think we should focus on how to fit each data set, visualize
 models, and compare different model fits.***
 
-## Example XX: Inter- and intra-specific variation in zooplankton seasonal cycles over time
+In this final section, we will go through a few example analyses, to highlight
+how to use these models in practice, and to illustrate how to fit, test, and
+visualize each model. 
 
-This example will demonstrate how to use these models to fit community data, to show when using a global trend may or may not be justified, and to illustrate how to use these models to fit seasonal time series. 
+
+## Example 1: Inter- and intra-specific variation in zooplankton seasonal cycles over time
+
+This first example will demonstrate how to use these models to fit community
+data, to show when using a global trend may or may not be justified, and to
+illustrate how to use these models to fit seasonal time series. Here, we are
+using data from the Wisconsin Department of Natural Resources collected by
+Richard Lathrop from a chain of lakes (Mendota, Menona, Kegnonsa, and Waubesa)
+in Wisconsin, to study long-term patterns in the seasonal dynamics of
+zooplankton. This data consists of roughly bi-weekly samples (during open-water
+conditions) of the zooplankton communities, taken from the deepest point of each
+lake via vertical tow collected every year from 1976 to 1994 (the collection and
+processing of this data is fully described here [*CITE*]). We will use this data
+estimate variability in seasonality among species in the community, and between
+lakes for the most abundant taxon in the sample (*Daphnia mendotae*). As we are
+focusing on seasonal cycles rather than average or maximum abudances, we have
+scaled all densities by log-transforming them then scaling by the within year
+species- and lake-specific mean and standard deviation (so all species in all
+lake-years will have a mean scaled density of zero and standard deviation of
+one).
+
+This is what the data looks like:
+
+```{r view_zoo, echo=TRUE, message=FALSE,  cache=TRUE}
+zooplankton = read.csv("../data/zooplankton_example.csv")
+
+str(zooplankton)
+levels(zooplankton$taxon)
+levels(zooplankton$lake)
+```
+
+We will split the data into testing and training sets, so we can evaluate how 
+well our models fit out of sample. As there are multiple years of data here, 
+we will use data from the even years to fit (train) models, and that from the odd years
+to test the fit:
+
+```{r zoo_train, echo=TRUE, message=FALSE,  cache=TRUE}
+library(mgcv)
+zoo_train = subset(zooplankton, year%%2==0) #the modulus (%%) finds the remainder after division by  the right. here we use it to find even numbers
+
+zoo_test = subset(zooplankton, year%%2==1) 
+```
+
+Our first exercise here will be to demonstrate how to model community-level
+variability in seasonality, by regressing scaled density on day of year, with
+species-specific curves. As we are not interested here in average seasonal dynamics,
+we will focus on models 4&5[^mean_season]. As this is seasonal data, we will use
+cyclic smoothers as the basis for seasonal dynamics. 
+
+
+[^mean_season]: Here we are focusing on only the most common species
+in the data set. If we wanted to estimate the seasonal dynamics for rarer species,
+adding a global smooth term might be useful, so we could could borrow information
+from the more common species. 
+
+```{r zoo_comm_mod, echo=TRUE, message=FALSE,  cache=TRUE}
+zoo_comm_mod4 = gam(density_scaled~s(day, taxon, bs="fs",k=10,xt=list(bs="cc")), 
+           data=zoo_train, 
+           knots = list(day =c(1,365)), #we need to specify the start and end knots for day
+           method = "ML" #We'll use ML as we are comparing models that differ in fixed effects
+           )
+
+summary(zoo_comm_mod4)
+
+# as all of the model features except the formula are the same in model 4&5,
+# we just use the update function to refit the model with the new formula
+zoo_comm_mod5 = update(zoo_comm_mod4,
+                       formula = density_scaled~s(day, by=taxon, k=10,bs="cc"))
+
+summary(zoo_comm_mod5)
+```
+
+We can see that both models have very similar fits, with an adusted $R^2$ of 0.308 for 
+model 4 and 0.31 for model 5.  Model 5 has a somewhat lower AIC (`AIC(zoo_comm_mod4)` = `r round(AIC(zoo_comm_mod4))`, `AIC(zoo_comm_mod5)` = `r round(AIC(zoo_comm_mod5))`),
+implying a better overall fit. However, the two models show very similar fit to the data:
+
+```{r zoo_comm_plot, echo=TRUE, message=FALSE, warning=TRUE, cache=TRUE}
+library(ggplot2)
+library(dplyr)
+
+#Create synthetic data to use to compare predictions
+zoo_plot_data = expand.grid(day = 1:365, taxon = factor(levels(zoo_train$taxon)))
+
+
+zoo_mod4_fit = predict(zoo_comm_mod4, zoo_plot_data, se.fit = T)
+zoo_mod5_fit = predict(zoo_comm_mod5, zoo_plot_data, se.fit = T)
+
+zoo_plot_data$mod4_fit = as.numeric(zoo_mod4_fit$fit)
+zoo_plot_data$mod5_fit = as.numeric(zoo_mod5_fit$fit)
+
+zoo_plot_data$mod4_se = as.numeric(zoo_mod4_fit$se.fit)
+zoo_plot_data$mod5_se = as.numeric(zoo_mod5_fit$se.fit)
+
+zoo_plot = ggplot(zoo_plot_data, aes(x=day))+
+  facet_wrap(~taxon, nrow = 2)+
+  geom_point(data= zoo_train, aes(y=density_scaled),size=0.1)+
+  geom_line(aes(y=mod4_fit))+
+  geom_line(aes(y=mod5_fit),color="red")+
+  geom_ribbon(aes(ymin = mod4_fit - 2*mod4_se, ymax = mod4_fit + 2*mod4_se), alpha=0.25)+
+  geom_ribbon(aes(ymin = mod5_fit - 2*mod5_se, ymax = mod5_fit + 2*mod5_se), alpha=0.25, fill="red")+
+  theme_bw()
+
+print(zoo_plot)
+```
+
+THe two curves are very close for all species, but the differences in smoothness that resulted 
+in model 5 having an higher AIC than model 4 seem to be driven by the low seasonality of *Keratella cochlearis* and *Leptodiaptomus siciloides* relative to the other species. Still, both
+models show very similar fits to the training data, model 5 is only slightly better at predicting out of sample fits for *K. cochlearis*, and not at all better for *L. siciloides*: 
+
+```{r zoo_comm_outofsample, echo=TRUE, message=FALSE,  cache=TRUE}
+#Getting the out of sample predictions for both models:
+zoo_test$mod4 = as.numeric(predict(zoo_comm_mod4,zoo_test))
+zoo_test$mod5 = as.numeric(predict(zoo_comm_mod5,zoo_test))
+
+# We'll look at the correlation between fitted and observed values for all species:
+zoo_test_summary = zoo_test %>%
+  group_by(taxon)%>%
+  summarise(mod4_cor = round(cor(density_scaled, mod4),2),
+            mod5_cor = round(cor(density_scaled, mod5),2))
+
+print(zoo_test_summary)
+```
+
+Now let's look at how to fit inter-lake variability in dynamics for just *Daphnia mendotae*.
+Here, we will compare models 1,2, and 3, to determine if a single global function 
+is appropriate for all four lakes, or if we can effectively model variation between
+lakes with a shared smooth or lake-specific smooths.
+
+
+```{r zoo_daph_mod, echo=TRUE, message=FALSE,  cache=TRUE}
+daphnia_train = subset(zoo_train,taxon=="Daphnia mendotae")
+daphnia_test = subset(zoo_test,taxon=="Daphnia mendotae")
+
+zoo_daph_mod1 = gam(density_scaled~s(day, bs="cc",k=10), 
+           data=daphnia_train, 
+           knots = list(day =c(1,365)), #we need to specify the start and end knots for day
+           method = "ML" #We'll use ML as we are comparing models that differ in fixed effects
+           )
+
+summary(zoo_daph_mod1)
+
+
+zoo_daph_mod2 = update(zoo_daph_mod1,
+                       formula = density_scaled~s(day, bs="cc",k=10) + s(day,lake, k=10, bs="fs", xt=list(bs="cc")))
+
+summary(zoo_daph_mod2)
+
+
+zoo_daph_mod3 = update(zoo_daph_mod1,
+                       formula = density_scaled~s(day, bs="cc",k=10) + s(day,by=lake, k=10, bs="cc"))
+
+summary(zoo_daph_mod3)
+```
+
+The AIC values indicate that both model 2 and 3 are better fits than model 1, but models 2 and 3 have similar fits to one another. There does not seem to be a large amount of inter-lake variability (all three models have similar adjusted $R^2$), and model 3 indicates that only Lake Waubesa deviates substantially from the overall dynamics. The plots for all three models
+(model 1 as dashed line, model 2 in black and model 3 in red) show that Medota and Menona 
+lakes are very close to the average and to one another for both models (which is unsurprising, 
+as they are very closely connected by a short river) but both Kegons and Waubesa show 
+evidence of a more pronouced spring bloom and lower winter abundances.  While this is
+stronger in Lake Waubesa, model 2 (in black) shows that it is still detectable in
+Lake Kegonsa if we do not need to fit a separate penalty for each lake.
+
+```{r zoo_daph_plot, echo=TRUE, message=FALSE, warning=TRUE, cache=TRUE}
+library(ggplot2)
+library(dplyr)
+
+#Create synthetic data to use to compare predictions
+daph_plot_data = expand.grid(day = 1:365, lake = factor(levels(zoo_train$lake)))
+
+
+daph_mod1_fit = predict(zoo_daph_mod1, daph_plot_data, se.fit = T)
+daph_mod2_fit = predict(zoo_daph_mod2, daph_plot_data, se.fit = T)
+daph_mod3_fit = predict(zoo_daph_mod3, daph_plot_data, se.fit = T)
+
+
+daph_plot_data$mod1_fit = as.numeric(daph_mod1_fit$fit)
+daph_plot_data$mod2_fit = as.numeric(daph_mod2_fit$fit)
+daph_plot_data$mod3_fit = as.numeric(daph_mod3_fit$fit)
+
+daph_plot_data$mod1_se = as.numeric(daph_mod1_fit$se.fit)
+daph_plot_data$mod2_se = as.numeric(daph_mod2_fit$se.fit)
+daph_plot_data$mod3_se = as.numeric(daph_mod3_fit$se.fit)
+
+daph_plot = ggplot(daph_plot_data, aes(x=day))+
+  facet_wrap(~lake, nrow = 2)+
+  geom_point(data= daphnia_train, aes(y=density_scaled),size=0.1)+
+  geom_line(aes(y=mod1_fit),linetype=2, size=2)+
+  geom_line(aes(y=mod2_fit),color="black")+
+  geom_line(aes(y=mod3_fit),color="red")+
+  geom_ribbon(aes(ymin = mod2_fit - 2*mod2_se, ymax = mod2_fit + 2*mod2_se), alpha=0.25)+
+  geom_ribbon(aes(ymin = mod2_fit - 2*mod3_se, ymax = mod2_fit + 2*mod2_se), alpha=0.25, fill="red")+
+  theme_bw()
+
+print(daph_plot)
+```
+
+In this case, model 2 is able to predict as good or better out of sample as
+model 1 or 3, indicating that jointly smoothing the lake together improved model
+prediction. However, None of the models did well in terms of predicting Lake
+Kegonsa dynamics out of sample (with a correlation of only 0.11 between
+predicted and observed densities), indiciating that this model may be be missing
+substantial year-to-year variability in *D. mendotae* dynamics:
+
+```{r zoo_daph_outofsample, echo=TRUE, message=FALSE,  cache=TRUE}
+#Getting the out of sample predictions for both models:
+daphnia_test$mod1 = as.numeric(predict(zoo_daph_mod1,daphnia_test))
+daphnia_test$mod2 = as.numeric(predict(zoo_daph_mod2,daphnia_test))
+daphnia_test$mod3 = as.numeric(predict(zoo_daph_mod3,daphnia_test))
+
+# We'll look at the correlation between fitted and observed values for all species:
+daph_test_summary = daphnia_test %>%
+  group_by(lake)%>%
+  summarise(mod1_cor = round(cor(density_scaled, mod1),2),
+            mod2_cor = round(cor(density_scaled, mod2),2),
+            mod3_cor = round(cor(density_scaled, mod3),2))
+
+print(daph_test_summary)
+```
