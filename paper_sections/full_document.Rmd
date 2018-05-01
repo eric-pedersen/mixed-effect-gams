@@ -3,6 +3,11 @@ title: "Hierarchical Generalized Additive Models: an introduction with mgcv"
 output:
   pdf_document:
     fig_caption: yes
+    includes:
+      in_header: latex_header.sty
+    keep_tex: yes
+documentclass: "wlpeerj"
+geometry: left=5cm,right=2cm,top=2.25cm,bottom=2.25cm,headheight=12pt,letterpaper
 bibliography: bibliography.bib
 ---
 
