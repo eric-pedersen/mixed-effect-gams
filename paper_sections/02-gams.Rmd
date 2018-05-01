@@ -2,9 +2,11 @@
 #II: and introduction to Generalized Additive Models
 
 One of the most common model formulations in statistics is the generalized linear model [@McCullagh:1989ti] --- models that relate some response ($y$) to linear combinations of explanatory variables. We may allow allow the response to be distributed according to some exponential family distribution (e.g., letting the response be a trial, a count or a strictly positive number -- binomial, Poisson or Gamma distributions, respectively). The generalized additive modelling (GAM) framework [@Hastie:1990vg; @Ruppert:2003uc; @Wood:2006vg] allows the relationships between the explanatory variables (henceforth covariates) and the response to be described by smooth terms (usually *splines* [@deBoor:1978wq], but potentially other structures). In general we are then talking about models of the form:
+
 $$
 \mathbb{E}\left( y \right) = g^{-1}\left( \beta_0 + \sum_{j=1}^J f_j(x_j) \right),
 $$
+
 where $y$ is the response (with an appropriate distribution and link function $g$), $f_j$ is a smooth function of the covariate $x_j$, $\beta_0$ is an intercept term and $g^{-1}$ is the inverse link function. Here there are $J$ smooths and each is a function of only one covariate, though it is possible to construct smooths of multiple variables.
 
 Each smooth $f_j$s is represented by a sum of simpler *basis functions* ($b_k$) multiplied by corresponding coefficients ($\beta_k$), which need to be estimated to be estimated:
