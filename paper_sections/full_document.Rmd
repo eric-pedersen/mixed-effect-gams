@@ -10,10 +10,8 @@ bibliography: bibliography.bib
 knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, cache=TRUE)
 ```
 
-
 ```{r child = '01-intro.Rmd'}
 ```
-
 
 ```{r child = '02-gams.Rmd'}
 ```
@@ -24,8 +22,7 @@ knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, cache=TRUE)
 ```{r child = '05-computational_and_statistical_issues.Rmd'}
 ```
 
-
 ```{r child = '06-examples.Rmd'}
 ```
 
-#Bibliography
+# Bibliography
