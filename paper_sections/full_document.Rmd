@@ -2,7 +2,7 @@
 title: "Hierarchical Generalized Additive Models: an introduction with mgcv"
 output:
   pdf_document:
-    fig_caption: yes
+    fig_captions: yes
 bibliography: bibliography.bib
 ---
 
