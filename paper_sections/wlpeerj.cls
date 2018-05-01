@@ -184,7 +184,7 @@ THE ABSTRACT\vskip12pt}\let\go\relax\fi
 \noindent
 \colorbox{color2}{%
 \parbox{\dimexpr\linewidth-2\fboxsep\relax}{%
-\sffamily\small\vskip1ex\if@peerjlineno\internallinenumbers\fi\theabstract
+\sffamily\small\vskip1ex\if@peerjlineno\internallinenumbers\theabstract
 }%
 }%
 %% LLT 18 Aug 2016: no more keywords

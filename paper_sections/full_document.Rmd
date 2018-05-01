@@ -1,12 +1,16 @@
 ---
 title: "Hierarchical Generalized Additive Models: an introduction with mgcv"
+header-includes: 
+  - \begin{abstract} 
+     This is just placeholder text until we write a proper abstract 
+    \end{abstract}
+compact-title: FALSE
 output:
   pdf_document:
     fig_caption: yes
-    includes:
-      in_header: latex_header.sty
     keep_tex: yes
 documentclass: "wlpeerj"
+classoption: "lineno"
 geometry: left=5cm,right=2cm,top=2.25cm,bottom=2.25cm,headheight=12pt,letterpaper
 bibliography: bibliography.bib
 ---
@@ -14,6 +18,7 @@ bibliography: bibliography.bib
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, cache=TRUE)
 ```
+
 
 ```{r child = '01-intro.Rmd'}
 ```
