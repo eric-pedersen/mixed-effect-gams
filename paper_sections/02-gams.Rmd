@@ -20,7 +20,7 @@ The penalty for a term is usually based on derivatives of that term -- as the de
 **say something about knots!**
 
 
-**say something about penalty matrices**
+**say something about penalty matrices and also smoothing parameters**
 
 ```{r lambda, echo=FALSE, message=FALSE, results='hide', fig.width=6, fig.height=3, cache=TRUE, fig.cap="\\label{fig:smoothing_effect}Examples of how different choices of the smoothing parameter effect the resulting function. Data (points) were generated from the blue function and noise added to them. In the left plot the smoothing parameter was estimated to give a good fit to the data, in the middle plot the smoothing parameter was set to zero, so the penalty has no effect and the function interpolates the data, the right plot shows when the smoothing parameter is set to a very large value, so the penalty removes all terms that have any wigglyness, giving a straight line. Numbers in the $y$ axis labels show the estimated degrees of freedom for the term.", messages=FALSE, dev=c('pdf')}
 # example of varying lambda
@@ -58,8 +58,10 @@ lines(true$x, true$y-coef(b.inf)[1], type="l", col="blue")
 
 The number of basis functions, $K$, limits the maximum basis complexity for a given smooth term. To measure the wigglyness of a given term, we use the *effective degrees of freedom* (EDF) which, at a maximum is the number of coefficients to be estimated in the model, minus any constraints. The EDF can take non-integer values and a larger value indicates a more wiggly term. See @Wood:2006vg Section 4.4 for further details.
 
-
 There are many possible basis functions that can be used to model the $b_k$s. Here we'll use thin plate regression splines, which have the appealing property that knot choice is somewhat automatic (the best approximation to including knots at each data poiint is used; @wood_thin_2003).
+
+
+**DLM:: put the cubic splines back in here**
 
 TPRS are also defined for any number of predictors, so multivariate smoothers can be constructed easily. The basis is *isotropic* so smoothing is treated the same in all directions. So if one had, a bivariate smooth of temperature and time, a one degree change in temperature would equate to a one second change in time, which is an odd assumption to make. In the more general case where units are not alike, we can use *tensor products* to combine two or more univariate smooths into a more complex basis. Each component can be made up from a different basis, playing to their particular strengths.
 
@@ -95,6 +97,9 @@ This connection between random effects and basis function smooths extends beyond
 **does this go above??**
 
 Penalties can have two effects on how well a model fits: they can penalize how wiggly a given term is (smoothing) and they can penalize the absolute size of the function (shrinkage). The penalty can only effect the components of the smooth that have derivatives (the *range space*), not the other parts (the *nullspace*). For 1-dimensional thin plate regression splines, this means that there is a linear term left in the model, even when the penalty is in full force (as $\lamba \rightarrow \infty$), as shown in figure **BLAH**. It is often useful to be able to remove nullspace functions as well, to be able to shrink them to zero if they do not contribute significantly to a given model fit. This can be done either by tweaking the penalty matrix so that it both smooths and shrinks as the single penalty term increases, or by adding a new penalty term that just penalizes the null space for the model. Figure \ref{fig:basis_example} shows an example of what the basis functions (Fig. \ref{fig:basis_example}A), and smoothing penalties and shrinkage penalties (Fig. \ref{fig:basis_example}B) look like for a 6-basis function cubic spline and for a 6-basis function thin-plate spline. The random effects smoother we discussed earlier is an example of a pure shrinkage penalty; it penalizes all deviations away from zero, no matter the pattern of those deviations.
+
+
+**DLM: say something about cs basis here**
 
 **EDIT this figure**
 
