@@ -52,13 +52,14 @@ In each case some data processing and manipulation has been done to obtain the g
 
 We start with the simplest model we can in our framework and include many details here to ensure that readers are comfortable with the terminology and R functions we are going to use later.
 
-For our `CO2` data set, we will model $\log_e(\texttt{uptake})$ as a function of two smooths: a thin plate regression spline of $\log$ concentration, and a random effect for species to model species-specific intercepts [^mult_note]. Mathematically:
+For our `CO2` data set, we will model $\log_e(\texttt{uptake})$ as a function of two smooths: a thin plate regression spline of $\log{}$ concentration, and a random effect for species to model species-specific intercepts [^mult_note]. Mathematically:
 
 $$
-\log_e(\textt{uptake}_i) = f(\log_e(\texttt{conc}_i)) + \zeta_\texttt{Plant_uo} + \epsilon_i
+\log_e(\texttt{uptake}_i) = f(\log_e(\texttt{conc}_i)) + \zeta_\texttt{Plant\_uo} + \epsilon_i
 $$
 
-where $\zeta_\texttt{Plant_uo}$ is the random effect for plant and \epsilon_i is a Gaussian error term. We assume that $\log_e(\textt{uptake}_i)$ is normally distributed.
+
+where $\zeta_\texttt{Plant\_uo}$ is the random effect for plant and $\epsilon_i$ is a Gaussian error term. We assume that $\log_e(\texttt{uptake}_i)$ is normally distributed.
 
 **DLM: not sure if this note is necessary...**
 
@@ -195,10 +196,10 @@ This can be coded in `mgcv` by explicitly specifying one term for the global smo
 We modify our previous $\text{CO}_2$ model as follows:
 
 $$
-\log_e(\textt{uptake}_i) = f(\log_e(\texttt{conc}_i)) + f_{\texttt{Plant_uo}}_i(\log_e(\texttt{conc}_i)) + \epsilon_i
+\log_e(\texttt{uptake}_i) = f(\log_e(\texttt{conc}_i)) + f_{\texttt{Plant\_uo}_i}(\log_e(\texttt{conc}_i)) + \epsilon_i
 $$
 
-where $f_{\texttt{Plant_uo}}_i(\log_e(\texttt{conc}_i))$ is the smooth of concentration for the given plant. In R we then have:
+where $f_{\texttt{Plant\_uo}_i}(\log_e(\texttt{conc}_i))$ is the smooth of concentration for the given plant. In R we then have:
 
 ```{r co2_mod2-norun, eval=FALSE}
 CO2_mod2 <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
