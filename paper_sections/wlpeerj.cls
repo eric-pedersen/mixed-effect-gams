@@ -1,24 +1,28 @@
 %
 % An unofficial LaTeX class for PeerJ articles.
 %
-% Created by writeLaTeX.
+% Created by Overleaf (writeLaTeX).
 %
 % Based on the SelfArx document class.
 %
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{wlpeerj}[23/01/2014, v1.0]
+\ProvidesClass{wlpeerj}[18/08/2016, v1.2]
 \RequirePackage[utf8]{inputenc}
 \RequirePackage[english]{babel}
-%\RequirePackage{float}
-%\Requirepackage{subfig}
+
 \RequirePackage{ifthen}
 \RequirePackage{calc}
 \AtEndOfClass{\RequirePackage{microtype}}
+\newif\if@peerjlineno
+\DeclareOption{lineno}{\@peerjlinenotrue}
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{article}}
 \ProcessOptions*
 \LoadClass{article}
 \RequirePackage{times}      % Loads the Times-Roman Fonts
 \RequirePackage{mathptmx}   % Loads the Times-Roman Math Fonts
+\RequirePackage{lineno}     % For numbering the lines if lineno option is given
+\if@peerjlineno\linenumbers\fi
+
 \RequirePackage{ifpdf}
 
 \RequirePackage{amsmath,amsfonts,amssymb}
@@ -26,8 +30,8 @@
 \RequirePackage{booktabs}
 \RequirePackage{authblk}
 
-\RequirePackage[left=2.25cm,%
-                right=2.25cm,%
+\RequirePackage[left=5cm,%
+                right=2cm,%
                 top=2.25cm,%
                 bottom=2.25cm,%
                 headheight=12pt,%
@@ -134,8 +138,15 @@
 
 %
 % article meta data
-%
-\newcommand{\keywords}[1]{\def\@keywords{#1}}
+%% LLT 18 Aug 2016: no more!
+% \newcommand{\keywords}[1]{\def\@keywords{#1}}
+%% LLT 18 Aug 2016: but need corresponding author
+\newcommand{\corrauthor}[3][]{%
+  \def\thecorrauthor{%
+  Corresponding author:\par #2$^{#1}$\par
+  \medskip
+  Email address: #3\par}
+}
 
 \def\xabstract{abstract}
 \long\def\abstract#1\end#2{\def\two{#2}\ifx\two\xabstract 
@@ -158,24 +169,31 @@ THE ABSTRACT\vskip12pt}\let\go\relax\fi
 {\raggedright\sffamily\bfseries\fontsize{20}{25}\selectfont \@title\par}%
 \vskip10pt
 {\raggedright\sffamily\fontsize{12}{16}\selectfont  \@author\par}
-\vskip18pt%
+\vskip1em%
+% LLT 18 Aug 2016: needs corresponding author now
+\ifdefined\thecorrauthor
+  {\raggedright\sffamily\thecorrauthor\par}
+\fi
+\vskip18pt
 {%
 \noindent
 {\parbox{\dimexpr\linewidth-2\fboxsep\relax}{\color{color1}\large\sffamily\textbf{ABSTRACT}}}
 }%
-\vskip10pt
+\vskip10pt\nolinenumbers
 {%
 \noindent
 \colorbox{color2}{%
 \parbox{\dimexpr\linewidth-2\fboxsep\relax}{%
-\sffamily\small\textbf\\\theabstract
+\sffamily\small\vskip1ex\if@peerjlineno\internallinenumbers\theabstract
 }%
 }%
-\vskip18pt%
-\noindent
-\parbox{\dimexpr\linewidth-2\fboxsep\relax}{%
-{\color{color1}\keywordname\hspace*{1em}} \@keywords%
-}%
+%% LLT 18 Aug 2016: no more keywords
+% \vskip18pt%
+% \noindent
+% \parbox{\dimexpr\linewidth-2\fboxsep\relax}{%
+% \if@peerjlineno\internallinenumbers\fi%
+% {\color{color1}\keywordname\hspace*{1em}} \@keywords%
+% }%
 }%
 \vskip25pt%
 }%
@@ -184,14 +202,12 @@ THE ABSTRACT\vskip12pt}\let\go\relax\fi
 \setlength{\columnsep}{0.55cm} % Distance between the two columns of text
 \setlength{\fboxrule}{0.75pt} % Width of the border around the abstract
 
-\newcommand{\mytilde}{\raise.17ex\hbox{$\scriptstyle\mathtt{\sim}$}}%reformat tilde
-
 \definecolor{color1}{RGB}{0,0,0} % Color of section headings
 \definecolor{color2}{RGB}{250,232,207} % Color of the box behind the abstract
 \newcommand{\keywordname}{Keywords:} % Defines the keywords heading name
 
-\renewcommand\Authfont{\fontsize{12}{12}\usefont{OT1}{phv}{b}{n}}
-\renewcommand\Affilfont{\fontsize{10}{10}\usefont{OT1}{phv}{b}{n}}
+\renewcommand\Authfont{\fontsize{12}{14}\usefont{OT1}{phv}{b}{n}}
+\renewcommand\Affilfont{\fontsize{10}{12}\usefont{OT1}{phv}{b}{n}}
 
 \newlength{\tocsep} 
 \setlength\tocsep{1.5pc} % Sets the indentation of the sections in the table of contents
