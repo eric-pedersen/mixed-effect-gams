@@ -31,7 +31,7 @@ in Wisconsin, to study long-term patterns in the seasonal dynamics of
 zooplankton. This data consists of roughly bi-weekly samples (during open-water
 conditions) of the zooplankton communities, taken from the deepest point of each
 lake via vertical tow collected every year from 1976 to 1994 (the collection and
-processing of this data is fully described here [*CITE*]). We will use this data
+processing of this data is fully described in @lathrop_madison_2000). We will use this data
 estimate variability in seasonality among species in the community, and between
 lakes for the most abundant taxon in the sample (*Daphnia mendotae*). As we are
 focusing on seasonal cycles rather than average or maximum abudances, we have
@@ -57,7 +57,9 @@ to test the fit:
 
 ```{r zoo_train, echo=TRUE, message=FALSE,  cache=TRUE}
 library(mgcv)
-zoo_train = subset(zooplankton, year%%2==0) #the modulus (%%) finds the remainder after division by  the right. here we use it to find even numbers
+zoo_train = subset(zooplankton, year%%2==0) 
+#the modulus (%%) finds the remainder after division by  the right. 
+#here we use it to find even numbers
 
 zoo_test = subset(zooplankton, year%%2==1) 
 ```
@@ -77,8 +79,10 @@ from the more common species.
 ```{r zoo_comm_mod, echo=TRUE, message=FALSE,  cache=TRUE}
 zoo_comm_mod4 = gam(density_scaled~s(day, taxon, bs="fs",k=10,xt=list(bs="cc")), 
            data=zoo_train, 
-           knots = list(day =c(1,365)), #we need to specify the start and end knots for day
-           method = "ML" #We'll use ML as we are comparing models that differ in fixed effects
+           #we need to specify the start and end knots for day
+           knots = list(day =c(1,365)), 
+           #We'll use ML as we are comparing models that differ in fixed effects
+           method = "ML" 
            )
 
 summary(zoo_comm_mod4)
@@ -117,8 +121,12 @@ zoo_plot = ggplot(zoo_plot_data, aes(x=day))+
   geom_point(data= zoo_train, aes(y=density_scaled),size=0.1)+
   geom_line(aes(y=mod4_fit))+
   geom_line(aes(y=mod5_fit),color="red")+
-  geom_ribbon(aes(ymin = mod4_fit - 2*mod4_se, ymax = mod4_fit + 2*mod4_se), alpha=0.25)+
-  geom_ribbon(aes(ymin = mod5_fit - 2*mod5_se, ymax = mod5_fit + 2*mod5_se), alpha=0.25, fill="red")+
+  geom_ribbon(aes(ymin = mod4_fit - 2*mod4_se, 
+                  ymax = mod4_fit + 2*mod4_se), 
+              alpha=0.25)+
+  geom_ribbon(aes(ymin = mod5_fit - 2*mod5_se, 
+                  ymax = mod5_fit + 2*mod5_se), 
+              alpha=0.25, fill="red")+
   theme_bw()
 
 print(zoo_plot)
@@ -133,7 +141,7 @@ models show very similar fits to the training data, model 5 is only slightly bet
 zoo_test$mod4 = as.numeric(predict(zoo_comm_mod4,zoo_test))
 zoo_test$mod5 = as.numeric(predict(zoo_comm_mod5,zoo_test))
 
-# We'll look at the correlation between fitted and observed values for all species:
+#Correlations between fitted and observed values for all species:
 zoo_test_summary = zoo_test %>%
   group_by(taxon)%>%
   summarise(mod4_cor = round(cor(density_scaled, mod4),2),
@@ -154,21 +162,24 @@ daphnia_test = subset(zoo_test,taxon=="Daphnia mendotae")
 
 zoo_daph_mod1 = gam(density_scaled~s(day, bs="cc",k=10), 
            data=daphnia_train, 
-           knots = list(day =c(1,365)), #we need to specify the start and end knots for day
-           method = "ML" #We'll use ML as we are comparing models that differ in fixed effects
+           knots = list(day =c(1,365)), 
+           method = "ML" 
            )
 
 summary(zoo_daph_mod1)
 
 
 zoo_daph_mod2 = update(zoo_daph_mod1,
-                       formula = density_scaled~s(day, bs="cc",k=10) + s(day,lake, k=10, bs="fs", xt=list(bs="cc")))
+                       formula = density_scaled~s(day, bs="cc",k=10) + 
+                                                s(day,lake, k=10, bs="fs",
+                                                  xt=list(bs="cc")))
 
 summary(zoo_daph_mod2)
 
 
 zoo_daph_mod3 = update(zoo_daph_mod1,
-                       formula = density_scaled~s(day, bs="cc",k=10) + s(day,by=lake, k=10, bs="cc"))
+                       formula = density_scaled~s(day, bs="cc",k=10) + 
+                                                s(day,by=lake, k=10, bs="cc"))
 
 summary(zoo_daph_mod3)
 ```
@@ -208,8 +219,12 @@ daph_plot = ggplot(daph_plot_data, aes(x=day))+
   geom_line(aes(y=mod1_fit),linetype=2, size=2)+
   geom_line(aes(y=mod2_fit),color="black")+
   geom_line(aes(y=mod3_fit),color="red")+
-  geom_ribbon(aes(ymin = mod2_fit - 2*mod2_se, ymax = mod2_fit + 2*mod2_se), alpha=0.25)+
-  geom_ribbon(aes(ymin = mod2_fit - 2*mod3_se, ymax = mod2_fit + 2*mod2_se), alpha=0.25, fill="red")+
+  geom_ribbon(aes(ymin = mod2_fit - 2*mod2_se, 
+                  ymax = mod2_fit + 2*mod2_se), 
+              alpha=0.25)+
+  geom_ribbon(aes(ymin = mod2_fit - 2*mod3_se, 
+                  ymax = mod2_fit + 2*mod2_se), 
+              alpha=0.25, fill="red")+
   theme_bw()
 
 print(daph_plot)
