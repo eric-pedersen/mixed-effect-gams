@@ -20,7 +20,7 @@ have no variance (as it is always the same) but would have high bias unless the
 true population mean happened to equal zero [^mean_note]. The core insight into
 why penalization is useful is that the penalty term slightly increases the bias
 but can substantially decrease the variance of an estimator, relative to its
-unpenalized version [CITE: Effron and Morris 1977].
+unpenalized version [@efron_steins_1977].
 
 In GAMs and HGLMs, the bias-variance tradeoff is managed by the penalty terms
 (random effect variances in HGLM terminology). Larger penalties correspond to
@@ -133,7 +133,7 @@ The most straightforward factor that will affect the amount of computational res
 [^globalnpar]: Including a global smooth (models 2-3) or not (models 4-5) will not generally substantially affect the number of coefficients needed to estimate (compare the number of coefficients in Table \ref{tab:comp_time}, model 2 vs. model 4, or model 3 versus model 5). Adding a global term will only add at most `k` extra terms, and it actually ends up being less that that, as `mgcv` drops basis functions from co-linear smooths to ensure that the model matrix is full rank.
 
 
-Adding additional smoothing parameters (moving from model 2 to model 3, or moving from model 4 to 5) is even more costly than increasing the number of coefficients to estimate, as estimating smoothing parameters is computationally intensive [CITE Wood 2011]. This means that models 2 and 4 will generally be substantially faster than 3 and 5 when the number of groups is reasonably large, as models 3 and 5 fit a separate set of penalties for each group level. The effect of this is visible in comparing the time it takes to fit model 2 to model 3 (which has a smooth for each group) or models 4 and 5 for the example data (Table \ref{tab:comp_time}). Note that this will not hold for every model, though; for instance, model 5 takes less time to fit the bird movement data than model 4 does (Table \ref{tab:comp_time}B). 
+Adding additional smoothing parameters (moving from model 2 to model 3, or moving from model 4 to 5) is even more costly than increasing the number of coefficients to estimate, as estimating smoothing parameters is computationally intensive [@wood_fast_2011]. This means that models 2 and 4 will generally be substantially faster than 3 and 5 when the number of groups is reasonably large, as models 3 and 5 fit a separate set of penalties for each group level. The effect of this is visible in comparing the time it takes to fit model 2 to model 3 (which has a smooth for each group) or models 4 and 5 for the example data (Table \ref{tab:comp_time}). Note that this will not hold for every model, though; for instance, model 5 takes less time to fit the bird movement data than model 4 does (Table \ref{tab:comp_time}B). 
 
 
 
@@ -161,7 +161,7 @@ comp_resources_table =comp_resources %>%
   ungroup()%>%
   select(-data_source)
 
-kable(comp_resources_table,format ="latex", caption="\\label{tab:comp_time}")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+kable(comp_resources_table,format ="latex", caption="\\label{tab:comp_time}Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model 1 takes to fit to that data set. The # of coefficients measures the total number of model parameters (including intercepts). The # of smooths is the total number of unique penalty values estimated by the model.")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
   kable_styling(full_width = F)%>%
   add_header_above(c(" " = 1," "=1, "# of terms"=2))%>%
   group_rows("A. CO2 data", 1,5)%>%
@@ -183,7 +183,7 @@ improve  performance when fitting data sets with large amounts of data. It uses
 two tools to do this. First, it saves on the amount of memory needed to compute
 a given model by using a random subset of the data to calculate the basis
 functions for the smoothers, then breaking the data up into blocks and updating
-model fit within each block [*CITE*]. While this is primarily designed to reduce
+model fit within each block [@wood_generalized_2015]. While this is primarily designed to reduce
 the amount of memory needed to fit these models, it can also substantially
 reduce computation time. Second, the `bam` function, when fitting using its
 default "fREML" (for "Fast REML") method, you can use the `discrete` when
@@ -274,7 +274,7 @@ First, there are a few limitations on how you are able to specify models 1-5 in 
 issues with how random effects are specified in the `lme4` package, making it impossible to code models where multiple penalties apply to a single basis function. Instead, for
 multidimensional group-level smooths, the alternate function `t2` needs to be used
 to generate these terms, as it creates tensor products with only a single penalty for
-each basis function (see `?mgcv::t2` for details on these smoothers, and [*CITE*] for 
+each basis function (see `?mgcv::t2` for details on these smoothers, and @wood_straightforward_2012 for 
 the theoretical basis behind this type of tensor product). So for instance, model 2 for the 
 bird movement data we discussed in section III would need to be coded as:
 
