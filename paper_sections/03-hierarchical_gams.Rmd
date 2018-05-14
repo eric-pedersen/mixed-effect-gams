@@ -8,9 +8,19 @@ The smoothers in section II allowed us to model flexible relationships between o
 
 2. Do all of the group-specific curves have the same smoothness, or should each group have its own smoothing parameter?
 
-3. Will the smooths for each group have a similar shape to one another -- a shared average curve?
+3. Will the smooths for each group have a similar shape to one another -- a shared average curve[^shape]?
 
-These three questions result in five possible models (Figure \ref{fig:models}), beyond the null model of "no relation between response and predictors".:
+[^shape]: For this paper, we consider two functions to have similar shape if the
+average squared distance between the functions is small (assuming the functions
+have been scaled to have a mean value of zero across their ranges). This definition
+is somewhat restricted; for instance, a cyclic function would not be considered to
+have the same shape as a phase-shifted version of that function, nor would two 
+normal distributions with the same mean but different standard deviations. The 
+benefit of this definition of shape, however, is that it is straightforward to
+translate into quadratic penalties as we have been using. 
+
+
+These three choices result in five possible models (figure \ref{fig:models}), beyond the null model of "no relation between response and predictor(s)".:
 
 1. A single common smooth for all observations.
 
@@ -22,9 +32,13 @@ These three questions result in five possible models (Figure \ref{fig:models}), 
 
 5. Group-specific smooths with different wigglyness.
 
-**DLM: Somewhere (here?) we need to say something about how same wigglyness=/=same shape?**
 
-![\label{fig:models}](../figures/alternate_models.png)
+
+![\label{fig:models}Alternate types of functional variation f(x) that can be fitted with HGAMs. The dashed line indicates the average function value for all groups, and each solid line indicates the functional value at a given predictor value for an  individual group level.](../figures/alternate_models.png)
+
+
+It is important to note that "similar wiggliness" and "similar shape" are distinct ideas; two functions can have very similar wiggliness but very different shapes. Wiggliness simply measures how quickly a function changes across its range, and it is easy to construct two functions that differ in shape but have the same wiggliness. For example, a logistic curve might have the same squared total second derivative between -1 and +1 as a sine curve, but they have very different shapes. Figure \ref{fig:models}, model 4 illustrates this case. 
+Similarly, two curves could have very similar overall shape, but differ in their wiggliness. For instance, if one function was equal to the second function plus a high-frequency osscilation. Figure \ref{fig:models} model 3 illustrates this. 
 
 We will discuss the trade-offs between different models and guidelines about when each of these models is appropriate in section IV. The remainder of this section will focus on how to specify each of these five models using `mgcv`.
 
@@ -36,15 +50,46 @@ Each of these models can be coded straightforwardly in `mgcv`. To help illustrat
 
 We will also use two example datasets to demonstrate how to code these models (see the appendix for code to generate these examples):
 
-A. The `CO2` dataset, available in R in the `datasets` package. This data is from an experimental study by CITE of $\text{CO}_2$ uptake in grasses under varying concentrations of $\text{CO}_2$, measuring how concentration-uptake functions varied between plants from two locations (Mississippi and Quebec) and two temperature treatments (chilled and warm). A total of 12 plants were measured, and uptake measured at 7 concentration levels for each plant. Here we will focus on how to use these techniques to estimate inter-plant variation in functional responses.
+A. The `CO2` dataset, available in R in the `datasets` package. This data is from an experimental study by @potvin_statistical_1990 of $\text{CO}_2$ uptake in grasses under varying concentrations of $\text{CO}_2$, measuring how concentration-uptake functions varied between plants from two locations (Mississippi and Quebec) and two temperature treatments (chilled and warm). A total of 12 plants were measured, and uptake measured at 7 concentration levels for each plant (figure \ref{fig:vis_data}a). Here we will focus on how to use these techniques to estimate inter-plant variation in functional responses.
 
-B. A hypothetical study of bird movement along a migration corridor. This dataset consists of records of numbers of observed locations of 100 tagged individuals each from six species of bird, at ten locations along a latitudinal gradient, with one observation taken every four weeks. Not every bird was observed at each time point, so counts vary randomly between location and week. The data set (`bird_move`) consists of the variables `count`, `latitude`, `week` and `species`. This example will allow us to demonstrate how to fit these models with interactions and with non-normal (count) data.
+B. A hypothetical study of what bird movement might look like along a migration corridor, sampled throughout the year. We have simulated this data for this paper (see supplemental code XX). This dataset consists of records of numbers of observed locations of 100 tagged individuals each from six species of bird, at ten locations along a latitudinal gradient, with one observation taken every four weeks. Not every bird was observed at each time point, so counts vary randomly between location and week. The data set (`bird_move`) consists of the variables `count`, `latitude`, `week` and `species` (figure \ref{fig:vis_data}b). This example will allow us to demonstrate how to fit these models with interactions and with non-normal (count) data.
 
-**DLM: cite bird_move?**
+
+```{r vis_data, echo=FALSE,  fig.width=6, fig.height=3, cache=TRUE,fig.cap="\\label{fig:vis_data}Example data sets used throughout section III. a) Grass CO2 uptake versus CO2 concentration for 12 individual plants (black lines). b) Simulated data set of bird migration, with point size corresponding to weekly counts of 6 species along a latituidinal gradient (zeros excluded for clarity)."}
+library(mgcv)
+library(ggplot2)
+
+#The default CO2 plant variable is ordered;
+#This recodes it to an unordered factor (see above for why).
+CO2 <- transform(CO2, Plant_uo=factor(Plant, ordered=FALSE))
+
+#Loading simuated bird movement data
+bird_move <- read.csv("../data/bird_move.csv") 
+
+CO2_vis_plot = ggplot(CO2, aes(x=conc,y=uptake,group=Plant))+
+  geom_point()+
+  geom_line()+
+  labs(x="CO2 concentration", y= "CO2 uptake",title="CO2 uptake data")+
+  cowplot::theme_cowplot()
+
+bird_vis_plot = ggplot(dplyr::filter(bird_move,count>0), aes(x=week,y=latitude,size= count))+
+  facet_wrap(~species)+
+  geom_point()+
+  scale_size()+
+  labs(title="Simulated bird migration data")+ 
+  cowplot::theme_cowplot()+
+  theme(legend.position = "bottom")
+
+cowplot::plot_grid(CO2_vis_plot, bird_vis_plot,nrow = 1,labels = c("a","b"))
+
+
+
+
+```
 
 It is important to note that the grouping variable should be coded in R as an unordered factor -- a character will raise an error and numeric will lead to a completely different model specification. Whether the factor is ordered or not will not matter for most of the smoothers we use here. However, for models 3&5 order will matter (see below for further details).
 
-Throughout the examples we use Restricted Maximum Likelihood (REML) [CITE] to estimate model coefficients and smoothing parameters. We strongly recommend using either REML or marginal likelihood (ML) when fitting GAMs for the reasons outlined in [CITE Wood 2011 JRSSB].
+Throughout the examples we use Restricted Maximum Likelihood (REML) to estimate model coefficients and smoothing parameters. We strongly recommend using either REML or marginal likelihood (ML) when fitting GAMs for the reasons outlined in [@wood_fast_2011].
 
 In each case some data processing and manipulation has been done to obtain the graphics and results below. We recommend readers take a look at the source RMarkdown [CITE] document for this paper to get the full code.
 
@@ -65,7 +110,9 @@ where $\zeta_\texttt{Plant\_uo}$ is the random effect for plant and $\epsilon_i$
 
 **DLM: need to justify why we use log concentration not just concentration? (could just cite?)**
 
-[^mult_note]:Note that we're actually modelling ln(uptake); this can be a useful approach when dealing with estimating multiple functional relationships as it means that functions that differ from each other by a multiplicative constant (so $f_1(x) = \alpha\cdot f_2(x)$ will differ by an additive constant when log-transformed (which can be estimated by simple random effects): $ln(f_1(x)) = ln(\alpha)+ ln(f_2(x))$. We have also ln-transformed concentration. Since the concentration-uptake relationship changes rapidly at low concentration values and slowly at higher values, estimating the relationship without log-transforming it can lead to a small estimated penalty value, and an overly wiggly function at higher concentration values.)
+**I think it's useful here as it shows one approach to deal with multipliciative functional variation. I've simplified it to remove the note about log-transforming concentration though. The reasons for that should be obvious**
+
+[^mult_note]:Note that we're actually modelling ln(uptake); this can be a useful approach when dealing with estimating multiple functional relationships as it means that functions that differ from each other by a multiplicative constant (so $f_1(x) = \alpha\cdot f_2(x)$ will differ by an additive constant when log-transformed (which can be estimated by simple random effects): $ln(f_1(x)) = ln(\alpha)+ ln(f_2(x))$.
 
 In R we can write our model as:
 ```{r co2_mod1_unrun, echo=TRUE, eval=FALSE}
@@ -76,7 +123,7 @@ CO2_mod1 <- gam(log(uptake) ~ s(log(conc), k = 5, bs = "tp") +
 
 This is the typical GAM setup, with a single smooth term for each variable. Specifying the model is similar to specifying a `glm` in R, with the addition of `s()` terms to include one-dimensional or isotropic multidimensional smooths. The first argument to `s()` is the terms to be smoothed, the type of smooth to be used for the term is specified by the `bs=...` argument, and the number of basis functions is specified by `k=...`.
 
-```{r co2_mod1, echo=FALSE,  fig.width=6, fig.height=3, cache=FALSE}
+```{r co2_mod1, echo=FALSE,  fig.width=6, fig.height=3, cache=TRUE,fig.cap="\\label{fig:co2_mod1}mgcv plotting output for model 1 applied to the CO2 dataset."}
 library(mgcv)
 library(ggplot2)
 
@@ -91,15 +138,14 @@ CO2_mod1 <- gam(log(uptake) ~ s(log(conc), k=5, bs="tp") +
 plot(CO2_mod1, pages=1, seWithMean = TRUE)
 ```
 
-Figure [BLAH CROSSREF] has two panels: the left showing the estimated global functional relationship, and the right shows a quantile-quantile plot of the estimates effects vs Guassian quantiles, which can be used to check our model.
+Figure \ref{fig:co2_mod1} illustrates `mgcv'`s default plotting out for `CO2_mod1`: the left panel shows the estimated global functional relationship, and the right shows a quantile-quantile plot of the estimates effects vs Guassian quantiles, which can be used to check our model.
 
 **DLM: add more to plot description!**
 
-Looking at the effects by term is useful but we are often interested in fitted values or predictions our models. This can be useful to construct plots (like those in Figure [XXXX]). The next block of code shows how you could plot this to illustrate inter-plant variation in the functional response with estimated functional variability, plotting untransformed uptake and concentration to make the figure easier to comprehend. You can see the effect log-transforming concentration has on model fits; even though plants Mc1 -- Mc3 show a much flatter response in untransformed space, the same functional response fits relatively well after accounting for the random effect (a multiplicative difference between functional responses).
+Looking at the effects by term is useful but we are often interested in fitted values or predictions our models. This can be useful to construct plots (like those in Figure \ref{fig:co2_mod1_predict}). The next block of code shows how you could plot this to illustrate inter-plant variation in the functional response, plotting untransformed uptake and concentration to make the figure easier to interpret. 
 
-**DLM: what does "estimated functional variability" mean above??**
 
-```{r co2_mod1_ggplot, fig.width=6, fig.height=3}
+```{r co2_mod1_ggplot, fig.width=6, fig.height=3, fig.cap="\\label{fig:co2_mod1_predict}"
 # setup prediction data
 CO2_mod1_pred <- with(CO2,
                       expand.grid(conc=seq(min(conc), max(conc), length=100),
@@ -126,13 +172,10 @@ $$
 \texttt{count}_i = \exp(f(\texttt{week}_i, \texttt{latitude}_i))
 $$
 
-where we assume that $\texttt{count}_i \sim\text{Poisson}$. For the smooth term, $f$, we employ a tensor product of latitude and week, using thin plate regression spline for the marginal latitude effects, and a cyclic cubic spline for the marginal week effect to account for the cyclic nature of weekly effects (we expect week 1 and week 52 to have very similar values), both splines had basis complexity (`k`) of 10. We will also assume the counts of individuals at each location in each week follow a Poisson distribution. For simplicity of code we will exclude a species-specific random effect like the one we had in the $\text{CO}_2$ uptake example[^sp_ranef_note].
+where we assume that $\texttt{count}_i \sim\text{Poisson}$. For the smooth term, $f$, we employ a tensor product of latitude and week, using a thin plate regression spline for the marginal latitude effects, and a cyclic cubic spline for the marginal week effect to account for the cyclic nature of weekly effects (we expect week 1 and week 52 to have very similar values), both splines had basis complexity (`k`) of 10. We will also assume the counts of individuals at each location in each week follow a Poisson distribution, and we will ignore
+species-specific variability. 
 
-[^sp_ranef_note]:If we included it, it could be interpreted as modelling variation in average observability between species. However, as we cheated and know what the data generating process looks like, we do not need to worry about adding it here. 
-
-**DLM: can we just say we're ignoring species here?**
-
-```{r bird_mod1, fig.width = 4, fig.height = 4}
+```{r bird_mod1, fig.width = 4, fig.height = 4, fig.cap="\\label{fig:bird_mod1}The default plot for this GAM illustrates the average log-abundance of all bird species at each latitude for each week, with yellow colours indicating more individuals and red colours fewer."}
 library(tidyr)
 library(viridis) # for color plotting
 
@@ -145,40 +188,22 @@ plot(bird_mod1, pages=1, scheme=2, rug=FALSE)
 box()
 ```
 
-**DLM: this is part of the figure caption: "The default plot for this GAM illustrates the average log-abundance of all bird species at each latitude for each week, with yellow colours indicating more individuals and red colours fewer."**
+Figure \ref{fig:bird_mod1} shows birds starting at low latitudes in the winter then migrating to high latitudes from the 10th to 20th week, staying there for 15-20 weeks, then migrating back. However, the plot also indicates a large amount of variability in the timing of migration. The source of this variability is apparent when looking at the specifics of migration timing of each species (figure \ref{fig:vis_data}b). 
 
-Figure [BLAHXXX] shows birds starting at low latitudes in the winter then migrating to high latitudes from the 10th to 20th week, staying there for 15-20 weeks, then migrating back. However, the plot also indicates a large amount of variability in the timing of migration. The source of this variability is apparent when the migration timing of each species is plotted in conjunction with the model fit:
+All six species in figure \ref{fig:vis_data}b) show relatively precise migration patterns, but they differ in the timing of when they leave their winter grounds and the time they spend at their summer grounds. Averaging over all of this variation results in a relatively imprecise (diffuse) average estimate of migration timing (figure \ref{fig:bird_mod1}, \ref{fig:bird-fitted-mod1}), and viewing species-specific plots of observed versus predicted values (figure \ref{fig:bird-fitted-mod1}), it is appearent that the model fits some of the species better than others. This model could potentially be improved by adding inter-group variation in migration timing. The rest of this section will focus on how to model this type of variation. 
 
-```{r bird_mod1_ggplot, fig.width=8, fig.height=3}
-bird_move <- transform(bird_move, mod1=predict(bird_mod1, type="response"))
-#gets the fitted model values, at the response scale
+```{r bird-fitted-mod1,fig.cap="\\label{fig:bird-fitted-mod1}Observed counts by species versus predicted counts from bird_mod1 (1-1 line added as reference). If our model fitted well we would expect that all species should show similiar dispersions around the 1-1 line. Instead we see that variance around the predicted is much higher for species 1 and 6."}
+bird_move$mod1 = predict(bird_mod1, type="response")
 
-bird_move_plot <- gather(bird_move, key=model, value=value, count, mod1)
-#combines observed and fitted estimates into a single column called "value"
+ggplot(bird_move, aes(x=mod1, y= count))+
+  facet_wrap(~species)+
+  geom_point()+
+  geom_abline()+
+  labs(x="Predicted counts (model 1)", y= "Observed bird counts")+
+  cowplot::theme_cowplot()
 
-ggplot(bird_move_plot, aes(x=week, y=latitude, fill=value)) +
-    geom_raster() +
-    facet_grid(model ~ species)+
-    scale_fill_viridis() +
-    scale_x_continuous(expand=c(0, 0), breaks=c(1, 26, 52)) +
-    scale_y_continuous(expand=c(0, 0), breaks=c(0, 30, 60)) +
-    labs(fill="Individuals")
 ```
 
-**DLM: this is part of the figure caption: "Here the top row denotes the observed counts of each species (with color indicating abundance in that location in that week), and the bottom indicates the model fit."**
-
-**DLM: I think that the bottom row of this graphic is a big of a waste of ink, as it's the same information as in the previous plot, but duplicated 6 times. I'd prefer to see the top row as EDA in the intro to the data.**
-
-All six species in Figure [BLAHXXX] show relatively precise migration patterns, but they differ in the timing of when they leave their winter grounds and the time they spend at their summer grounds. Averaging over all of this variation results in a relatively imprecise (diffuse) average estimate of migration timing (bottom row). This model could potentially be improved by adding inter-group variation in migration timing. The rest of this section will focus on how to model this type of variation. 
-
-**DLM: not sure about this interpretation of the plots -- I agree there is heterogeneity caused by species, but not sure this is exactly what is shown here. In some sense smoothers are wrong everywhere, I think the plot just shows this property... Maybe the plot below shows the heterogeneity issue?**
-
-```{r bird-resids-byspecies}
-resid_plot <- bird_move
-resid_plot$residuals <- residuals(bird_mod1)
-boxplot(residuals~species, data=resid_plot)
-```
-Boxplot of residuals from the bird model. If our model fitted well we would expect that the boxplots would all be about the same width. Instead we see that the spread of residuals is much higher for species 1 and 6.
 
 
 ### A single common smooth plus group-level smooths that have the same wigglyness (Model 2)
@@ -186,7 +211,7 @@ Boxplot of residuals from the bird model. If our model fitted well we would expe
 
 Model 2 is a close analogue to a GLMM with varying slopes: all groups have similar functional responses, but allows for inter-group variation in responses. This approach works by allowing each grouping level to have its own functional response, but penalizing functions that are too far from the average.
 
-This can be coded in `mgcv` by explicitly specifying one term for the global smooth (as in model 1 above) then adding a second smooth term specifying the group level smooth terms, using a penalty term that tends to draw these group-level smooths to zero. For one-dimensional smooths, `mgcv` provides an explicit basis type to do this, the factor smooth or "fs" basis (see `?smooth.construct.fs.smooth.spec` for detailed notes). This smoother creates a copy of each set of basis functions for each level of the grouping variable, but only estimates one set of smoothing parameters for all groups. The penalty is also set up so each component of its null space is given its own penalty (so that all components of the smooth are penalized towards zero)[^intercept_note]. As there can be issues of co-linearity between the global smooth term and the group-specific terms (see section V for more details), it is generally necessary to use a smoother with a more restricted null space than the global smooth; for thin plate splines this can be done by setting m=2 for the global smooth and m=1 for the group smooth [cite Wieling paper here]. e.g.: `y~s(x,bs="tp",m=2)+s(x,fac,bs="fs",m=1,xt=list(bs="tp"))`. Appendix A illustrates another way to setup these models.
+This can be coded in `mgcv` by explicitly specifying one term for the global smooth (as in model 1 above) then adding a second smooth term specifying the group level smooth terms, using a penalty term that tends to draw these group-level smooths to zero. For one-dimensional smooths, `mgcv` provides an explicit basis type to do this, the factor smooth or "fs" basis (see `?smooth.construct.fs.smooth.spec` for detailed notes). This smoother creates a copy of each set of basis functions for each level of the grouping variable, but only estimates one set of smoothing parameters for all groups. The penalty is also set up so each component of its null space is given its own penalty (so that all components of the smooth are penalized towards zero)[^intercept_note]. As there can be issues of co-linearity between the global smooth term and the group-specific terms (see section V for more details), it is generally necessary to use a smoother with a more restricted null space than the global smooth; for thin plate splines this can be done by setting m=2 for the global smooth and m=1 for the group smooth [@baayen_autocorrelated_2016] [also cite Wieling paper here]. e.g.: `y~s(x,bs="tp",m=2)+s(x,fac,bs="fs",m=1,xt=list(bs="tp"))`. 
 
 
 
@@ -207,7 +232,7 @@ CO2_mod2 <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                 data=CO2, method="REML")
 ```
 
-```{r co2_mod2, fig.width=6, fig.height=3}
+```{r co2_mod2, fig.width=6, fig.height=3, fig.cap="\\label{fig:co2_mod2}Global function (left) and group-specific deviations from the global function (right) for CO2_mod2"}
 source("../code/functions.R")
 
 CO2_mod2 <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
@@ -217,9 +242,9 @@ CO2_mod2 <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
 plot(CO2_mod2, page=1, seWithMean=TRUE)
 ```
 
-Figure BLAHXXX shows the global function (left) and group-specific deviations from the global function (right) for `CO2_mod2`. The plots of group-specific smooths indicate that plants differ not only in average log-uptake (which would correspond to each plant having a straight line at different levels for the group-level smooth), but differ slightly in the shape of their functional responses. The plot below shows how the global and group-specific smooths combine to predict uptake rates for individual plants:
+Figure \ref{fig:co2_mod2} shows the fitted smoothers for `CO2_mod2`. The plots of group-specific smooths indicate that plants differ not only in average log-uptake (which would correspond to each plant having a straight line at different levels for the group-level smooth), but differ slightly in the shape of their functional responses. Figure \ref{fig:co2_mod2_pred} shows how the global and group-specific smooths combine to predict uptake rates for individual plants:
 
-```{r co2_mod2_ggplot, fig.width=6, fig.height=3}
+```{r co2_mod2_ggplot,echo=FALSE, fig.width=6, fig.height=3, fig.cap="\label{fig:co2_mod2_pred}Predicted uptake values (lines) verus oberved uptake for each plant, based on CO2 model 2."}
 CO2_mod2_pred <- predict(CO2_mod2, se.fit=TRUE)
 CO2$mod2 <- CO2_mod2_pred$fit
 CO2$mod2_se <- CO2_mod2_pred$se.fit
@@ -232,9 +257,8 @@ ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
                   ymax=exp(mod2+2*mod2_se)), alpha=0.25)
 ```
 
-The "`fs`"-based approach mentioned above does not work for higher-dimensional tensor product smooths (if one is willing to use thin plate regression splines for the multivariate smooth then one can use "`fs`"). Instead, the group-specific term can be specified with a tensor product of the continuous smooths and a random effect for the grouping parameter. This term will again have a separate set of basis functions for each group, one penalty for the smooth term, and a second penalty drawing all basis functions toward zero[^fs_note]. e.g.: `y~te(x1,x2,bs="tp",m=2)+te(x1,x2, fac,bs=c("tp","tp","fs"),m=1)`. We illustrate this approach below on the bird migration data.
+The "`fs`"-based approach mentioned above does not work for higher-dimensional tensor product smooths (if one is willing to use thin plate regression splines for the multivariate smooth then one can use "`fs`"). Instead, the group-specific term can be specified with a tensor product of the continuous smooths and a random effect for the grouping parameter. This term will again have a separate set of basis functions for each group, one penalty for the smooth term, and a second penalty drawing all basis functions toward zero[^fs_note]. e.g.: `y~te(x1,x2,bs="tp",m=2)+te(x1,x2, fac,bs=c("tp","tp","re"),m=1)`. We illustrate this approach below on the bird migration data. 
 
-**DLM: is the "fs" above supposed to be a "re"?**
 
 [^fs_note]: Note that this differs from the "fs" penalty, which assigned one penalty per null space term.
 
@@ -245,25 +269,38 @@ bird_mod2 <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
                             k=c(10, 10, 6), m=c(1, 1, 1)),
                  data=bird_move, method="REML", family=poisson)
 
-plot(bird_mod2, page=1, scheme=2, rug=FALSE, seWithMean=TRUE)
 ```
 
 
 
-```{r bird_mod2_ggplot, fig.width=8, fig.height=3, echo=FALSE}
+```{r bird_mod2_ggplot, fig.width=8, fig.height=3, echo=FALSE, fig.cap="\\label{fig:bird_mod2}a) Predicted migration paths for each species based on bird_mod2, with lighter colors corresponding to higher predicted counts. b) Observed counts versus predictions from bird_mod2."}
 bird_move$mod2 <- predict(bird_mod2, type="response")
 
-bird_move_plot2 <- gather(bird_move, key=model, value=value, count, mod2)
-
-ggplot(data=bird_move_plot2, aes(x=week, y=latitude, fill=value, color=value)) +
+bird_mod2_indiv = ggplot(data=bird_move, aes(x=week, y=latitude, fill=mod2)) +
   geom_tile(size=1) +
-  facet_grid(model~species) +
-  scale_fill_viridis("individuals") +
-  scale_color_viridis("individuals") +
+  facet_grid(.~species) +
+  scale_fill_viridis("predicted count") +
   scale_x_continuous(expand=c(0, 0), breaks=c(1, 26, 52)) +
-  scale_y_continuous(expand=c(0, 0), breaks=c(0, 30, 60))
+  scale_y_continuous(expand=c(0, 0), breaks=c(0, 30, 60))+
+  cowplot::theme_cowplot()+
+  theme(legend.position="bottom")
+  
+bird_mod2_indiv_fit = ggplot(data=bird_move, aes(x=mod2, y=count)) +
+  facet_grid(.~species) +
+  geom_point()+
+  geom_abline()+
+  labs(x="Predicted counts (model 2)", y= "Observed\ncounts")+
+  cowplot::theme_cowplot()
+  
+cowplot::plot_grid(bird_mod2_indiv,bird_mod2_indiv_fit, ncol=1,  align="v", 
+                   labels=c("a","b"),rel_heights= c(1.25,1))
+  
 ```
 
+Model 2 is able to effectively capture the observed patterns of interspecific 
+variation in migration behaviour (figure \ref{fig:bird_mod2}a), shows a much 
+tigher fit between observed and predicted values, as well as less evidence of 
+over-dispersion in some species compared to model 1 (figure \ref{fig:bird_mod2}b). 
 
 ### A single common smooth plus group-level smooths with differing wigglyness (Model 3)
 
@@ -281,22 +318,22 @@ CO2_mod3 = gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                data= CO2, method="REML")
 ```
 
-```{r mod3_CO2, fig.width=5, fig.height=3, echo=FALSE}
+```{r mod3_CO2, fig.width=5, fig.height=3, echo=FALSE, fig.cap="\label{fig:co2_mod3}Functional relationships for the CO2 data estimated for model 3. Top left: the global smooth; Top middle: species-specific random effect intercepts. The remaining plots are a selected subset of the plant-specific smoothers, indicating how the functional response of that plant differs from the global smooth."}
 CO2_mod3 = gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                              s(log(conc), by= Plant_uo, k=5, bs="ts", m=1) +
                              s(Plant_uo, bs="re", k=12),
                data= CO2, method="REML")
 
 par(mfrow=c(2, 3), mar =c(4, 4, 1, 1))
-plot(CO2_mod3, scale=0, select=14, ylab="Intercepts", main=NA)
 plot(CO2_mod3, scale=0, select=1, ylab="global smooth", seWithMean=TRUE)
+plot(CO2_mod3, scale=0, select=14, ylab="Intercepts", main=NA)
 plot(CO2_mod3, scale=0, select=3, ylab="Plant Qn1", seWithMean=TRUE)
 plot(CO2_mod3, scale=0, select=5, ylab="Plant Qc1", seWithMean=TRUE)
 plot(CO2_mod3, scale=0, select=10, ylab="Plant Mn1", seWithMean=TRUE)
 plot(CO2_mod3, scale=0, select=13, ylab="Plant Mc1", seWithMean=TRUE)
 ```
 
-Figure BLAHXXX shows a subsample of the group-specific smooths from this model, to prevent crowding. It is appearent from this that some groups (e.g. `Qc1`) have very similar shapes to the global smooth (differing only in intercept), others do differ from the global trend, with higher uptake at low concentrations and lower uptake at higher concentrations (e.g. `Mc1`, `Qn1`), or the reverse pattern (e.g. `Mn1`).
+Figure \ref{fig:co2_mod3} shows a subsample of the group-specific smooths from this model, to prevent crowding. It is appearent from this that some groups (e.g. `Qc1`) have very similar shapes to the global smooth (differing only in intercept), others do differ from the global trend, with higher uptake at low concentrations and lower uptake at higher concentrations (e.g. `Mc1`, `Qn1`), or the reverse pattern (e.g. `Mn1`).
 
 Using model 3 with higher-dimensional data is also straightforward; `by=fac` terms work as well in tensor-product smooths as they do with isotrophic smooths. We can see this with our bird model:
 
@@ -309,8 +346,7 @@ bird_mod3 <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
                  data=bird_move, method="REML", family=poisson)
 ```
 
-**DLM: show some plots of this?**
-
+The fitted model for bird_mod3 is visually indistinguishable from bird_mod2 (figure \ref{fig:bird_mod2}} so we do not illustrate it here. 
 
 ### Models without global smooth terms (models 4 and 5)
 
