@@ -244,7 +244,7 @@ plot(CO2_mod2, page=1, seWithMean=TRUE)
 
 Figure \ref{fig:co2_mod2} shows the fitted smoothers for `CO2_mod2`. The plots of group-specific smooths indicate that plants differ not only in average log-uptake (which would correspond to each plant having a straight line at different levels for the group-level smooth), but differ slightly in the shape of their functional responses. Figure \ref{fig:co2_mod2_pred} shows how the global and group-specific smooths combine to predict uptake rates for individual plants:
 
-```{r co2_mod2_ggplot,echo=FALSE, fig.width=6, fig.height=3, fig.cap="\label{fig:co2_mod2_pred}Predicted uptake values (lines) verus oberved uptake for each plant, based on CO2 model 2."}
+```{r co2_mod2_ggplot,echo=FALSE, fig.width=6, fig.height=3, fig.cap="\\label{fig:co2_mod2_pred}Predicted uptake values (lines) verus oberved uptake for each plant, based on CO2 model 2."}
 CO2_mod2_pred <- predict(CO2_mod2, se.fit=TRUE)
 CO2$mod2 <- CO2_mod2_pred$fit
 CO2$mod2_se <- CO2_mod2_pred$se.fit
@@ -318,7 +318,7 @@ CO2_mod3 = gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                data= CO2, method="REML")
 ```
 
-```{r mod3_CO2, fig.width=5, fig.height=3, echo=FALSE, fig.cap="\label{fig:co2_mod3}Functional relationships for the CO2 data estimated for model 3. Top left: the global smooth; Top middle: species-specific random effect intercepts. The remaining plots are a selected subset of the plant-specific smoothers, indicating how the functional response of that plant differs from the global smooth."}
+```{r mod3_CO2, fig.width=5, fig.height=3, echo=FALSE, fig.cap="\\label{fig:co2_mod3}Functional relationships for the CO2 data estimated for model 3. Top left: the global smooth; Top middle: species-specific random effect intercepts. The remaining plots are a selected subset of the plant-specific smoothers, indicating how the functional response of that plant differs from the global smooth."}
 CO2_mod3 = gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                              s(log(conc), by= Plant_uo, k=5, bs="ts", m=1) +
                              s(Plant_uo, bs="re", k=12),

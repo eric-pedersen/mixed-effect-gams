@@ -144,7 +144,7 @@ source("../code/Sec_5_computational_code.R")
 ```
 
 
-```{r comp_calc_table, echo=F,  fig.width=4, fig.height=6,message=F, warning=F, cache=T}
+```{r comp_time, echo=F,  fig.width=4, fig.height=6,message=F, warning=F, cache=T}
 library(kableExtra)
 library(knitr)
 comp_resources_table =comp_resources %>%
@@ -161,7 +161,7 @@ comp_resources_table =comp_resources %>%
   ungroup()%>%
   select(-data_source)
 
-kable(comp_resources_table,format ="latex", caption="\\label{tab:comp_time}Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model 1 takes to fit to that data set. The # of coefficients measures the total number of model parameters (including intercepts). The # of smooths is the total number of unique penalty values estimated by the model.")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+kable(comp_resources_table,format ="latex", caption="Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model 1 takes to fit to that data set. The \\# of coefficients measures the total number of model parameters (including intercepts). The \\# of smooths is the total number of unique penalty values estimated by the model.")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
   kable_styling(full_width = F)%>%
   add_header_above(c(" " = 1," "=1, "# of terms"=2))%>%
   group_rows("A. CO2 data", 1,5)%>%
