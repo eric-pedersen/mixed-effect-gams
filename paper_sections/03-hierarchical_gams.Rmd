@@ -37,7 +37,7 @@ These three choices result in five possible models (figure \ref{fig:models}):
 ![\label{fig:models}Alternate types of functional variation f(x) that can be fitted with HGAMs. The dashed line indicates the average function value for all groups, and each solid line indicates the functional value at a given predictor value for an  individual group level.](../figures/alternate_models.png)
 
 
-It is important to note that "similar wiggliness" and "similar shape" are two distinct concepts; functions can have very similar wiggliness but very different shapes. Wiggliness simply measures how quickly a function changes across its range, and it is easy to construct two functions that differ in shape but have the same wiggliness. For example, a logistic curve might have the same squared total second derivative between -1 and +1 as a sine curve, but they have very different shapes. Figure \ref{fig:models}, model 4 illustrates this case. 
+It is important to note that "similar wiggliness" and "similar shape" are two distinct concepts; functions can have very similar wiggliness but very different shapes. Wiggliness measures how quickly a function changes across its range, and it is easy to construct two functions that differ in shape but have the same wiggliness. For example, a logistic curve might have the same squared total second derivative between -1 and +1 as a sine curve, but they have very different shapes. Figure \ref{fig:models}, model 4 illustrates this case. 
 
 Similarly, two curves could have very similar overall shape, but differ in their wiggliness. For instance, if one function was equal to the second function plus a high-frequency osscilation. Figure \ref{fig:models} model 3 illustrates this. 
 
@@ -45,15 +45,13 @@ We will discuss the trade-offs between different models and guidelines about whe
 
 ## Coding hierarchical GAMs in R
 
-**EJP: Going with canned and simulated data for the examples rather than real as it's a bit less messy**
-
 Each of these models can be coded straightforwardly in *mgcv*. To help illustrate this throughout the section when describing how to set these models up, we will refer to the response variable as $y$,  continuous predictor variables as $x$ (or $x_1$ and  $x_2$, in the case multiple predictors), and *fac* to designate the discrete grouping factor whose variation we are interested in understanding.
 
 We will also use two example datasets to demonstrate how to code these models (see the appendix for code to reproduce these examples):
 
 A. The `CO2` dataset, available in R via the `datasets` package. This data is from an experimental study by @potvin_statistical_1990 of $\text{CO}_2$ uptake in grasses under varying concentrations of C)~2~, measuring how concentration-uptake functions varied between plants from two locations (Mississippi and Quebec) and two temperature treatments (chilled and warm). Twelve plants were used and CO~2~ uptake measured at 7 CO~2~ concentrations for each plant (figure \ref{fig:vis_data}a). Here we will focus on how to use these HGAMs to estimate inter-plant variation in functional responses.
 
-B. A hypothetical study of what bird movement might look like along a migration corridor, sampled throughout the year. We have simulated this data for this paper (see supplemental code XX). This dataset consists of records of numbers of observed locations of 100 tagged individuals each from six species of bird, at ten locations along a latitudinal gradient, with one observation taken every four weeks. Not every bird was observed at each time point, so counts vary randomly between location and week. The data set (`bird_move`) consists of the variables `count`, `latitude`, `week` and `species` (figure \ref{fig:vis_data}b). This example will allow us to demonstrate how to fit these models with interactions and with non-normal (count) data.
+B. A hypothetical study of what bird movement might look like along a migration corridor, sampled throughout the year. We have simulated this data for this paper (see appendix). This dataset consists of records of numbers of observed locations of 100 tagged individuals each from six species of bird, at ten locations along a latitudinal gradient, with one observation taken every four weeks. Not every bird was observed at each time point, so counts vary randomly between location and week. The data set (`bird_move`) consists of the variables `count`, `latitude`, `week` and `species` (figure \ref{fig:vis_data}b). This example will allow us to demonstrate how to fit these models with interactions and with non-normal (count) data.
 
 
 ```{r vis_data, echo=FALSE,  fig.width=8, fig.height=4, out.width="\\linewidth", fig.cap="\\label{fig:vis_data}Example data sets used throughout section III. a) Grass $\\text{CO}\\textsubscript{2}$ uptake versus $\\text{CO}\\textsubscript{2}$ concentration for 12 individual plants (black lines). b) Simulated data set of bird migration, with point size corresponding to weekly counts of 6 species along a latituidinal gradient (zeros excluded for clarity)."}
