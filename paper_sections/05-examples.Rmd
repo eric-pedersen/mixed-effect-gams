@@ -1,5 +1,5 @@
 
-# VI: Examples
+# V: Examples
 
 
 
@@ -15,7 +15,7 @@ showing how to these models work for non-normal data, and for including other
 covariates. In all examples, I think we should focus on how to fit each data set, visualize
 models, and compare different model fits.***
 
-In this final section, we will go through a few example analyses, to highlight
+In this final section, we will go through a worked example, to highlight
 how to use these models in practice, and to illustrate how to fit, test, and
 visualize each model. 
 

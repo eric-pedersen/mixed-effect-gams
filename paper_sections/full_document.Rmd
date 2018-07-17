@@ -29,10 +29,10 @@ knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, cache=TRUE)
 ```{r child = '03-hierarchical_gams.Rmd'}
 ```
 
-```{r child = '05-computational_and_statistical_issues.Rmd'}
+```{r child = '04-computational_and_statistical_issues.Rmd'}
 ```
 
-```{r child = '06-examples.Rmd'}
+```{r child = '05-examples.Rmd'}
 ```
 
 # Bibliography
