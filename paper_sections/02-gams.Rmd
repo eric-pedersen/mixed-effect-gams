@@ -1,32 +1,41 @@
+---
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
 
 #II: an introduction to Generalized Additive Models
 
 One of the most common model formulations in statistics is the generalized linear model [@McCullagh:1989ti] that relates a response ($y$) to a linear combination of explanatory variables. The response is assumed to be conditionally distributed according to a member of the exponential family (e.g., letting the response be a trial, a count or a strictly positive real number --- binomial, Poisson or Gamma distributions, respectively). The generalized additive model [GAM; @Hastie:1990vg; @Ruppert:2003uc; @Wood:2006vg] allows the relationships between the explanatory variables (henceforth covariates) and the response to be described by smooth terms (usually *splines* [@deBoor:1978wq], but potentially other structures). In general we have models of the form:
 $$
-\mathbb{E}\left( y \right) = g^{-1}\left( \beta_0 + \sum_{j=1}^J f_j(x_j) \right)\,,
+\mathbb{E}\left( Y \right) = g^{-1}\left( \beta_0 + \sum_{j=1}^J f_j(x_j) \right)\,,
 $$
-where $\mathbb{E}(y)$ is the expected value of the response $y$ (with an appropriate distribution and link function $g$), $f_j$ is a smooth function of the covariate $x_j$, $\beta_0$ is an intercept term and $g^{-1}$ is the inverse link function. Here there are $J$ smooths and each is a function of only one covariate, though it is possible to construct smooths of multiple variables.
+where $\mathbb{E}(Y)$ is the expected value of the response $Y$ (with an appropriate distribution and link function $g$), $f_j$ is a smooth function of the covariate $x_j$, $\beta_0$ is an intercept term and $g^{-1}$ is the inverse link function. Here there are $J$ smooths and each is a function of only one covariate, though it is possible to construct smooths of multiple variables.
 
-Each smooth $f_j$ is represented by a sum of simpler *basis functions* ($b_k$) multiplied by corresponding coefficients ($\beta_k$), which need to be estimated:
+Each smooth $f_j$ is represented by a sum of simpler *basis functions* ($b_{j,k}$) multiplied by corresponding coefficients ($\beta_{j,k}$), which need to be estimated:
 $$
-f_j(x_j) = \sum_{k=1}^K \beta_k b_k(x_j)\,,
+f_j(x_j) = \sum_{k=1}^K \beta_{j,k} b_{j,k}(x_j)\,,
 $$
-The size $K$ of each smooth will determine the complexity of the resulting term (referred to as "basis size", "basis complexity" or "basis richness"). Though it seems like the basis can be overly complex ("how big should I make $K$?") and lead to overfitting, we need not worry about this as we use a penalty to ensure that each function's complexity is appropriate; hence the basis only need be *large enough* and we let the penalty deal with excess wigglyness.
+The size $K$ of each smooth will determine the complexity of the resulting term (referred to as "basis size", "basis complexity" or "basis richness"). Though it seems like the basis can be overly complex ("how big should I make $K$?") and lead to overfitting, we need not worry about this as we use a penalty to ensure that each function's complexity is appropriate; hence the basis only need be *large enough* and we let the penalty deal with excess wiggliness.
 
-The penalty for a term is usually based on a derivative of the smooth, as the derivative is used to measure the wigglyness of the function and hence its flexibility. Model fit is measured by its likelihood ($\mathcal{L}(y|\theta)$, the likelihood of observing the data, $y$, given the parameters $\theta$). We trade-off the fit of the model against the wigglyness penalty to obtain a model that fits the data well but does not overfit. To control this trade-off we estimate a *smoothness parameter* for each smooth $\lambda_j$. This trade-off results in the penalised likelihood $\mathcal{L}_p$ of the estimated model
+The penalty for a term is usually based on a derivative of the smooth, as the derivative is used to measure the wiggliness of the function and hence its flexibility. Model fit is measured by its likelihood ($\mathcal{L}(\mathbf{y}|\theta)$, the likelihood of observing the data, $\mathbf{y}$, given the parameters $\theta$). We trade-off the fit of the model against the wiggliness penalty to obtain a model that fits the data well but does not overfit. To control this trade-off we estimate a *smoothness parameter* for each smooth $\lambda_j$. In the case of a single smooth term with a single penalty, this trade-off results in the penalised likelihood $\mathcal{L}_p$ of the estimated model[^multismooth]:
+
+[^multismooth]: The addition of more smooths (or more penalty terms for each smooth) would simply mean changing the term $\lambda \beta^{\mathsf{T}}\mathbf{S}\beta$ into a sum over several such products.
+
+
 $$
-\mathcal{L}_p = \underbrace{\mathcal{L}(y | \theta)}_{\text{model fit}} + \lambda \underbrace{\beta^{\mathsf{T}}\mathbf{S}\beta}_{\makebox[0pt]{\text{{\scriptsize wiggliness}}}}.
+\mathcal{L}_p = \underbrace{\mathcal{L}(\mathbf{y} | \beta)}_{\text{model fit}} + \lambda \underbrace{\beta^{\mathsf{T}}\mathbf{S}\beta}_{\text{wiggliness}}.
 $$
 
-Figure \ref{fig:smoothing_effect} shows optimal smoothing (where the smoothing parameter is estimated to give a parsimonious model) in the first plot; the second plot shows what happens when the smoothing parameter is set to zero, so the penalty has no effect (interpolation); the right plot shows when the smoothing parameter is set to a very large value, giving a straight line. Smooths of this kind are often referred to as a *basis-penalty smoothers*.
 
-**say something about knots!**
+Where $\mathbf{S}$ is the penalty matrix for the smooth, which determines how strongly to penalize different linear combinations of parameters, and depends on the type of smooth used. There are several different criteria used to estimate penalty parameters, including generalized cross validation (GCV), maximizing marginal likelihood (ML), or restricted maximum likelihood (REML). In general, REML seems to give the best performance, as ML tends to underestimate wiggliness, and GCV can overestimate wiggliness [@wood_fast_2011].  
 
-**GLS: Given that I just dropped in the quadratic form of the penalty do we want to explain this, mention $\mathbf{S}$, etc?**
 
-**say something about penalty matrices and also smoothing parameters**
+Figure \ref{fig:smoothing_effect} shows REML-based optimal smoothing in the first plot; the second plot shows what happens when the smoothing parameter is set to zero, so the penalty has no effect (interpolation); the right plot shows when the smoothing parameter is set to a very large value, giving a straight line.  Smooths of this kind are often referred to as a *basis-penalty smoothers*. 
 
-```{r lambda, echo=FALSE, message=FALSE, results='hide', fig.width=8, fig.height=2.5, cache=TRUE, fig.cap="\\label{fig:smoothing_effect}Examples of how different choices of the smoothing parameter effect the resulting function. Data (points) were generated from the blue function and noise added to them. In the left plot the smoothing parameter was estimated to give a good fit to the data, in the middle plot the smoothing parameter was set to zero, so the penalty has no effect and the function interpolates the data, the right plot shows when the smoothing parameter is set to a very large value, so the penalty removes all terms that have any wigglyness, giving a straight line. Numbers in the $y$ axis labels show the estimated degrees of freedom for the term.", messages=FALSE, dev=c('pdf'), out.width="\\linewidth"}
+
+```{r lambda, echo=FALSE, message=FALSE, results='hide', fig.width=8, fig.height=2.5, cache=TRUE, fig.cap="\\label{fig:smoothing_effect}Examples of how different choices of the smoothing parameter effect the resulting function. Data (points) were generated from the blue function and noise added to them. In the left plot the smoothing parameter was estimated using REML to give a good fit to the data, in the middle plot the smoothing parameter was set to zero, so the penalty has no effect and the function interpolates the data, the right plot shows when the smoothing parameter is set to a very large value, so the penalty removes all terms that have any wiggliness, giving a straight line. Numbers in the $y$ axis labels show the estimated degrees of freedom for the term.", messages=FALSE, dev=c('pdf'), out.width="\\linewidth"}
 # example of varying lambda
 
 library(mgcv)
@@ -43,8 +52,8 @@ dat$x <- dat$x2
 true <- data.frame(x = sort(dat$x),
                    y = dat$f2[order(dat$x)])
 
-## GCV fit
-b <- gam(y~s(x, k=100), data=dat)
+## REML fit
+b <- gam(y~s(x, k=100), data=dat, method = "REML")
 
 # lambda=0
 b.0 <- gam(y~s(x, k=100), data=dat, sp=0)
@@ -80,71 +89,32 @@ plot_grid(p1, p2, p3, align = "hv", axis = "lrtb", ncol = 3, labels = "auto")
 
 The number of basis functions, $K$, limits the maximum complexity for a given smooth term. To measure the complexity of a smooth term, we use the *effective degrees of freedom* (EDF), which at a maximum is the number of coefficients to be estimated in the model, minus any constraints. The EDF can take non-integer values and larger values indicate more wiggly terms. See Wood [-@Wood:2006vg, Section 4.4] for further details.
 
-There are many possible basis functions that can be used to construct the $b_k$. Here we'll use thin plate regression splines (TPRS), which have the appealing property that knot choice is somewhat automatic (the best approximation to including knots at each data point is used; [@wood_thin_2003]).
+There are many possible basis functions that can be used to construct the $b_k$. In the examples in this paper, we will use three types of smoother for illustration: thin plate regression splines, cyclic cubic smooths, and random effects.
 
-**DLM:: put the cubic splines back in here**
+Thin plate regression splines (TPRS), which have a wide range of appealing theoretical properties and are implemented in  [@wood_thin_2003]). Thin plate splines are defined based on the order of derivative that is penalized (which we will refer to as $m$). When $m=1$, the penalty matrix associated with the TPRS penalizes the integral of the squared first derivative of the TPRS across the range of the data, when $m=2$ it penalizes the squared second derivative, etc. Smooths fit with higher order TPRS are typically visually more smooth. When we refer to TPRS, we will typically be referring to the version where $m=2$; however, we will see in section III that it can be useful to use $m=1$ TPRS when fitting more complicated HGAMs. TPRS are also defined for any number of predictors, so multivariate smoothers can be constructed easily. The basis is *isotropic*: smoothness is treated the same in all directions. Example basis functions and penalty matrix $\mathbf{S}$ for a $m=2$ TPRS with six basis functions for evenly spaced data are shown in figure \ref{fig:basis_example}. 
 
-TPRS are also defined for any number of predictors, so multivariate smoothers can be constructed easily. The basis is *isotropic*; smoothness is treated the same in all directions. If one wanted a bivariate smooth of temperature and time a one degree change in temperature would equate to a one second change in time with an isotropic smooth, which is an odd assumption to make. In the more general case where units are not alike, we can use *tensor products* to combine two or more univariate marginal smooths into a more complex basis. Each marginal smooth can use a different type of basis, as wanted or dictated by the data[^1]
+Cyclic cubic smoothers are another continuous smoother that again penalizes the squared second derivative of the smooth across the function, but are designed so that the the value of the function at the start and end of the covariate have the same value and first derivative, and zero second derivative. We will use these smoothers to demonstrate how to fit HGAMs to cyclic data. 
 
-[^1]: e.g.\ a cyclic smooth basis for week of year or site aspect, where we wish to constrain the end points of the range of the covariate to be equal.
+We can also think about random effects as "smooths" in this framework, if we take pragmatic Bayesian point of view and consider the penalty matrix $S$ to be the inverse of the covariance matrix (i.e. a precision matrix) of the basis function coefficients [@kimeldorf_correspondence_1970; @wood_generalized_2017]. For instance, to include a simple single-level random effect to account for variation in group means (intercepts) there will be one basis function for each level of the grouping variable, that takes a value of 1 for any observation in that group and 0 for any observation not in the group. The penalty matrix for these terms is a $n_g$ by $n_g$ identity matrix, where $n_g$ is the number of groups. This means that each group-level coefficient will be penalized in proportion to its squared deviation from zero. This is equivalent to how random effects are estimated in standard mixed effect models. The penalty term is then proportional to the inverse of the variance of the fixed effect estimated by standard hierarchical model solvers [@verbyla_analysis_2002]. This connection between random effects and basis function smooths extends beyond the varying-intercept case. Any basis-function representation of a smooth can be transformed so that it can be represented as a combination of a random effect with an associated variance, and possibly one or more fixed effects, corresponding to functions in the null space of the original basis-function (see below). While this is beyond the scope of this paper, see @verbyla_analysis_2002 or @wood_straightforward_2012 for a more detailed discussion on the connections between these approaches.
 
-In the linear modelling literature we can specify a single interaction between terms (in R, `a:b`) or a "full interaction", which includes the marginal terms (`a*b` in R, which is equivalent to `a + b + a:b`). There are parallels for smooths too, allowing us to separate-out the main effect terms from the interactions (in R `te(a, b)` specifies the tensor product which is equivalent to `ti(a) + ti(b) + ti(a, b)`). The ability to separate out the interactions and main effects will become very useful in the next section, once we start looking at group-level smooths. For an example of a tensor product interaction, see figure \ref{mackerel_ti_exp}, which illustrates marginal smooths and a tensor product interaction of depth and salinity used to estimated expected mackerel egg counts from a marine survey.
-
-```{r mackerel-tensor, echo=FALSE, results='hide', fig.width=5, fig.height=5, messages=FALSE, dev=c('pdf'), cache=TRUE, fig.cap="\\label{mackerel_ti_exp}Tensor product of depth and salinity with data taken from a 1992 survey of mackerel eggs. The two left plots show the marginal smooths of each term in the model (`ti(s.depth)` above and `ti(salinity)` below), the right plot shows the interaction effect (`ti(s.depth, salinity)`). Data are from @Wood:2006vg."}
-library(mgcv)
-library(gamair)
-
-# use the mackerel data example
-data(mack)
-
-b <- gam(egg.count~ti(s.depth) + ti(salinity) + ti(s.depth, salinity),
-         family=tw(), data=mack)
-
-layout(matrix(c(1,2,3,3), 2, 2), widths=c(1.5,1.5,1), height=c(1,1,2))
-par(mar=c(4, 3, 1, 2) + 0.1)
-plot(b, select=1)
-plot(b, select=2)
-par(mar=c(0, 0, 0, 0) + 0.1)
-vis.gam(b, view=c("s.depth","salinity"), theta=-60, phi=30, color="bw")
-```
-
-**GLS: The first sentence below is quite repetitive. That Bayesian bit comes out of nowhere here, even with the repetitive intro. Likewise the bit above about the interactions seems odd, and the analogy of `A*B` == `te(A, B)` vs `A + B + A:B` == `ti(A) + ti(B) + ti(A, B)` is not right; `A*B` is a syntactic shortcut for the marginal effects plus the interaction --- it decomposes into 3 separate terms unlike `te()`, and all the `ti()`s lead to extra penalties over the `te()` version.**
-
-*We represent the terms in our model as basis functions, which end up as additional columns in our design matrix and parameter vector, and penalties, which penalize the likelihood and stop our model from being too wiggly.* Taking a pragmatic Bayesian approach to the problem, the penalty is really a prior on how we think the model should act. In which case the penalty matrix itself is a prior precision matrix (inverse variance) for the term. With that in mind, we can think about random effects as "smooths" in our model, albeit ones with ridge penalties [@kimeldorf_correspondence_1970; @wood_generalized_2017]. For instance, to include a random effect to account for variation in group means (intercepts) there will be one basis function for each level of the grouping variable, that takes a value of 1 for any observation in that group and 0 for any observation not in the group. The penalty matrix for these terms is a $n_g$ by $n_g$ identity matrix, where $n_g$ is the number of groups. This means that each group-level coefficient will be penalized in proportion to its squared deviation from zero. This is equivilent to how random effects are estimated in standard mixed effect models. The penalty term here is proportional to the inverse of the variance of the fixed effect estimated by standard hierarchical model solvers [@verbyla_analysis_2002  does this contradict what's above??]. 
-
-This connection between random effects and basis function smooths extends beyond the varying-intercept case. Any basis-function representation of a smooth can be transformed so that it can be represented as a combination of a random effect with an associated variance, and possibly one or more fixed effects, corresponding to functions in the null space of the original basis-function (see below). While this is beyond the scope of this paper, see @verbyla_analysis_2002 or @wood_straightforward_2012 for a more detailed discussion on the connections between these approaches.
 
 ### Smoothing penalties vs. shrinkage penalties
 
-**does this go above??**
+Penalties can have two effects on how well a model fits: they can penalize how wiggly a given term is (smoothing) and they can penalize the absolute size of the function (shrinkage). The penalty can only effect the components of the smooth that have derivatives (the *range space*), not the other parts (the *null space*). For 1-dimensional thin plate regression splines (when  $m=2$), this means that there is a linear term left in the model, even when the penalty is in full force (as $\lambda \rightarrow \infty$), as shown in figure \ref{fig:basis_example}^[This is also why figure\ \ref{fig:smoothing_effect}c resulted in a linear fit to the data.]. Figure \ref{fig:basis_example} shows an example of what the basis functions (Fig. \ref{fig:basis_example}A), and smoothing penalty (Fig. \ref{fig:basis_example}B) look like for a 6-basis function thin-plate spline. The random effects smoother we discussed earlier is an example of a pure shrinkage penalty; it penalizes all deviations away from zero, no matter the pattern of those deviations. This will come in useful later in section III, where we use random effect smoothers as one of the components of a HGAM.
 
-**EJP: I think this makes sense here**
-
-Penalties can have two effects on how well a model fits: they can penalize how wiggly a given term is (smoothing) and they can penalize the absolute size of the function (shrinkage). The penalty can only effect the components of the smooth that have derivatives (the *range space*), not the other parts (the *null space*). For 1-dimensional thin plate regression splines, this means that there is a linear term left in the model, even when the penalty is in full force (as $\lambda \rightarrow \infty$), as shown in figure \ref{fig:basis_example}^[This is also why figure\ \ref{fig:smoothing_effect}c resulted in a linear fit to the data.] **BLAH**. It is often useful to be able to remove null space functions as well, to be able to shrink them to zero if they do not contribute significantly to a given model fit. This can be done either by tweaking the penalty matrix so that it both smooths and shrinks as the single penalty term increases, or by adding a new penalty term that just penalizes the null space for the model **REF: Marra & Wood 2011**. Figure \ref{fig:basis_example} shows an example of what the basis functions (Fig. \ref{fig:basis_example}A), and smoothing penalties and shrinkage penalties (Fig. \ref{fig:basis_example}B) look like for a 6-basis function cubic spline and for a 6-basis function thin-plate spline. The random effects smoother we discussed earlier is an example of a pure shrinkage penalty; it penalizes all deviations away from zero, no matter the pattern of those deviations. This will come in useful later in section III, where we use random effect smoothers as one of the components of a HGAM.
+![\label{fig:basis_example}a) Examples of the basis functions associated with a six basis function thin plate spline (m=2), calculated for x data spread evenly between $x=0$ and $x=1$. Each line represents a single basis function. To generate a given smooth function, each basis function would be multiplied by its own coefficient. b) The smoothing  penalty matrix for the thin plate smoother. Red entries indicate positive values and blue indicate negative values. For example, for the thin plate spline, functions F3 and F4 would have the greatest proportionate effect on the total penalty (as they have the largest values on the diagonal), whereas function F5 and F6 would not contribute to the wiggliness penalty at all (all the values in the 5th and 6th row and column of the penalty matrix are zero). This means these functions are in the null space of this basis, and are treated as completely smooth.](../figures/example spline basis and penalties.png)
 
 
-**DLM: say something about cs basis here**
+## Interactions between smooth terms
 
-**EDIT this figure**
+It is also possible to create interactions between covariates with different smoothers (or degrees of smoothness) assumed for each covariate, using *tensor products*. For instance, if one wanted estimate the interacting effects of temperature and time on some outcome, it would not make sense to use a two-dimensional TPRS smoother, as that would assume that a one degree change in temperature would equate to a one second change in time. Instead, a tensor product allows us to create a new set of basis functions that allow for each marginal function (here temperature and time) to have its own marginal smoothness penalty. Each marginal smooth can use a different type of basis, as wanted or dictated by the data. 
 
-**Should this figure include the intercept basis function as well for each? 
-Right now I've excluded as mgcv drops it automatically, but it is part of the 
-basis, and comes into play with tensor products...**
-
-**Do we actually need the cubic spline here? It would simplify the presentation to 
-just show the thin plate spline, and it gets the idea across.**
-
-**GLS: we've glossed over exactly how TPRS bases are created, the low-rank version of Wood, nothing on knots...**
-
-![\label{fig:basis_example}a) Examples of the basis functions associated with a six basis function thin plate spline (top) and a cubic spline (bottom) calculated for x data spread evenly between $x=0$ and $x=1$. Each line represents a single basis function. To generate a given smooth function, each basis function would be multiplied by its own coefficient. b) The smoothing and shinkage penalty matrices for the thin plate and cubic smoothers shown on left. Red entries indicate positive values and blue indicate negative values. For example, for the thin plate spline, functions F3 and F4 would have the greatest proportionate effect on the total penalty (as they have the largest values on the diagonal), whereas function F6 would not contribute to the wiggliness penalty at all (all the values in the 6th row and column of the penalty matrix are zero). This means function F6 is in the null space of this basis, and is completely smooth.](../figures/example spline basis and penalties.png)
+There are two approaches used in mgcv for generating tensor products. The first approach [@wood_lowrank_2006] essentially creates an interaction of each pair of basis functions for each marginal term, and a penalty for each marginal term that penalizes the average average wiggliness in that term; in mgcv, these are created using the `te` function. The second approach [@wood_straightforward_2012] seperates each penalty into penalized (rank-space) and unpenalized (null-space) components, then creates new basis functions and penalties for all pair-wise combinations of penalized and unpenalized components between all pairs of marginal bases; in mgcv, these are created using the `t2` function. The advantage of the first method is that it requires fewer smoothers, so is faster to estimate in most cases. The advantage of the second method is that the tensor products created this way only have a single penalty associated with each basis function (unlike the `te` approach, where each both penalties apply to all basis functions), so it can be fit using standard mixed effect software such as lme4 [@bates_fitting_2015].
 
 ## Comparison to hierarchical linear models
 
-Generalized linear mixed effect models [GLMMs; also referred to as hiearchical generalized linear models, multilevel models etc; e.g., @Bolker:2009cs; @Gelman:2006jh] are an extension of regression modelling that allow the modeller to include terms in the model that account for structure in the data --- the structure is usually of the form of a nesting of the observations. For example individuals are nested within sample sites, sites are nested within forests and forests within states. The depth of the nesting is limited by the fitting procedure and number of parameters to estimate.
+Generalized linear mixed effect models [GLMMs; also referred to as hierarchical generalized linear models, multilevel models etc; e.g., @Bolker:2009cs; @Gelman:2006jh] are an extension of regression modelling that allow the modeller to include terms in the model that account for structure in the data --- the structure is usually of the form of a nesting of the observations. For example individuals are nested within sample sites, sites are nested within forests and forests within states. The depth of the nesting is limited by the fitting procedure and number of parameters to estimate.
 
 HGLMs are a highly flexible way to think about grouping in data; the groupings used in models often refer to the spatial or temporal scale of the data [@McMahon:2007ju] though can be based on any useful grouping.
 
 We would like to be able to think about the groupings in our data in a simple way, even when the covariates in our model are related to the response in a non-linear way. The next section investigates the extension of the smoothers we showed above to the case where each observation is in a group, with a group-level smooth.
-
-
-**This last section should say something like: these are both latent gaussian thingos, the model structure is the difference --- we want to be able to heirarchically structure our smoothers**
