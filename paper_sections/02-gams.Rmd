@@ -38,11 +38,6 @@ Figure \ref{fig:smoothing_effect} shows REML-based optimal smoothing in the firs
 ```{r lambda, echo=FALSE, message=FALSE, results='hide', fig.width=8, fig.height=2.5, cache=TRUE, fig.cap="\\label{fig:smoothing_effect}Examples of how different choices of the smoothing parameter effect the resulting function. Data (points) were generated from the blue function and noise added to them. In the left plot the smoothing parameter was estimated using REML to give a good fit to the data, in the middle plot the smoothing parameter was set to zero, so the penalty has no effect and the function interpolates the data, the right plot shows when the smoothing parameter is set to a very large value, so the penalty removes all terms that have any wiggliness, giving a straight line. Numbers in the $y$ axis labels show the estimated degrees of freedom for the term.", messages=FALSE, dev=c('pdf'), out.width="\\linewidth"}
 # example of varying lambda
 
-library(mgcv)
-library("ggplot2")
-library("cowplot")
-theme_set(theme_bw())
-
 set.seed(12)
 
 # generate some data

@@ -46,7 +46,6 @@ we will use data from the even years to fit (train) models, and that from the od
 to test the fit:
 
 ```{r zoo_train, echo=TRUE, message=FALSE,  cache=TRUE}
-library(mgcv)
 zoo_train = subset(zooplankton, year%%2==0) 
 #the modulus (%%) finds the remainder after division by  the right. 
 #here we use it to find even numbers
@@ -93,9 +92,6 @@ model 4 and 0.31 for model 5.  Model 5 has a somewhat lower AIC (`AIC(zoo_comm_m
 implying a better overall fit. However, the two models are almost indistinguishable when plotted on top of each other:
 
 ```{r zoo_comm_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE}
-library(ggplot2)
-library(dplyr)
-
 #Create synthetic data to use to compare predictions
 zoo_plot_data = expand.grid(day = 1:365, taxon = factor(levels(zoo_train$taxon)))
 
@@ -199,9 +195,6 @@ stronger in Lake Waubesa, model 2 (in black) shows that it is still detectable i
 Lake Kegonsa if we do not need to fit a separate penalty for each lake.
 
 ```{r zoo_daph_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE, fig.width=7, fig.height=5}
-library(ggplot2)
-library(dplyr)
-
 #Create synthetic data to use to compare predictions
 daph_plot_data = expand.grid(day = 1:365, lake = factor(levels(zoo_train$lake)))
 

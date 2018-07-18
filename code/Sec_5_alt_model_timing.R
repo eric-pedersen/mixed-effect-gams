@@ -1,6 +1,7 @@
 library(tidyr)
 library(dplyr)
 library(mgcv)
+library(ggplot2)
 library(gamm4)
 
 set.seed = 1 #ensures that each new model parameter set is an extension of the old one
@@ -74,3 +75,18 @@ fit_timing_long = fit_timing_data %>%
                                          "gamm4")))
 
 
+timing_plot = ggplot(aes(n_groups, timing, color=model, linetype= model), 
+                     data=fit_timing_long)+
+  geom_line()+
+  geom_point()+
+  scale_color_manual(values = c("black", "#1b9e77","#1b9e77", "#d95f02", "#7570b3"))+
+  scale_linetype_manual(values =c(1,1,2,1,1))+
+  scale_y_log10("run time (seconds)", breaks = c(0.1,1,10,100), labels = c("0.1", "1","10", "100"))+
+  scale_x_log10("number of groups", breaks = c(2,8,32,128))+
+  
+  theme_bw()+
+  guides(color = guide_legend(nrow = 2,byrow = TRUE))+
+  theme(panel.grid.minor  = element_blank(),panel.grid.major.x = element_blank(),
+        legend.position = "bottom")
+
+ggsave("figures/alternate_model_timing_plot.png",timing_plot,height=4,width=6,units="in", dpi=400)
