@@ -381,7 +381,7 @@ AIC_table = AIC(CO2_mod1,CO2_mod2, CO2_mod3, CO2_mod4, CO2_mod5,
   mutate(`Adjusted R squared` = get_rsqr(list(CO2_mod1,CO2_mod2, CO2_mod3, CO2_mod4,
                                      CO2_mod5,bird_mod1, bird_mod2, bird_mod3,
                                      bird_mod4, bird_mod5)),
-         `Adjusted R squared` = round(`R squared`, digits = 2))%>%
+         `Adjusted R squared` = round(`Adjusted R squared`, digits = 2))%>%
   mutate_at(.vars = vars(df,AIC), .funs = funs(round,.args = list(digits=0)))
 
 
