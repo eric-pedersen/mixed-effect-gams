@@ -159,8 +159,12 @@ paper.
 when we assume a given fixed effect is equal to zero (and thus exclude it from a model). 
 
 
-```{r single_smooth_bias_plot, echo=F,  fig.width=6, fig.height=6,message=F, warning=F, cache=T, fig.cap="\\label{fig:var_pen}plotting example"}
-print(cowplot::plot_grid(overfit_vis_plot,deriv_plot,ncol = 1,labels = "auto"))
+```{r single_smooth_bias_plot, echo=F,  fig.width=6, fig.height=5,message=F, warning=F, cache=T, fig.cap="\\label{fig:var_pen} a) This figure demonstrates the bias that can arise from assuming equal smoothness for all group levels (model 4, red line) versus allowing for intergroup variation in smoothness (model 5, red line) when the true function (black line) shows substantial variation in smoothness between groups. b) Integrated squared 2nd derivative of the true function for each group level versus that for the functions estimated by model 4 (red) and model 5 (blue), indicating substantial undersmoothing for low-variability curves by model 4."}
+print(cowplot::plot_grid(overfit_vis_plot,
+                         deriv_plot,
+                         ncol = 1,
+                         labels = "auto",
+                         label_y = c(1,1.1)))
 ```
 
 
@@ -415,7 +419,7 @@ computations for `gam` and `bam` in detail.
 
 
 
-```{r alt_model_timing_plot, echo=F,  fig.width=6, fig.height=4,message=F, warning=F, cache=T,fig.cap = "\\label{fig:alt_timing}Elapsed time to estimate the same model using each of the four approaches. Each data set was generated with 20 observations per group using a unimodal global function and random group-specific functions consisting of an intercept, a quadratic term, and logistic trend for each group. Observation error was normally distributed. Models were fit using model 2: y~s(x,k=10, bs='cp') + s(x,fac, k=10, bs='fs', xt=list(bs='cp'),m=1) All models were run on a single core."}
+```{r alt_model_timing_plot, echo=F,  fig.width=6, fig.height=4,message=F, warning=F, cache=T,fig.cap = "\\label{fig:alt_timing}Elapsed time to estimate the same model using each of the four approaches. Each data set was generated with 20 observations per group using a unimodal global function and random group-specific functions consisting of an intercept, a quadratic term, and logistic trend for each group. Observation error was normally distributed. Models were fit using model 2: y~s(x, k=10, bs='cp') + s(x,fac, k=10, bs='fs', xt=list(bs='cp'), m=1). All models were run on a single core."}
 knitr::include_graphics('../figures/alternate_model_timing_plot.png')
 
 
@@ -440,8 +444,10 @@ the theoretical basis behind this type of tensor product). So for instance, mode
 bird movement data we discussed in section III would need to be coded as:
 
 ```
-bird_mod4_gamm4 = gamm4(count ~ t2(week,latitude,species, bs= c("cc", "tp","re"), 
-                     k=c(10,10,6),m = 2), 
+bird_mod4_gamm4 = gamm4(count ~ t2(week,latitude,species, 
+                                   bs= c("cc", "tp","re"), 
+                                   k=c(10,10,6),
+                                   m = 2), 
                 data= bird_move, family= poisson)
 ```
 

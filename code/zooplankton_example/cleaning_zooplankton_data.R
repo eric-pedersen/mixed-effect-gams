@@ -1,7 +1,9 @@
 library(dplyr)
 library(tidyr)
 library(lubridate)
+library(stringr)
 library(Hmisc)
+
 
 #data from: https://portal.lternet.edu/nis/mapbrowse?packageid=knb-lter-ntl.262.2
 
@@ -32,6 +34,9 @@ zooplankton_data = read.csv("data/madisonlakeszoopoldnet.csv",stringsAsFactors =
   group_by(taxon)%>%
   filter(n()>400)%>% #filtering to only keep the most common species
   ungroup()%>%
+  mutate(taxon = case_when(taxon=="Calanoida copepodites"~"Calanoid copepods",
+                           taxon=="Cyclopoida copepodites"~"Cyclopoid copepods",
+                           TRUE~abbr_first_word(taxon)))%>%
   complete(nesting(day, year,lake), 
            taxon, 
            fill = list(density=NA))%>%

@@ -7,7 +7,7 @@ output:
 # V: Examples
 
 
-In this final section, we will go through a worked example to highlight
+In this final section, we will go through two worked examples to highlight
 how to use these models in practice, and to illustrate how to fit, test, and
 visualize each model. We will demonstrate how to use these models to fit community
 data, to show when using a global trend may or may not be justified, and to
@@ -65,33 +65,44 @@ in the data set. If we wanted to estimate the seasonal dynamics for rarer specie
 adding a global smooth term might be useful, so we could could borrow information
 from the more common species. 
 
-```{r zoo_comm_mod, echo=TRUE, message=FALSE,  cache=TRUE, fig.width=8, fig.height=5}
-zoo_comm_mod4 = gam(density_scaled~s(day, taxon, bs="fs",k=10,xt=list(bs="cc")), 
+
+###Model 4: 
+
+```{r zoo_comm_mod4, echo=TRUE, message=FALSE,  cache=TRUE, fig.width=8, fig.height=5}
+zoo_comm_mod4 = gam(density_scaled~s(day, taxon, 
+                                     bs="fs",
+                                     k=10, 
+                                     xt=list(bs="cc")), 
            data=zoo_train, 
            #we need to specify the start and end knots for day
            knots = list(day =c(1,365)), 
-           #We'll use ML as we are comparing models that differ in fixed effects
+           #We'll use ML as we are comparing models that differ 
+           #in fixed effects
            method = "ML" 
            )
 
-#Print the summary table of just the smooth terms and the model R^2
+#Print the summary table of just the smooth terms 
 print(round(summary(zoo_comm_mod4)$s.table,2))
-print(round(summary(zoo_comm_mod4)$r.sq,2))
+```
 
+###Model 5: 
+
+```{r zoo_comm_mod5, echo=TRUE, message=FALSE,  cache=TRUE, fig.width=8, fig.height=5}
 # as all of the model features except the formula are the same in model 4&5,
 # we just use the update function to refit the model with the new formula
 zoo_comm_mod5 = update(zoo_comm_mod4,
-                       formula = density_scaled~s(day, by=taxon, k=10,bs="cc"))
+                       formula = density_scaled~s(day, 
+                                                  by=taxon, 
+                                                  k=10,
+                                                  bs="cc"))
 
 print(round(summary(zoo_comm_mod5)$s.table,2))
-print(round(summary(zoo_comm_mod5)$r.sq,2))
 ```
 
-We can see that both models have very similar fits, with an adusted $R^2$ of 0.308 for 
-model 4 and 0.31 for model 5.  Model 5 has a somewhat lower AIC (`AIC(zoo_comm_mod4)` = `r round(AIC(zoo_comm_mod4))`, `AIC(zoo_comm_mod5)` = `r round(AIC(zoo_comm_mod5))`),
-implying a better overall fit. However, the two models are almost indistinguishable when plotted on top of each other:
+Both models have very similar fits, with a mean squared error of `r round(var(residuals(zoo_comm_mod4)),2)` for 
+model 4 and `r round(var(residuals(zoo_comm_mod5)),2)` for model 5 (the mean squared error for the original data equals 1 because of the scaling).  Model 5 has a somewhat lower AIC (`AIC(zoo_comm_mod4)` = `r round(AIC(zoo_comm_mod4))`, `AIC(zoo_comm_mod5)` = `r round(AIC(zoo_comm_mod5))`), implying a better overall fit. However, the two models are almost indistinguishable when plotted on top of each other (Figure \ref{fig:zoo_comp}).
 
-```{r zoo_comm_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE}
+```{r zoo_comm_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=6, fig.height=5, fig.cap = "\\label{fig:zoo_comp}Species-species specific seasonal dynamics for the eight zooplankon species tracked in Lake Mendota. Black points indicate individual plankton observations (after log-transformation and centering and scaling). Lines indicate predicted average values for model 4 (black) and model 5 (red). Ribbons indicate $\\pm$ 2 standard errors around the mean."}
 #Create synthetic data to use to compare predictions
 zoo_plot_data = expand.grid(day = 1:365, taxon = factor(levels(zoo_train$taxon)))
 
@@ -128,9 +139,10 @@ zoo_plot = ggplot(zoo_plot_data, aes(x=day))+
 print(zoo_plot)
 ```
 
-THe two curves are very close for all species, but the differences in smoothness that resulted 
+The two curves are very close for all species, but the differences in smoothness that resulted 
 in model 5 having an higher AIC than model 4 seem to be driven by the low seasonality of *Keratella cochlearis* and *Leptodiaptomus siciloides* relative to the other species. Still, both
-models show very similar fits to the training data, model 5 is only slightly better at predicting out of sample fits for *K. cochlearis*, and not at all better for *L. siciloides*: 
+models show very similar fits to the training data, model 5 is only slightly better at predicting out of sample fits for *K. cochlearis*, and not at all better for *L. siciloides*  (Table \ref{tab:zoo_comm_outofsample}).
+
 
 ```{r zoo_comm_outofsample, echo=FALSE, message=FALSE,  cache=TRUE}
 #Getting the out of sample predictions for both models:
@@ -138,23 +150,27 @@ zoo_test$mod4 = as.numeric(predict(zoo_comm_mod4,zoo_test))
 zoo_test$mod5 = as.numeric(predict(zoo_comm_mod5,zoo_test))
 
 #Correlations between fitted and observed values for all species:
+#\n is in variable titles to add a line break in the printed table. 
 zoo_test_summary = zoo_test %>%
   group_by(taxon)%>%
-  summarise(mod4_cor = round(cor(density_scaled, mod4),2),
-            mod5_cor = round(cor(density_scaled, mod5),2))
+  summarise(`model 4\ncorrelation` = round(cor(density_scaled, mod4),2),
+            `model 5\ncorrelation` = round(cor(density_scaled, mod5),2))
 
-print(zoo_test_summary)
+kable(zoo_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. Correlation values represent Pearson corrlation coefficients between model predictions and observed values for all held-out data.")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+  kable_styling(full_width = F)
 ```
+
+
 
 Now let's look at how to fit inter-lake variability in dynamics for just *Daphnia mendotae*.
 Here, we will compare models 1,2, and 3, to determine if a single global function 
 is appropriate for all four lakes, or if we can effectively model variation between
 lakes with a shared smooth or lake-specific smooths.
 
-
-```{r zoo_daph_mod, echo=FALSE, message=FALSE,  cache=TRUE}
-daphnia_train = subset(zoo_train,taxon=="Daphnia mendotae")
-daphnia_test = subset(zoo_test,taxon=="Daphnia mendotae")
+###Model 1: 
+```{r zoo_daph_mod1, echo=TRUE, message=FALSE,  cache=TRUE}
+daphnia_train = subset(zoo_train,taxon=="D. mendotae")
+daphnia_test = subset(zoo_test,taxon=="D. mendotae")
 
 zoo_daph_mod1 = gam(density_scaled~s(day, bs="cc",k=10), 
            data=daphnia_train, 
@@ -163,10 +179,10 @@ zoo_daph_mod1 = gam(density_scaled~s(day, bs="cc",k=10),
            )
 
 print(round(summary(zoo_daph_mod1)$s.table,2))
-print(round(summary(zoo_daph_mod1)$r.sq,2))
+```
 
-
-
+###Model 2: 
+```{r zoo_daph_mod2, echo=TRUE, message=FALSE,  cache=TRUE}
 zoo_daph_mod2 = update(zoo_daph_mod1,
                        formula = density_scaled~s(day, bs="cc",k=10) + 
                                                 s(day,lake, k=10, bs="fs",
@@ -174,27 +190,37 @@ zoo_daph_mod2 = update(zoo_daph_mod1,
 
 
 print(round(summary(zoo_daph_mod2)$s.table,2))
-print(round(summary(zoo_daph_mod2)$r.sq,2))
+```
 
+###Model 3: 
+```{r zoo_daph_mod3, echo=TRUE, message=FALSE,  cache=TRUE}
 
 zoo_daph_mod3 = update(zoo_daph_mod1,
                        formula = density_scaled~s(day, bs="cc",k=10) + 
-                                                s(day,by=lake, k=10, bs="cc"))
+                                                s(day,by=lake, k=10, 
+                                                  bs="cc"))
 
 print(round(summary(zoo_daph_mod3)$s.table,2))
-print(round(summary(zoo_daph_mod3)$r.sq,2))
 
 ```
+  
+  
 
-The AIC values indicate that both model 2 and 3 are better fits than model 1, but models 2 and 3 have similar fits to one another. There does not seem to be a large amount of inter-lake variability (all three models have similar adjusted $R^2$), and model 3 indicates that only Lake Waubesa deviates substantially from the overall dynamics. The plots for all three models
-(model 1 as dashed line, model 2 in black and model 3 in red) show that Medota and Menona 
-lakes are very close to the average and to one another for both models (which is unsurprising, 
-as they are very closely connected by a short river) but both Kegons and Waubesa show 
-evidence of a more pronouced spring bloom and lower winter abundances.  While this is
-stronger in Lake Waubesa, model 2 (in black) shows that it is still detectable in
-Lake Kegonsa if we do not need to fit a separate penalty for each lake.
+The AIC values indicate that both model 2 (`r round(AIC(zoo_daph_mod2))`) and 3
+(`r round(AIC(zoo_daph_mod3))`) are better fits than model 1 (`r round(AIC(zoo_daph_mod1))`),
+but models 2 and 3 have similar fits to one another. There does not seem to be a
+large amount of inter-lake variability (the effective degrees of freedom per
+lake are low in models 2&3), and model 3 indicates that only Lake Waubesa
+deviates substantially from the overall dynamics. The plots for all three models
+(Figure \ref{fig:daph_smooth) show that Mendota and Menona lakes are very close
+to the average and to one another for both models (which is unsurprising,as they
+are very closely connected by a short river) but both Kegons and Waubesa show
+evidence of a more pronouced spring bloom and lower winter abundances.  While
+this is stronger in Lake Waubesa, model 2 (Figure \ref{fig:daph_smooth, black line) shows that it is still
+detectable in Lake Kegonsa if we do not need to fit a separate penalty for each
+lake.
 
-```{r zoo_daph_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE, fig.width=7, fig.height=5}
+```{r zoo_daph_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE, fig.width=6, fig.height=5, fig.cap="\\label{fig:daph_smooth}Raw data (points) and fitted models (lines) for *D. mendota* data. Dashed black line: model 1 (no inter-lake variation in dynamics); solid black line: model 2 (interlake variation with similar smoothness); red line: model 3 (varying smooths among lakes). Red and black ribbons indicate $\\pm$ 2 standard errors around each model."}
 #Create synthetic data to use to compare predictions
 daph_plot_data = expand.grid(day = 1:365, lake = factor(levels(zoo_train$lake)))
 
@@ -236,11 +262,11 @@ print(daph_plot)
 ```
 
 In this case, model 2 is able to predict as well or better out of sample as
-model 1 or 3, indicating that jointly smoothing the lake together improved model
+model 1 or 3 (Table \ref{tab:zoo_daph_outofsample}), indicating that jointly smoothing the lake together improved model
 prediction. However, None of the models did well in terms of predicting Lake
 Kegonsa dynamics out of sample (with a correlation of only 0.11 between
 predicted and observed densities), indiciating that this model may be be missing
-substantial year-to-year variability in *D. mendotae* dynamics:
+substantial year-to-year variability in *D. mendotae* dynamics. 
 
 ```{r zoo_daph_outofsample, echo=FALSE, message=FALSE,  cache=TRUE}
 #Getting the out of sample predictions for both models:
@@ -251,9 +277,10 @@ daphnia_test$mod3 = as.numeric(predict(zoo_daph_mod3,daphnia_test))
 # We'll look at the correlation between fitted and observed values for all species:
 daph_test_summary = daphnia_test %>%
   group_by(lake)%>%
-  summarise(mod1_cor = round(cor(density_scaled, mod1),2),
-            mod2_cor = round(cor(density_scaled, mod2),2),
-            mod3_cor = round(cor(density_scaled, mod3),2))
+  summarise(`model 1\ncorrelation` = round(cor(density_scaled, mod1),2),
+            `model 2\ncorrelation` = round(cor(density_scaled, mod2),2),
+            `model 3\ncorrelation` = round(cor(density_scaled, mod3),2))
 
-print(daph_test_summary)
+kable(daph_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 1-3 applied to the *D. mendotae* dataset. Correlation values represent Pearson corrlation coefficients between model predictions and observed values for all held-out data.")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+  kable_styling(full_width = F)
 ```
