@@ -32,6 +32,24 @@ theme_set(theme_bw())
 theme_update(panel.grid = element_blank())
 ```
 
+#Abstract
+
+As the amount and quality of ecological data has grown in size and quality, and
+as ecological questions have become increasingly complex, ecological statistics
+has moved from linear models to more flexible and structured models, including
+hierarchical generalized linear models (HGLMs) to model complex patterns of
+variabilty, and generalized additive models (GAMs) to model nonlinear
+relationships between covariates and outcomes. In this paper, we discuss an
+extension to both those ideas, the hierarchical GAM (HGAM), that allows the user
+to model nonlinear functional relationships between covariates and outcomes
+where the shape of the function itself varies between different grouping levels
+(say between different species in a community, or between different locations on
+a landscape). We describe the theoretical connection between these models and
+standard HGLMs and GAMs, how to model different assumptions about the degree of
+inter-group variability in functional response, and show how HGAMs can be readily fit
+using existing GAM software, the mgcv package in R. We also discuss computational
+and statistical issues with fitting these models, and demonstrate how to fit HGAMs
+on several example datasets. 
 
 ```{r child = '01-intro.Rmd'}
 ```
