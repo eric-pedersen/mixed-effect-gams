@@ -34,7 +34,7 @@ theme_update(panel.grid = element_blank())
 
 #Abstract
 
-As the amount and quality of ecological data has grown in size and quality, and
+As the amount and quality of ecological data has grown, and
 as ecological questions have become increasingly complex, ecological statistics
 has moved from linear models to more flexible and structured models, including
 hierarchical generalized linear models (HGLMs) to model complex patterns of
