@@ -498,14 +498,16 @@ What we recommend to avoid this issue is to use a combination of smoother choice
 
 ## A brief foray into the land of Bayes
 
-So far we have focused on uisng HGAMs in a frequentist
-framework, where the goal is to estimate single curves that best approximate
-some underlying true curve. However, both HGLMs and GAMs, and consquently HGAMs,
-fit comfortably into a Bayesian regression framework, where the goal of
-inference is to quantify uncertainty from all model parameters, as well as
-incorporate prior information on model parameters into the estimation process. 
-By moving to a Bayesian framework, it is possible to extend HGAMs to model a
-wider range of types of data, include background information
+So far we have focused on uisng HGAMs in a frequentist framework, where the goal
+is to estimate single curves that best approximate some underlying true curve.
+However, both HGLMs and GAMs, and consquently HGAMs, fit comfortably into a
+Bayesian regression framework, where the goal of inference is to quantify
+uncertainty from all model parameters, as well as incorporate prior information
+on model parameters into the estimation process. By moving to a Bayesian
+framework, it is possible to extend HGAMs to model a wider range of types of
+data, include background information on model parameters and predictors (as
+prior information), and make predictions that fully incorporate uncertainty from
+parameter estimation.
 
 The key connection here is, as we mentioned in section II, that the penalty
 matrix can also be treated as the inverse of a prior covariance matrix for model
