@@ -131,9 +131,9 @@ zoo_plot = ggplot(zoo_plot_data, aes(x=day))+
                   fill="Model 5"), 
               alpha=0.25)+
   scale_y_continuous("Scaled log-transformed density")+
+  scale_x_continuous(expand = c(0,0))+
   scale_color_manual("", breaks = c("Model 4", "Model 5"), values = c("black","red"))+
   scale_fill_manual("", breaks = c("Model 4", "Model 5"), values = c("black","red"))+
-  theme_bw()+
   theme(legend.position = "bottom")
 
 print(zoo_plot)
@@ -145,6 +145,7 @@ models show very similar fits to the training data, model 5 is only slightly bet
 
 
 ```{r zoo_comm_outofsample, echo=FALSE, message=FALSE,  cache=TRUE}
+get_MSE = function(obs, pred) mean((obs-pred)^2)
 #Getting the out of sample predictions for both models:
 zoo_test$mod4 = as.numeric(predict(zoo_comm_mod4,zoo_test))
 zoo_test$mod5 = as.numeric(predict(zoo_comm_mod5,zoo_test))
@@ -153,10 +154,10 @@ zoo_test$mod5 = as.numeric(predict(zoo_comm_mod5,zoo_test))
 #\n is in variable titles to add a line break in the printed table. 
 zoo_test_summary = zoo_test %>%
   group_by(taxon)%>%
-  summarise(`model 4\ncorrelation` = round(cor(density_scaled, mod4),2),
-            `model 5\ncorrelation` = round(cor(density_scaled, mod5),2))
+  summarise(`model 4 MSE` = round(get_MSE(density_scaled,mod4),2),
+            `model 5 MSE` = round(get_MSE(density_scaled,mod5),2))
 
-kable(zoo_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. Correlation values represent Pearson corrlation coefficients between model predictions and observed values for all held-out data.")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+kable(zoo_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
   kable_styling(full_width = F)
 ```
 
@@ -251,11 +252,11 @@ daph_plot = ggplot(daph_plot_data, aes(x=day))+
                   ymax = mod3_fit + 2*mod3_se,fill = "Model 3"), 
               alpha=0.25)+
   scale_y_continuous("Scaled log-transformed density")+
+  scale_x_continuous(expand = c(0,0))+
   scale_color_manual("", breaks = c("Model 2", "Model 3"), values = c("black","red"))+
   scale_fill_manual("", breaks = c("Model 2", "Model 3"), values = c("black","red"))+
   scale_linetype_manual("", breaks = c("Model 1"), values = 2)+
   scale_size_manual("", breaks = c("Model 1"), values = 2)+
-  theme_bw()+
   theme(legend.position = "bottom")
 
 print(daph_plot)
@@ -264,9 +265,8 @@ print(daph_plot)
 In this case, model 2 is able to predict as well or better out of sample as
 model 1 or 3 (Table \ref{tab:zoo_daph_outofsample}), indicating that jointly smoothing the lake together improved model
 prediction. However, None of the models did well in terms of predicting Lake
-Kegonsa dynamics out of sample (with a correlation of only 0.11 between
-predicted and observed densities), indiciating that this model may be be missing
-substantial year-to-year variability in *D. mendotae* dynamics. 
+Kegonsa dynamics out of sample (with a MSE of between 0.95-0.99, compared to a MSE of the original data of 1), indiciating that this model may be be missing
+substantial year-to-year variability in *D. mendotae* dynamics in this lake. 
 
 ```{r zoo_daph_outofsample, echo=FALSE, message=FALSE,  cache=TRUE}
 #Getting the out of sample predictions for both models:
@@ -277,10 +277,10 @@ daphnia_test$mod3 = as.numeric(predict(zoo_daph_mod3,daphnia_test))
 # We'll look at the correlation between fitted and observed values for all species:
 daph_test_summary = daphnia_test %>%
   group_by(lake)%>%
-  summarise(`model 1\ncorrelation` = round(cor(density_scaled, mod1),2),
-            `model 2\ncorrelation` = round(cor(density_scaled, mod2),2),
-            `model 3\ncorrelation` = round(cor(density_scaled, mod3),2))
+  summarise(`model 1 MSE` = round(get_MSE(density_scaled,mod1),2),
+            `model 2 MSE` = round(get_MSE(density_scaled,mod2),2),
+            `model 3 MSE` = round(get_MSE(density_scaled,mod3),2))
 
-kable(daph_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 1-3 applied to the *D. mendotae* dataset. Correlation values represent Pearson corrlation coefficients between model predictions and observed values for all held-out data.")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+kable(daph_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 1-3 applied to the *D. mendotae* dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
   kable_styling(full_width = F)
 ```
