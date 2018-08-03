@@ -402,7 +402,8 @@ as fast as or faster to calculate than *bam* for all numbers of grouping levels
 we tested (Figure \ref{fig:alt_timing})[^parallel]. For large numbers of group
 levels and bigger data sets, it may be necessary to use full functional
 regression methods such as those implemented in the `refund` package
-[@scheipl_functional_2014]. 
+[@scheipl_functional_2014]. See below for a discussion of what functional 
+regression is and its connections to HGAMs.  
 
 [^parallel]: It is also possible to speed up both `gam` and `bam` by using
 multiple processors in parallel, whereas this is not currently possible for
@@ -498,6 +499,12 @@ What we recommend to avoid this issue is to use a combination of smoother choice
 ## A brief foray into the land of Bayes
 
 
+
+## Extensions beyond HGAMs
+
+The HGAM models we have discussed are actually a type of *functional regression*, which is an extension of standard regression models to cases where the outcome variable $y_i$ and/or the predictor variables $x_i$ for a given outcome are functions, rather than single variables [@ramsay_functional_2005]. HGAMs as we have described them are a form of function-on-scalar regression [@ramsay_functional_2005; @reiss_fast_2010], where we are trying to estimate a smooth function that varies between grouping levels. 
+
+We have deliberately focused our paper on these simplier classes of functional regression model, and chosen to use the term HGAM rather than functional regression, as we believe that this more clearly connects these models to modelling approaches already familiar to ecologists. Further, we consider the unit of analysis to still be individual observations, as compared to functional regression where the the unit of analysis is whole functions (for instance, we are interested in cases like species distribution modelling, where the presence of a given species may be predicted from a sum of several species-specific functions of different environmental variables). However, there is an extensive literature dedicated to how to fit more complex functional regression models for any interested reader (see @ramsay_functional_2005 for a good introduction, and @scheipl_generalized_2016 for more recent work in this field). The `refund` package [@reiss_fast_2010; @scheipl_functional_2014; @scheipl_generalized_2016] uses the statistical machinery from `mgcv` to fit these models, and should be usuable by anyone familiar with standard R and `mgcv` modelling syntax.
 
 
 
