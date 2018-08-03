@@ -349,7 +349,7 @@ kable(comp_resources_table,format ="latex", caption="Relative computational time
 
 
 
-## Alternative formulations: bam, gamm, and gamm4 (with a brief foray into Bayes)
+## Alternative formulations: bam, gamm, and gamm4 
 
 When fitting models with large numbers of different group levels, it is often 
 possible to speed up computation substantially by using one of the alternative fitting
@@ -498,9 +498,77 @@ What we recommend to avoid this issue is to use a combination of smoother choice
 
 ## A brief foray into the land of Bayes
 
+So far we have focused on uisng HGAMs in a frequentist
+framework, where the goal is to estimate single curves that best approximate
+some underlying true curve. However, both HGLMs and GAMs, and consquently HGAMs,
+fit comfortably into a Bayesian regression framework, where the goal of
+inference is to quantify uncertainty from all model parameters, as well as
+incorporate prior information on model parameters into the estimation process. 
+By moving to a Bayesian framework, it is possible to extend HGAMs to model a
+wider range of types of data, include background information
+
+The key connection here is, as we mentioned in section II, that the penalty
+matrix can also be treated as the inverse of a prior covariance matrix for model
+parameters $\mathbf{\beta}$. REML estimation in mgcv then can be viewed as an
+empirical Bayesian estimate of the smooth model, where any terms in the null
+space of the smooth are treated as fixed effects with an improper flat prior
+(i.e. any value for these terms are considered equally likely), any terms in the
+range space are treated as having a multivariate normal distribution, and the
+penalty terms are treated as having an improper flat prior (see
+@wood_generalized_2017 for more details on this connection). The Bayesian
+covariance matrix for model parameters can be extracted from any fitting
+`gam`/`bam` model with `model$Vp` or `vcov(model)`. This can in turn be used
+to generate predictions from the posterior distribution of the model, as the 
+Bayesian covariance matrix already incorporates the uncertainty from having to
+estimate the covariance matrix into it [the standard confidence intervals used in
+mgcv are in fact Bayesian posterior CIs; @wood_confidence_2006]. See `?predict.gam`
+for more on how to simulate empirical Bayes posterior estimates. 
+
+This also means that HGAMs can also be included as components in a more complex
+fully Bayesian model. The `mgcv` package includes a function `jagam` that can
+take a specied model formula and automatically convert it into code for the JAGS
+(or BUGS) Bayesian statistical packages, which can be adapted by the user to
+their own needs. Similiarly, the `brms` package [@burkner_brms:_2017], which can
+fit complex statistical models using the Bayesian software stan
+[@carpenter_stan:_2017] allows for the inclusion of smooth terms as part of the
+model specification. The `brms` package does not currently support `te()` tensor products or factor-smooth basis terms (`bs="fs"`), but does support `t2`-style tensor products,
+which means all of the models fitted in this paper can be fit by `brms`. For 
+instance, `CO2_mod2` could be coded like this: 
 
 
-## Extensions beyond HGAMs
+```{r brms_model, echo=T, eval =F,   message=F, warning=F}
+library(brms)
+
+CO2_mod2_brms <- brm(
+  bf(log(uptake) ~ 
+       s(log(conc), k=5, m=2) +
+       t2(log(conc), Plant_uo, k=c(5,12),  
+                                 bs=c("tp","re"), m=2, full =TRUE)),
+  data = CO2, 
+  family = gaussian(),
+  chains = 2, 
+  control = list(adapt_delta = 0.95)
+)
+```
+
+Which uses two chains of stan's Hamiltonian Monte Carlo sampler to generate estimates
+from the model posterior. model fits can be plotted from this as: 
+
+```{r brms_plot, echo=T, eval =F,   message=F, warning=F}
+plot(marginal_effects(CO2_mod2_brms), points=TRUE, ask=FALSE, plot=TRUE)
+```
+
+and the raw stan code used to estimate the model (which can be then modified) can
+be extracted with: 
+
+```{r brms_code, echo=T, eval =F, message=F, warning=F}
+stancode(CO2_mod2_brms)
+```
+
+**should we mention gretagam at this point? and does INLAbru have any capacity for HGAMs? I'm not familiar enough with INLAbru's inner workings. I do know that glmmTMB cannot currently include mgcv-style smooths.**
+
+
+## Beyond HGAMs: functional regression
 
 The HGAM models we have discussed are actually a type of *functional regression*, which is an extension of standard regression models to cases where the outcome variable $y_i$ and/or the predictor variables $x_i$ for a given outcome are functions, rather than single variables [@ramsay_functional_2005]. HGAMs as we have described them are a form of function-on-scalar regression [@ramsay_functional_2005; @reiss_fast_2010], where we are trying to estimate a smooth function that varies between grouping levels. 
 
