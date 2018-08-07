@@ -2,6 +2,7 @@
 title: "Hierarchical Generalized Additive Models: an introduction with mgcv"
 header-includes: 
   - \usepackage{lineno}
+    \usepackage{placeins}
     \linenumbers
 compact-title: FALSE
 output:
@@ -64,6 +65,13 @@ on several example datasets.
 ```
 
 ```{r child = '05-examples.Rmd'}
+```
+
+
+
+```{r, results='asis',echo=FALSE, eval=(opts_knit$get('rmarkdown.pandoc.to') == 'latex')}
+#This is just to make sure that the figures occur before the bibliography. 
+cat('\\FloatBarrier')
 ```
 
 # Bibliography
