@@ -210,15 +210,17 @@ $$
 
 where $f_{\texttt{Plant\_uo}_i}(\log_e(\texttt{conc}_i))$ is the smooth of concentration for the given plant. In R we then have:
 
-```{r co2_mod2, fig.width=6, fig.height=3, dev.args=list(pointsize=10), out.width="\\linewidth", echo=FALSE, fig.cap="\\label{fig:co2_mod2}Global function (left) and group-specific deviations from the global function (right) for \\texttt{CO2\\_mod2}"}
+```{r co2_mod2, echo=TRUE}
 CO2_mod2 <- gam(log(uptake) ~ s(log(conc), k=5, m=2) +
                               s(log(conc), Plant_uo, k=5,  bs="fs", m=2),
                 data=CO2, method="REML")
+```
 
+```{r co2_mod2_plot, fig.width=6, fig.height=3, dev.args=list(pointsize=10), out.width="\\linewidth", echo=FALSE, fig.cap="\\label{fig:co2_mod2}Global function (left) and group-specific deviations from the global function (right) for \\texttt{CO2\\_mod2}"}
 plot(CO2_mod2, page=1, seWithMean=TRUE)
 ```
 
-Figure \ref{fig:co2_mod2} shows the fitted smoothers for `CO2_mod2`. The plots of group-specific smooths indicate that plants differ not only in average log-uptake (which would correspond to each plant having a straight line at different levels for the group-level smooth), but differ slightly in the shape of their functional responses. Figure \ref{fig:co2_mod2_pred} shows how the global and group-specific smooths combine to predict uptake rates for individual plants:
+Figure \ref{fig:co2_mod2} shows the fitted smoothers for `CO2_mod2`. The plots of group-specific smooths indicate that plants differ not only in average log-uptake (which would correspond to each plant having a straight line at different levels for the group-level smooth), but differ slightly in the shape of their functional responses. Figure \ref{fig:co2_mod2_pred} shows how the global and group-specific smooths combine to predict uptake rates for individual plants.
 
 ```{r co2_mod2_ggplot,echo=FALSE, fig.width=6, fig.height=4, out.width="\\linewidth", fig.cap="\\label{fig:co2_mod2_pred}Predicted uptake values (lines) versus observed uptake for each plant, based on model 2."}
 CO2_mod2_pred <- predict(CO2_mod2, se.fit=TRUE)
