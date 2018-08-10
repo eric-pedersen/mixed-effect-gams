@@ -68,6 +68,15 @@ on several example datasets.
 ```{r child = '05-examples.Rmd'}
 ```
 
+# Conclusions
+
+HGAMs are a powerful tool to model intergroup variability, and we have attempted 
+to illustrate some of the range and possibilities that these models are capable
+of, how to fit them to real data sets, and some of the issues that may arise during
+model fitting and testing. 
+This is still an area of active statistical research however, and better ways of specifying these models, and algorithms for fitting them are always improving. 
+This paper should be viewed a jumping-off point for these models, rather than an end-point; we refer the reader to the rich literature on GAMs [e.g. @wood_generalized_2017] and functional regression [@ramsay_functional_2005,@kaufman_bayesian_2010, @scheipl_functional_2014] for more on these ideas. 
+
 
 
 ```{r, results='asis',echo=FALSE, eval=(opts_knit$get('rmarkdown.pandoc.to') == 'latex')}
