@@ -13,6 +13,7 @@ documentclass: "article"
 classoption: "12pt"
 geometry: left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm,headheight=12pt,letterpaper
 bibliography: bibliography.bib
+csl: peerj.csl
 ---
 
 ```{r setup, include=FALSE}
