@@ -27,7 +27,7 @@ We will discuss the trade-offs between different models and guidelines about whe
 
 Each of the models in Figure \ref{fig:models} can be coded straightforwardly in *mgcv*. Throughout the section when describing how to set these models up, we will refer to the response variable as `y`,  continuous predictor variables as `x` (or `x1` and  `x2`, in the case multiple predictors), and `fac` to designate the discrete grouping factor whose variation we are interested in understanding[^ordered].
 
-[^ordered]: Note that it is important to know how the group-level variable `fac` is coded in R. If it is coded as a character, `mgcv` will raise an error message, as it requires a factor. It is also important to know whether the factor is coded as ordered or unordered (see `?factor` for more details on this). This matters when fitting groupwise smooths using the `by=` argument (as is used for fitting models 3 and 5, shown below). If the factor is unordered, *mgcv* will set up a model with one smooth for each grouping level. If the factor is ordered, *mgcv* will set any basis functions for the first grouping level to zero. In model 3 the ungrouped smooth will then correspond to the first grouping level, rather than the average functional response, and the group-specific smooths will correspond to deviations from the first group. In model 5, using an ordered factor will result in the first group not having a smooth term associated with it at all.
+[^ordered]: Note that it is important to know how the group-level variable `fac` is coded in R. If it is coded as a character, *mgcv* will raise an error message, as it requires a factor. It is also important to know whether the factor is coded as ordered or unordered (see `?factor` for more details on this). This matters when fitting groupwise smooths using the `by=` argument (as is used for fitting models 3 and 5, shown below). If the factor is unordered, *mgcv* will set up a model with one smooth for each grouping level. If the factor is ordered, *mgcv* will set any basis functions for the first grouping level to zero. In model 3 the ungrouped smooth will then correspond to the first grouping level, rather than the average functional response, and the group-specific smooths will correspond to deviations from the first group. In model 5, using an ordered factor will result in the first group not having a smooth term associated with it at all.
 
 We will also use two example datasets to demonstrate how to code these models (see the supplemental code to reproduce these examples):
 
@@ -222,7 +222,7 @@ The `"fs"`-based approach mentioned above does not work for higher-dimensional t
 [^fs_note]: As mentioned in section II, these terms can be specified either with
 `te()` or `t2()` terms. Using `t2` as above (with `full=TRUE`) is essentially a
 multivariate equivalent of the `fs` smooth; it requires more smooth terms than
-`te()`, but can be fit using other mixed effects software such as `lme4`, which
+`te()`, but can be fit using other mixed effects software such as *lme4*, which
 is useful when fitting models with a large number of group levels (see Section
 IV for details).
 
