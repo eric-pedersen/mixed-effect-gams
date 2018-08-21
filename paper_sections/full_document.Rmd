@@ -36,22 +36,14 @@ theme_update(panel.grid = element_blank())
 
 #Abstract
 
-As the amount and quality of ecological data has grown, and
-as ecological questions have become increasingly complex, ecological statistics
-has moved from linear models to more flexible and structured models, including
-hierarchical generalized linear models (HGLMs) to model complex patterns of
-variabilty, and generalized additive models (GAMs) to model nonlinear
-relationships between covariates and outcomes. In this paper, we discuss an
-extension to both those ideas, the hierarchical GAM (HGAM), that allows the user
+In this paper, we discuss an extension to two popular approaches to modelling complex structures in ecological data: the generalized additive model (GAM) and the hierarchical model (HGLM). The hierarchical GAM (HGAM), allows the user
 to model nonlinear functional relationships between covariates and outcomes
-where the shape of the function itself varies between different grouping levels
-(say between different species in a community, or between different locations on
-a landscape). We describe the theoretical connection between these models and
-standard HGLMs and GAMs, how to model different assumptions about the degree of
-inter-group variability in functional response, and show how HGAMs can be readily fit
+where the shape of the function itself varies between different grouping levels. We describe the theoretical connection between these models and
+HGLMs and GAMs, how to model different assumptions about the degree of
+inter-group variability in functional response, and show how HGAMs can be readily fitted
 using existing GAM software, the mgcv package in R. We also discuss computational
 and statistical issues with fitting these models, and demonstrate how to fit HGAMs
-on several example datasets. 
+on example data.
 
 ```{r child = '01-intro.Rmd'}
 ```
@@ -72,10 +64,9 @@ on several example datasets.
 
 HGAMs are a powerful tool to model intergroup variability, and we have attempted 
 to illustrate some of the range and possibilities that these models are capable
-of, how to fit them to real data sets, and some of the issues that may arise during
+of, how to fit them, and some issues that may arise during
 model fitting and testing. 
-This is still an area of active statistical research however, and better ways of specifying these models, and algorithms for fitting them are always improving. 
-This paper should be viewed a jumping-off point for these models, rather than an end-point; we refer the reader to the rich literature on GAMs [e.g. @wood_generalized_2017] and functional regression [@ramsay_functional_2005,@kaufman_bayesian_2010, @scheipl_functional_2014] for more on these ideas. 
+Specifying these models and techniques for fitting them are active areas statistical research, so this paper should be viewed a jumping-off point for these models, rather than an end-point; we refer the reader to the rich literature on GAMs [e.g. @wood_generalized_2017] and functional regression [@ramsay_functional_2005,@kaufman_bayesian_2010, @scheipl_functional_2014] for more on these ideas.
 
 
 
