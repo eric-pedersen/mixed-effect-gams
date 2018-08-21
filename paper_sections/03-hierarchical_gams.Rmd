@@ -364,7 +364,7 @@ AIC_table = AIC(CO2_mod1,CO2_mod2, CO2_mod3, CO2_mod4, CO2_mod5,
   mutate_at(.vars = vars(df,AIC), .funs = funs(round,.args = list(digits=0)))
 
 
-kable(AIC_table,format ="latex", caption="AIC table comparing model fits for example datasets")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+kable(AIC_table, format ="latex", caption="AIC table comparing model fits for example datasets")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
   kable_styling(full_width = F)%>%
   group_rows("A. CO2 models", 1,5)%>%
   group_rows("B. bird_move models", 6,10)
