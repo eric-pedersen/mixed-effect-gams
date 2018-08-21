@@ -1,16 +1,14 @@
 
 # IV: Computational and statistical issues when fitting HGAMs
 
-Which of the five models should you choose for a given data set? There are two major trade-offs to take into account. The first is the bias-variance trade-off: more complex models can account for more fluctuations in the data, but also tend to give more variable predictions, and can overfit.  The second tradeoff is model complexity versus computer time: more complex models can include more potential sources of variation and give more information about a given data set, but will generally take more time and computational resources to fit and debug. We discuss both of these trade-offs in this section. we also discuss 
+Which of the five model formulations should you choose for a given data set? There are two major trade-offs to take into account. The first is the bias-variance trade-off: more complex models can account for more fluctuations in the data, but also tend to give more variable predictions, and can overfit.  The second trade-off is model complexity versus computer time: more complex models can include more potential sources of variation and give more information about a given data set, but will generally take more time and computational resources to fit and debug. We discuss both of these trade-offs in this section. we also discuss 
 how to extend the HGAM framework to fit more complex models. 
 
+## Bias-variance trade-offs
 
-
-## Bias-variance tradeoffs
-
-The bias-variance tradeoff is a fundamental concept in classical statistical
+The bias-variance trade-off is a fundamental concept in statistics
 analysis. When trying to estimate any value (in the cases we are focusing on, a
-smooth functional relationship between predictors and data), bias measures how
+smooth relationship between predictors and data), bias measures how
 on average an estimate is from the true value of the thing we are trying to
 estimate, and the variance of an estimator corresponds to how much that
 estimator would fluctuate if applied to multiple different samples taken from the
@@ -23,26 +21,23 @@ why penalization is useful is that the penalty term slightly increases the bias
 but can substantially decrease the variance of an estimator, relative to its
 unpenalized version [@efron_steins_1977].
 
-In GAMs and HGLMs, the bias-variance tradeoff is managed by the penalty terms
-(random effect variances in HGLM terminology). Larger penalties correspond to
+In GAMs the bias-variance trade-off is managed by the penalty terms and equivalently random effect variances in HGLM terminology. Larger penalties correspond to
 lower variance, as the estimated function is unable to wiggle a great deal, but
 also correspond to higher bias unless the true function is close to the null
-space for a given smoother (e.g. a straight line for thin-plate splines with 2nd
-derivative penalties, or zero for a standard random effect). The computational
-machinery used by mgcv to fit smooth terms is designed to find penalty terms
-that best trade off bias for variance to find a smooth that can effectively 
+space for a given smoother (e.g., a straight line for thin-plate splines with 2nd
+derivative penalties, or zero for a random effect). The computational
+machinery used by *mgcv* to fit smooth terms is designed to find penalty terms
+that best trade-off bias for variance to find a smooth that can effectively 
 predict new data.
 
-The bias--variance tradeoff comes into play with HGAMs when choosing whether to
+The bias--variance trade-off comes into play with HGAMs when choosing whether to
 fit separate penalties for each group level or assign a common penalty for all
-group levels (i.e. deciding between models 2 & 3 or models 4 & 5). If the
+group levels (i.e., deciding between models 2 & 3 or models 4 & 5). If the
 functional relationships we are trying to estimate for different group levels
 actually vary in how wiggly they are, setting the penalty for all group-level
 smooths equal (models 2&4) will either lead to overly variable estimates for the
-least variable group levels, overly smoothed (biased) estimates for the most
-wiggly terms, or a mixture of these two, depending on how the fitting criteria
-used (ML, REML, or GCV) determines where the optimal smoothing parameter should
-be set. 
+least variable group levels, over-smoothed (biased) estimates for the most
+wiggly terms, or a mixture of these two, depending on the fitting criteria.
 
 ```{r single_smooth_bias, echo=F, message=F, warning=F, cache=T}
 set.seed(1)
@@ -115,28 +110,27 @@ overfit_vis_plot = ggplot(data=overfit_predict_data_long,aes(x=x,y= value,color=
 
 ```
 
-
-We developed a simple numerical experiment to determine whether mgcv fitting
+We developed a simple numerical experiment to determine whether *mgcv* fitting
 criteria tend to set estimated smoothness penalties high or low in the presence
 of among-group variability in smoothness when fitting model 2/4 HGAMs. We
 simulated data from five different groups, with all groups having the same
-levels of the covariate x, ranging from 0 to $2\pi$. For each group, the true
-function relating x to y was a sine wave, but the frequency varied from 0.25
-(equal to half a cycle across the range of x) to 4 (corresponding to 4 full
-cycles across the range). We added normally distributed error to all y-values,
+levels of the covariate $x$, ranging from 0 to $2\pi$. For each group, the true
+function relating $x$ to the response, $y$, was a sine wave, but the frequency varied from 0.25
+(equal to half a cycle across the range of $x$) to 4 (corresponding to 4 full
+cycles across the range). We added normally distributed error to all $y$-values,
 with a standard deviation of 0.2. We then fit both model 4 (where all curves
 were assumed to be equally smooth) and model 5 (with varying smoothness) to the
 entire data set, using REML criteria to estimate penalties. For this example
 (Fig. \ref{fig:var_pen}a), requiring equal smoothness for all group levels
-resulted in mgcv underestimating the penalty for the lowest frequency (most smooth)
+resulted in *mgcv* underestimating the penalty for the lowest frequency (most smooth)
 terms, but accurately estimating the true smoothness of the highest frequency
 terms as measured by the squared second derivative of the smooth fit versus that
 of the true function (Fig. \ref{fig:var_pen}b).
 
 This implies that assuming equal smoothness will result in underestimating
-the true smoothness of low-variability terms, and thus leading to more variable
+the true smoothness of low-variability terms, and thus lead to more variable
 estimates of these terms. If this is a potential issue, we recommend fitting
-both models and using standard model evaluation criteria (e.g. AIC) to
+both models and using standard model evaluation criteria (e.g., AIC) to
 determine if there is evidence for among-group variability in smoothness. For
 instance, the AIC for model 4 fit to this data is `r round(AIC(mod1))`, whereas
 it is `r round(AIC(mod2))` for model 5, implying a substantial improvement in fit by
@@ -148,10 +142,10 @@ smoothness.
 The ideal case would be to assume that among group penalties follow their own
 distribution (estimated from the data), to allow variation in smoothness while
 still getting the benefit of pooling information on smoothness between groups.
-However, this is currently not implemented in mgcv (and would be difficult to
+However, this is currently not implemented in  *mgcv* (and would be difficult to
 set up via mgcv's method of structuring penalties). It is possible to set up
 this type of varying penalty model in flexible Bayesian modelling software such
-as Stan (see below for a discussion of how to fit HGAMs using these tools), but how
+as *Stan* (see below for a discussion of how to fit HGAMs using these tools), but how
 to set up this type of model has not been well studied, and is  beyond the scope
 of this paper.
 
@@ -161,7 +155,7 @@ of this paper.
 when we assume a given fixed effect is equal to zero (and thus exclude it from a model). 
 
 
-```{r single_smooth_bias_plot, echo=F,  fig.width=6, fig.height=5,message=F, warning=F, cache=T, fig.cap="\\label{fig:var_pen} a) This figure demonstrates the bias that can arise from assuming equal smoothness for all group levels (model 4, red line) versus allowing for intergroup variation in smoothness (model 5, red line) when the true function (black line) shows substantial variation in smoothness between groups. b) Integrated squared 2nd derivative of the true function for each group level versus that for the functions estimated by model 4 (red) and model 5 (blue), indicating substantial undersmoothing for low-variability curves by model 4."}
+```{r single_smooth_bias_plot, echo=F,  fig.width=6, fig.height=5,message=F, warning=F, cache=T, fig.cap="\\label{fig:var_pen} a) Illustration of bias that can arise from assuming equal smoothness for all group levels (model 4, red line) versus allowing for intergroup variation in smoothness (model 5, red line) when the true function (black line) shows substantial variation in smoothness between groups. b) Integrated squared 2nd derivative of the true function for each group level versus that for the functions estimated by model 4 (red) and model 5 (blue), indicating substantial undersmoothing for low-variability curves by model 4."}
 print(cowplot::plot_grid(overfit_vis_plot,
                          deriv_plot,
                          ncol = 1,
@@ -171,40 +165,35 @@ print(cowplot::plot_grid(overfit_vis_plot,
 
 
 
-It may seem like there is also a bias--variance tradeoff between choosing to use
+It may seem like there is also a bias--variance trade-off between choosing to use
 a single global smoother (model 1) or a global smoother plus group-level terms
-(model 2-3), as in model 1, all the data is used to estimate a single smooth
-term, and thus should have lower variance than models 2-3, but higher bias for
+(models 2 and 3), as in model 1, all the data is used to estimate a single smooth
+term, and thus should have lower variance than models 2 and 3, but higher bias for
 any given group in the presence of inter-group functional variability. However,
-in practice, this tradeoff will already be handled by mgcv via estimating
+in practice, this trade-off will already be handled by  *mgcv* via estimating
 penalties; if there are no average differences between functional responses,
-mgcv will penalize the group--specific functions toward zero, and thus toward
-the global model. The choice between using model 1 versus models 2-3 should
+ *mgcv* will penalize the group--specific functions toward zero, and thus toward
+the global model. The choice between using model 1 versus models 2 and 3 should
 generally be driven by  computational costs; model 1 is typically much faster to
-fit than models 2-3, even in the absence of among--group differences, so if
+fit than models 2 and 3, even in the absence of among--group differences, so if
 there is no need to estimate inter-group variability, model 1 will typically be
 more efficient. 
 
-A similar issue exists when choosing between models 2/3 and
+A similar issue exists when choosing between models 2 and 3 and
 4/5; if all group levels have very different functional shapes, the global term
-will get penalized toward zero in models 2/3, so they will reduce to models 4/5. 
-Again, the choice to include a global term or not should be made based on scientific 
-considerations (is the global term of interest to estimate) and computational 
-considerations (which we will discuss next).  
+will get penalized toward zero in models 2 and 3, so they will reduce to models 4 and 5. 
+The choice to include a global term or not should be made based on scientific 
+considerations (is the global term of interest to estimate?) and computational 
+considerations (which we will discuss next).
 
 
-## Complexity -- computation tradeoffs
+## Complexity--computation trade-offs
 
-GAMs and GLMMs have substantially increased the range of flexible models available to the average researcher, and the HGAM models we discussed in section III extend on this broad base. However, the more flexible a model is, the larger an effective parameter space any fitting software has to search to find parameters that can predict the observed data. While numerical algorithms for solving complex models are always improving, it can still be surprisingly easy to use up massive computational resources trying to fit a model to even relatively small datasets. While we typically want to choose a model based on model fit (see above and our goals for what the model will be used for, computing resources can often act as an effective upper limit on possible model complexity. Fitting an HGAM means adding extra computational complexity on top of either a GAM model with only global terms or a GLMM without smooth terms. For a given data set (with a fixed number `n` data points) and assuming a fixed family and link function, the time it takes to compute a given HGAM will depend, roughly, on four factors: the number of basis functions to be estimated, the number of smooth penalties to be estimated, whether the model needs to estimate both a global smooth and groupwise smooths, and the algorithm used to estimate parameters and fitting criteria used. 
+The more flexible a model is, the larger an effective parameter space any fitting software has to search to find parameters that can predict the observed data. It can be surprisingly easy to use massive computational resources trying to fit a model to even relatively small datasets. While we typically want to select models based on their fit and our inferential goals, computing resources can often act as an effective upper bound on model complexity. For a given data set, assuming a fixed family and link function, the time taken to estimate an HGAM will depend (roughly) on four factors: *(i)* the number of basis functions to be estimated, *(ii)* the number of smoothing parameters to be estimated, *(iii)* whether the model needs to estimate both a global smooth and groupwise smooths, and *(iv)* the algorithm used to estimate parameters and fitting criteria used.
 
+The most straightforward factor that will affect the amount of computational resources is the number of parameters in the model. Adding group-level smooths (moving from model 1 to 2-5) means that there will be more regression parameters to estimate. For a dataset with $n_g$ different groups and $n$ data, fitting a model will just a global smooth, `y~s(x,k=k)` will require $k$ coefficients, and takes $\mathcal{O}(nk^2)$ operations to evaluate, but fitting the same data using a group-level smooth (model 4, `y~s(x,fac,bs="fs",k=k)`) will require $\mathcal{O}(nk^2g^2)$ operations to evaluate; in effect, adding a group-level smooth will increase computational time by an order of the number of groups squared[^globalnpar]. The effect of this is visible in the examples we fit in section III when comparing the number of coefficients and relative time it takes to compute model 1 versus the other models (Table \ref{tab:comp_time}). One way to deal with this issue would be to reduce the number of basis functions used when fitting group-level smooths when the number of groups is large, reducing the model's capacity to model variance within any given group. It can also make sense to use more computationally efficient basis functions when fitting large data sets, such as P-splines [@wood_p_splines_2017] or cubic splines, rather than thin-plate splines, as thin-plate splines entail substantial amount of computational [@wood_generalized_2017].
 
-The most straightforward factor that will affect the amount of computational resources is the number of parameters in the model. Adding group-level smooths (moving from model 1 to 2-5) means that there will be more regression parameters to estimate, since each grouping level needs a separate coefficient for each basis function in the smooth. For a dataset with `g` different groups and `n` data points, fitting a model will just a global smooth, `y~s(x,k=k)` will require only `k` coefficients, and takes $\mathcal{O}(nk^2)$ operations[^bigO] to evaluate, but fitting the same data using a group-level smooth (model 4, `y~s(x,fac,bs="fs",k=k)`) will require $\mathcal{O}(nk^2g^2)$ operations to evaluate; in effect, adding a group-level smooth will increase computational time by an order of the number of groups squared[^globalnpar]. The effect of this is visible in the examples we fit in section III when comparing the number of coefficients and relative time it takes to compute model 1 versus the other models (Table \ref{tab:comp_time}). One way to deal with this issue would be to reduce the number of basis functions (`k`) used when fitting group-level smooths when the number of groups is large, reducing the model's capacity to model variance within any given group. It can also make sense to use more computationally efficient basis functions when fitting large data sets, such as p-splines or cubic splines, rather than thin-plate splines, as thin-plate splines can take a substantial amount of overhead to compute the actual basis functions to use [@wood_generalized_2017]. 
-
-
-
-[^bigO]:To understand the effects of these terms, we will use "big-O" notation; when we say a given computation is of order $\mathcal{O}(n\log{}n)$, it means that, for that computation, as $n$ gets large, the amount of time the computation will take will grown proportionally to $n\log{}n$, so more quickly than linearly with $n$, but not as fast as $n$ squared. 
-
-[^globalnpar]: Including a global smooth (models 2-3) or not (models 4-5) will not generally substantially affect the number of coefficients needed to estimate (compare the number of coefficients in Table \ref{tab:comp_time}, model 2 vs. model 4, or model 3 versus model 5). Adding a global term will only add at most `k` extra terms, and it actually ends up being less that that, as `mgcv` drops basis functions from co-linear smooths to ensure that the model matrix is full rank.
+[^globalnpar]: Including a global smooth (models 2 and 3) or not (models 4 and  5) will not generally substantially affect the number of coefficients needed to estimate (compare the number of coefficients in Table \ref{tab:comp_time}, model 2 vs. model 4, or model 3 versus model 5). Adding a global term will only add at most `k` extra terms, and it actually ends up being less that that, as `mgcv` drops basis functions from co-linear smooths to ensure that the model matrix is full rank.
 
 
 Adding additional smoothing parameters (moving from model 2 to model 3, or moving from model 4 to 5) is even more costly than increasing the number of coefficients to estimate, as estimating smoothing parameters is computationally intensive [@wood_fast_2011]. This means that models 2 and 4 will generally be substantially faster than 3 and 5 when the number of groups is reasonably large, as models 3 and 5 fit a separate set of penalties for each group level. The effect of this is visible in comparing the time it takes to fit model 2 to model 3 (which has a smooth for each group) or models 4 and 5 for the example data (Table \ref{tab:comp_time}). Note that this will not hold for every model, though; for instance, model 5 takes less time to fit the bird movement data than model 4 does (Table \ref{tab:comp_time}B). 
@@ -341,7 +330,7 @@ comp_resources_table =comp_resources %>%
   ungroup()%>%
   select(-data_source)
 
-kable(comp_resources_table,format ="latex", caption="Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model 1 takes to fit to that data set. The \\# of coefficients measures the total number of model parameters (including intercepts). The \\# of smooths is the total number of unique penalty values estimated by the model.")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+kable(comp_resources_table,format ="latex", caption="Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model 1 takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smooths is the total number of unique penalty values estimated by the model.")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
   kable_styling(full_width = F)%>%
   add_header_above(c(" " = 1," "=1, "# of terms"=2))%>%
   group_rows("A. CO2 data", 1,5)%>%
@@ -349,55 +338,53 @@ kable(comp_resources_table,format ="latex", caption="Relative computational time
 
 ```
 
+## Alternative formulations: `bam`, `gamm`, and `gamm4`
 
-
-## Alternative formulations: bam, gamm, and gamm4 
-
-When fitting models with large numbers of different group levels, it is often 
+When fitting models with large numbers of groups, it is often 
 possible to speed up computation substantially by using one of the alternative fitting
-algorithms available through mgcv. 
+routines available through *mgcv*.
 
-The first tool available, that requires the least changes to your code compared
-to the base `gam` function, is the `bam` function. This function is designed to
-improve  performance when fitting data sets with large amounts of data. It uses
-two tools to do this. First, it saves on the amount of memory needed to compute
+The first option is the funcion `bam`, this requires the least changes to existing code 
+written using the `gam` function. `bam` is designed to
+improve  performance when fitting large data sets. It uses
+two mechanisms to do this. First, it saves on memory needed to compute
 a given model by using a random subset of the data to calculate the basis
-functions for the smoothers, then breaking the data up into blocks and updating
-model fit within each block [@wood_generalized_2015]. While this is primarily designed to reduce the amount of memory needed to fit these models, it can also substantially
-reduce computation time. Second, when using `bam`'s default "fREML" (for "Fast REML") method, you can use the `discrete` option when fitting the model. This option causes bam 
-to simplify each covariate to a set of discrete levels (instead of a continuous range), substantially reducing the amount of computation needed (see `?mgcv::bam` for more details).
+functions, it then blocks the data and updates
+model fit within each block [@wood_generalized_2015]. While this is primarily designed to reduce memory usage, it can also substantially
+reduce computation time. Second, when using `bam`'s default fREML ("Fast REML") method, you can use the `discrete=TRUE` option: this 
+discretizes each covariate, substantially reducing the amount of computation needed (see `?mgcv::bam` for more details).
 
-It also takes more computational overhead compared to `gam` to set a `bam` model
-up, so for small numbers of groups, it can actually be slower than `gam` (Figure
-\ref{fig:alt_timing}), however, as the number of groups increases, computational time
+`bam` has a larger computational overhead than `gam`, so for small numbers of groups, it can be slower than `gam` (Figure
+\ref{fig:alt_timing}). As the number of groups increases, computational time
 for `bam` increases more slowly than for `gam`; in our simulation tests, when
 the number of groups is greater than 16, `bam` can be upward of an order of
 magnitude faster (Figure \ref{fig:alt_timing}). Note that `bam` can be somewhat less
-computationally stable when estimating these models (i.e. less likely to
-converge) so it does typically make sense to still use `gam` for smaller data
-sets.
+computationally stable when estimating these models (i.e., less likely to
+converge).
 
-The second option is to fit these models using one of two dedicated mixed effect
-model estimation packages, `nlme` and `lme4`. The `mgcv` package includes the
-function `gamm` that allows you to call `nlme` to solve a given GAM,
+The second option is to fit models using one of two dedicated mixed effect
+model estimation packages, *nlme* and *lme4*. The `mgcv` package includes the
+function `gamm` that allows you to call *nlme* to estimate a GAM,
 automatically handling the transformation of smooth terms into random effects
-(and back into basis-function representations for plotting and other statistical
-analyses). To use `lme4`, you will have to install the `gamm4` package, and use
-the `gamm4` function from this package. Using `gamm` or `gamm4` to fit models
+(and back into basis function representations for plotting and other statistical
+analyses). The *gamm4* package, and the `gamm4` function from the package are required. Using `gamm` or `gamm4` to fit models
 rather than `gam` can substantially speed up computation when the number of
-groups is large, as both `nlme` and `lme4` take advantage of the sparse
+groups is large, as both *nlme* and *lme4* take advantage of the sparse
 structure of the random effects, where most basis functions will be zero for
-most groups (i.e. any group-specific basis function will only take a non-zero
+most groups (i.e., any group-specific basis function will only take a non-zero
 value for observations in that group level). As with `bam`, `gamm` and `gamm4`
 are generally slower than `gam` for fitting HGAMs when the number of group
 levels is small (in our simulations, <8 group levels), however they do show
 substantial speed improvements even with a moderate number of groups, and were
 as fast as or faster to calculate than `bam` for all numbers of grouping levels
-we tested (Figure \ref{fig:alt_timing})[^parallel]. For large numbers of group
+we tested (Figure \ref{fig:alt_timing})[^parallel].
+
+
+<!-- send to discussion For large numbers of group
 levels and bigger data sets, it may be necessary to use full functional
 regression methods such as those implemented in the `refund` package
 [@scheipl_functional_2014]. See below for a discussion of what functional 
-regression is and its connections to HGAMs.  
+regression is and its connections to HGAMs. -->
 
 [^parallel]: It is also possible to speed up both `gam` and `bam` by using
 multiple processors in parallel, whereas this is not currently possible for
@@ -410,28 +397,21 @@ you are using to configure properly, we do not go into how to use these methods
 here. The help file `?mgcv::mgcv.parallel` explains how to use parallel
 computations for `gam` and `bam` in detail.
 
-
-
-
-
-```{r alt_model_timing_plot, echo=F,  fig.width=6, fig.height=4,message=F, warning=F, cache=T,fig.cap = "\\label{fig:alt_timing}Elapsed time to estimate the same model using each of the four approaches. Each data set was generated with 20 observations per group using a unimodal global function and random group-specific functions consisting of an intercept, a quadratic term, and logistic trend for each group. Observation error was normally distributed. Models were fit using model 2: y~s(x, k=10, bs='cp') + s(x,fac, k=10, bs='fs', xt=list(bs='cp'), m=1). All models were run on a single core."}
+```{r alt_model_timing_plot, echo=F,  fig.width=6, fig.height=4,message=F, warning=F, cache=T,fig.cap = "\\label{fig:alt_timing}Elapsed time to estimate the same model using each of the four approaches. Each data set was generated with 20 observations per group using a unimodal global function and random group-specific functions consisting of an intercept, a quadratic term, and logistic trend for each group. Observation error was normally distributed. Models were fit using model 2: y~s(x, k=10, bs=\"cp\") + s(x,fac, k=10, bs=\"fs\", xt=list(bs=\"cp\"), m=1). All models were run on a single core."}
 knitr::include_graphics('../figures/alternate_model_timing_plot.png')
-
-
 ```
-
 
 Setting up models 1-5 in `bam` uses the same code as we have previously covered;
 the only difference is that you use the `bam` instead of `gam` function, and
 have the additional option of discretizing your covariates. The advantage of
 this approach is that `bam` allows you to use almost all of the same families
 available to the `gam` function, and `bam` model output can be evaluated using
-the same functions (e.g. `summary`, `AIC`, `plot`, etc.) so it is simple to
+the same functions (e.g., `summary`, `AIC`, `plot`, etc.) so it is simple to
 substitute for `gam` if you need to speed a model up.
 
-Both `gamm` and `gamm4` require at least a few changes to how you code models.
-First, there are a few limitations on how you are able to specify models 1-5 in both frameworks. Factor smooth (`bs="fs"`) basis setups work in both `gamm` and `gamm4`. However, as the `nlme` package does not support crossed random effects, it is not possible to have two "fs" terms for the same grouping variable in `gamm` models (e.g. `y~s(x1, grp,bs="fs")+s(x2, grp, bs="fs")`. These type of crossed random effects are allowed in `gamm4`. The use of `te` and `ti` terms are not possible in `gamm4` however, due to 
-issues with how random effects are specified in the `lme4` package, making it impossible to code models where multiple penalties apply to a single basis function. Instead, for
+Both `gamm` and `gamm4` require a few changes to model code.
+First, there are a few limitations on how you are able to specify models 1-5 in both frameworks. Factor smooth (`bs="fs"`) basis setups work in both `gamm` and `gamm4`. As the *nlme* package does not support crossed random effects, it is not possible to have two "fs" terms for the same grouping variable in `gamm` models (e.g., `y~s(x1, grp, bs="fs")+s(x2, grp, bs="fs")`. These type of crossed random effects are allowed in *gamm4*. The use of `te` and `ti` terms are not possible in *gamm4*, due to 
+issues with how random effects are specified in the *lme4* package, making it impossible to code models where multiple penalties apply to a single basis function. Instead, for
 multidimensional group-level smooths, the alternate function `t2` needs to be used
 to generate these terms, as it creates tensor products with only a single penalty for
 each basis function (see `?mgcv::t2` for details on these smoothers, and @wood_straightforward_2012 for 
@@ -439,11 +419,11 @@ the theoretical basis behind this type of tensor product). So for instance, mode
 bird movement data we discussed in section III would need to be coded as:
 
 ```
-bird_mod4_gamm4 = gamm4(count ~ t2(week,latitude,species, 
-                                   bs= c("cc", "tp","re"), 
-                                   k=c(10,10,6),
-                                   m = 2), 
-                data= bird_move, family= poisson)
+bird_mod4_gamm4 <- gamm4(count ~ t2(week, latitude, species,
+                                    bs=c("cc", "tp", "re"),
+                                    k=c(10, 10, 6),
+                                    m=2),
+                         data=bird_move, family=poisson)
 ```
 
 
@@ -451,11 +431,11 @@ These packages also do not support the same range of families for the dependent
 variable; `gamm` only supports non-Gaussian families by using a fitting method
 called penalized quasi-likelihood (PQL) that is slower and not as numerically
 stable as the methods used in `gam`, `bam`, and `gamm4`. Non-Gaussian families
-are well supported by `lme4` (and thus `gamm4`), but can only fit them using
+are well supported by *lme4* (and thus *gamm4*), but can only fit them using
 marginal likelihood (ML) rather than REML, so may tend to over-smooth relative
 to `gam` using REML estimation. Further, neither `gamm` nor `gamm4` supports
 several of the extended families available through `mgcv`, such as zero-inflated,
-negative binomial, or ordered categorical and multinomial distributions. 
+negative binomial, or ordered categorical and multinomial distributions.
 
 
 ## Estimation issues when fitting both global and groupwise smooths
@@ -476,59 +456,45 @@ to fit these models (for example, compare the time it takes to fit models 3 and
 5 in Table \ref{tab:comp_time}). That these models can still be estimated is
 because of the penalty terms;  all of the methods we have discussed for fitting
 model 2 ("fs" terms or random effect tensor products) automatically create a
-penalty for the null space of the group-level terms, so that only the global
-term has its own unpenalized null space, and both the REML and ML criteria work
+penalty for the nullspace of the group-level terms, so that only the global
+term has its own unpenalized nullspace, and both the REML and ML criteria work
 to balance penalties between nested smooth terms (this is why nested random
-effects can be fitted). We have noted, however, that `mgcv` still occasionally
-finds degenerate solutions with simulated data where the fitted global term ends
-up over-smoothed.
+effects can be fitted). We have observed that *mgcv* still occasionally
+finds solutions with simulated data where the global term is over-smoothed.
 
-What we recommend to avoid this issue is to use a combination of smoother choice and setting model degrees of freedom so that the groupwise terms are either slightly less flexible or have a smaller null space. For instance, in the examples in section III, we used smoothers with an unpenalized null space (standard thin-plate splines) for the global smooth and ones with no null space for the groupwise terms[^gsnull]. When using thin-plate splines, it may also help to use splines with a lower order of derivative penalized in the groupwise smooths than the global smooths, as lower-order "tp" splines have fewer basis functions in the null space. For example, we used `m=2` (penalizing squared second derivatives) for the global smooth, and `m=1` (penalizing squared first derivatives) for groupwise smooths in models 2 and 3. Another option would be to use a lower number of basis functions (`k`) for groupwise relative to global terms, as this will reduce the maximum flexibility possible in the groupwise terms. We do caution that these are just rules of thumb. As of this writing, there is no published work looking what the effect of adding groupwise smooths has on the statistical properties of estimating a global smooth. In cases where an accurately estimated global smooth is essential, we recommend either fitting model 1, or using Markov Random Fields (Appendix A) and calculate the global smooth by averaging across grouping levels.
+To avoid this issue we recommend both careful choice of basis and setting model degrees of freedom so that the groupwise terms are either slightly less flexible than the global term or have a smaller nullspace. For instance, in the examples in section III, we used smoothers with an unpenalized nullspace (standard thin-plate splines) for the global smooth and ones with no nullspace for the groupwise terms[^gsnull]. When using thin-plate splines, it may also help to use splines with a lower order of derivative penalized in the groupwise smooths than the global smooths, as lower-order "tp" splines have fewer basis functions in the nullspace. For example, we used `m=2` (penalizing squared second derivatives) for the global smooth, and `m=1` (penalizing squared first derivatives) for groupwise smooths in models 2 and 3. Another option would be to use a lower number of basis functions (`k`) for groupwise relative to global terms, as this will reduce the maximum flexibility possible in the groupwise terms. We do caution that these are just rules of thumb. As of this writing, there is no published work looking what the effect of adding groupwise smooths has on the statistical properties of estimating a global smooth. In cases where an accurately estimated global smooth is essential, we recommend either fitting model 1, or using Markov Random Fields (Appendix A) and calculate the global smooth by averaging across grouping levels.
 
-[^gsnull]: For model 2, the "fs" smoother, and tensor products of random effect ("re") and other smooth terms do not have a penalized null space by construction (they are full rank), as noted above. For model 3 groupwise terms, we used basis types that had a penalty added to the null space: bs="tp", "cs", or "ps" have this property.
-
-
-
+[^gsnull]: For model 2, the "fs" smoother, and tensor products of random effect ("re") and other smooth terms do not have a penalized nullspace by construction (they are full rank), as noted above. For model 3 groupwise terms, we used basis types that had a penalty added to the nullspace, so called "shrinkage" methods: `bs="tp"`, `"cs"`, or `"ps"` have this property.
 
 ## A brief foray into the land of Bayes
 
-So far we have focused on using HGAMs in a frequentist framework, where the goal
-is to estimate single curves that best approximate some underlying true curve.
-However, both HGLMs and GAMs, and consequently HGAMs, fit comfortably into a
-Bayesian regression framework, where the goal of inference is to quantify
-uncertainty from all model parameters, as well as incorporate prior information
-on model parameters into the estimation process. By moving to a Bayesian
-framework, it is possible to extend HGAMs to model a wider range of types of
-data, include background information on model parameters and predictors (as
-prior information), and make predictions that fully incorporate uncertainty from
-parameter estimation.
-
-The key connection here is, as we mentioned in section II, that the penalty
-matrix can also be treated as the inverse of a prior covariance matrix for model
-parameters $\mathbf{\beta}$. REML estimation in mgcv then can be viewed as an
-empirical Bayesian estimate of the smooth model, where any terms in the null
-space of the smooth are treated as fixed effects with an improper flat prior
-(i.e. any value for these terms are considered equally likely), any terms in the
+As mentioned in section II, the penalty matrix can also be treated as the 
+inverse of a prior covariance matrix for model parameters $\mathbf{\beta}$.
+Intuitively, the basis functions and penalty we use form a prior (in the informal sense) on how we'd like our model term to behave. REML gives an
+empirical Bayes estimate of the smooth model (CITEX), where terms in the 
+nullspace of the smooth have improper, flat priors (i.e., any value for these terms are considered equally likely), any terms in the
 range space are treated as having a multivariate normal distribution, and the
 penalty terms are treated as having an improper flat prior (see
-@wood_generalized_2017 for more details on this connection). The Bayesian
+@wood_generalized_2017 for more details on this connection). The posterior Bayesian
 covariance matrix for model parameters can be extracted from any fitting
 `gam`/`bam` model with `model$Vp` or `vcov(model)`. This can in turn be used
 to generate predictions from the posterior distribution of the model, as the 
 Bayesian covariance matrix already incorporates the uncertainty from having to
-estimate the covariance matrix into it [the standard confidence intervals used in
-mgcv are in fact Bayesian posterior CIs; @wood_confidence_2006]. See `?predict.gam`
-for more on how to simulate empirical Bayes posterior estimates. 
+estimate the covariance matrix into it [the standard confidence intervals used in 
+*mgcv* are in fact Bayesian posterior credible intervals, which happen to have good frequentist properties; @wood_confidence_2006]. Viewing our GAM as Bayesian is a somewhat unavoidable consequence of the equivalence of random effects and splines: if we think that there some true smooth that we wish to estimate, we must take a Bayesian view of our random effects (splines) as we don't think that the true smooth changes each time we collect data [@wood_generalized_2017, Section 5.8].
 
 This also means that HGAMs can also be included as components in a more complex
-fully Bayesian model. The `mgcv` package includes a function `jagam` that can
+fully Bayesian model. The *mgcv* package includes a function `jagam` that can
 take a specified model formula and automatically convert it into code for the JAGS
 (or BUGS) Bayesian statistical packages, which can be adapted by the user to
-their own needs. Similarly, the `brms` package [@burkner_brms:_2017], which can
+their own needs.
+
+<!-- appendix
+ Similarly, the *brms* package [@burkner_brms:_2017], which can
 fit complex statistical models using the Bayesian software stan
 [@carpenter_stan:_2017] allows for the inclusion of smooth terms as part of the
-model specification. The `brms` package does not currently support `te()` tensor products or factor-smooth basis terms (`bs="fs"`), but does support `t2`-style tensor products,
-which means all of the models fitted in this paper can be fit by `brms`. For 
+model specification. The *brms* package does not currently support `te()` tensor products or factor-smooth basis terms (`bs="fs"`), but does support `t2`-style tensor products,
+which means all of the models fitted in this paper can be fit by *brms*. For 
 instance, `CO2_mod2` could be coded like this: 
 
 
@@ -554,7 +520,7 @@ from the model posterior. model fits can be plotted from this as:
 plot(marginal_effects(CO2_mod2_brms), points=TRUE, ask=FALSE, plot=TRUE)
 ```
 
-and the raw stan code used to estimate the model (which can be then modified) can
+and the raw *Stan* code used to estimate the model (which can be then modified) can
 be extracted with: 
 
 ```{r brms_code, echo=T, eval =F, message=F, warning=F}
@@ -562,14 +528,14 @@ stancode(CO2_mod2_brms)
 ```
 
 **should we mention gretagam at this point? and does INLAbru have any capacity for HGAMs? I'm not familiar enough with INLAbru's inner workings. I do know that glmmTMB cannot currently include mgcv-style smooths.**
+-->
 
-
-## Beyond HGAMs: functional regression
+<!--## Beyond HGAMs: functional regression
 
 The HGAM models we have discussed are actually a type of *functional regression*, which is an extension of standard regression models to cases where the outcome variable $y_i$ and/or the predictor variables $x_i$ for a given outcome are functions, rather than single variables [@ramsay_functional_2005]. HGAMs as we have described them are a form of function-on-scalar regression [@ramsay_functional_2005; @reiss_fast_2010], where we are trying to estimate a smooth function that varies between grouping levels. 
 
 We have deliberately focused our paper on these simpler classes of functional regression model, and chosen to use the term HGAM rather than functional regression, as we believe that this more clearly connects these models to modelling approaches already familiar to ecologists. Further, we consider the unit of analysis to still be individual observations, as compared to functional regression where the the unit of analysis is whole functions (for instance, we are interested in cases like species distribution modelling, where the presence of a given species may be predicted from a sum of several species-specific functions of different environmental variables). However, there is an extensive literature dedicated to how to fit more complex functional regression models for any interested reader (see @ramsay_functional_2005 for a good introduction, and @scheipl_generalized_2016 for more recent work in this field). The `refund` package [@reiss_fast_2010; @scheipl_functional_2014; @scheipl_generalized_2016] uses the statistical machinery from `mgcv` to fit these models, and should be usable by anyone familiar with standard R and `mgcv` modelling syntax. 
-Functional regression is also a major area of study in Bayesian statistics (e.g. @kaufman_bayesian_2010). 
-
+Functional regression is also a major area of study in Bayesian statistics (e.g., @kaufman_bayesian_2010). 
+-->
 
 
