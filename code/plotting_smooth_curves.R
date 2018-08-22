@@ -106,6 +106,6 @@ top_row_plot = plot_grid(basis_func_plot,basis_penalty_plot,
 full_plot = plot_grid(top_row_plot,basis_sample_plot,
                       nrow=2,labels= c("", "c"),axis = "t",rel_heights = c(1,0.9))
 
-ggsave("figures/example spline basis and penalties.png", full_plot, 
+ggsave("figures/example_spline_basis_and_penalties.png", full_plot, 
        width=8, height= 7, units = "in",dpi = 400)
 
