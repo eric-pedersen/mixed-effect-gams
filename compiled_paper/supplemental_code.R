@@ -217,7 +217,7 @@ AIC_table = AIC(CO2_mod1,CO2_mod2, CO2_mod3, CO2_mod4, CO2_mod5,
   mutate_at(.vars = vars(df,AIC), .funs = funs(round,.args = list(digits=0)))
 
 
-kable(AIC_table, format ="latex", caption="AIC table comparing model fits for example datasets")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+kable(AIC_table, format ="latex", caption="AIC table comparing model fits for example datasets", booktabs = T)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
   kable_styling(full_width = F)%>%
   group_rows("A. CO2 models", 1,5)%>%
   group_rows("B. bird_move models", 6,10)
@@ -421,13 +421,12 @@ comp_resources_table =comp_resources %>%
   ungroup()%>%
   select(-data_source)
 
-kable(comp_resources_table,format ="latex", caption="Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model 1 takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smooths is the total number of unique penalty values estimated by the model.")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+kable(comp_resources_table,format ="latex", caption="Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model 1 takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smooths is the total number of unique penalty values estimated by the model.", booktabs = T)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
   kable_styling(full_width = F)%>%
   add_header_above(c(" " = 1," "=1, "# of terms"=2))%>%
   group_rows("A. CO2 data", 1,5)%>%
   group_rows("B. bird movement data", 6,10)
 
-knitr::include_graphics('../figures/alternate_model_timing_plot.png')
 ## library(brms)
 ## 
 ## CO2_mod2_brms <- brm(
@@ -512,7 +511,7 @@ zoo_test_summary = zoo_test %>%
   summarise(`model 4 MSE` = round(get_MSE(density_scaled,mod4),2),
             `model 5 MSE` = round(get_MSE(density_scaled,mod5),2))
 
-kable(zoo_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. MSE values represent the average squared difference between model predictions and observations for test data.")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+kable(zoo_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. MSE values represent the average squared difference between model predictions and observations for test data.", booktabs = T)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
   kable_styling(full_width = F)
 daphnia_train <- subset(zoo_train, taxon=="D. mendotae")
 daphnia_test <- subset(zoo_test, taxon=="D. mendotae")
@@ -587,7 +586,7 @@ daph_test_summary = daphnia_test %>%
             `model 2 MSE` = round(get_MSE(density_scaled,mod2),2),
             `model 3 MSE` = round(get_MSE(density_scaled,mod3),2))
 
-kable(daph_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 1-3 applied to the *D. mendotae* dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+kable(daph_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 1-3 applied to the *D. mendotae* dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).", booktabs = T)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
   kable_styling(full_width = F)
 #This is just to make sure that the figures occur before the bibliography. 
 cat('\\FloatBarrier')

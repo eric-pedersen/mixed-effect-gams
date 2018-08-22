@@ -138,7 +138,7 @@ zoo_test_summary = zoo_test %>%
   summarise(`model 4 MSE` = round(get_MSE(density_scaled,mod4),2),
             `model 5 MSE` = round(get_MSE(density_scaled,mod5),2))
 
-kable(zoo_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. MSE values represent the average squared difference between model predictions and observations for test data.")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+kable(zoo_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. MSE values represent the average squared difference between model predictions and observations for test data.", booktabs = T)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
   kable_styling(full_width = F)
 ```
 
@@ -258,6 +258,6 @@ daph_test_summary = daphnia_test %>%
             `model 2 MSE` = round(get_MSE(density_scaled,mod2),2),
             `model 3 MSE` = round(get_MSE(density_scaled,mod3),2))
 
-kable(daph_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 1-3 applied to the *D. mendotae* dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).")%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+kable(daph_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 1-3 applied to the *D. mendotae* dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).", booktabs = T)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
   kable_styling(full_width = F)
 ```
