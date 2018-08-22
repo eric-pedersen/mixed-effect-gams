@@ -63,15 +63,18 @@ plot_grid(p1, p2, p3, align = "hv", axis = "lrtb", ncol = 3, labels = "auto")
 
 
 #The default CO2 plant variable is ordered;
-#This recodes it to an unordered factor (see above for why).
+#This recodes it to an unordered factor (see main text for why).
 CO2 <- transform(CO2, Plant_uo=factor(Plant, ordered=FALSE))
 
 #Loading simuated bird movement data
 bird_move <- read.csv("../data/bird_move.csv") 
 
-CO2_vis_plot <- ggplot(CO2, aes(x=conc, y=uptake, group=Plant)) +
+CO2_vis_plot <- ggplot(CO2, aes(x=conc, y=uptake, group=Plant,color=Plant, lty=Plant)) +
   geom_point() +
   geom_line() +
+  scale_color_manual(values = rep(c("red","blue","black"), times =4))+
+  scale_linetype_manual(values = rep(1:4, each=3))+
+  guides(color="none",linetype="none")+
   labs(x=expression(CO[2] ~ concentration ~ (mL ~ L^{-1})), y=expression(CO[2] ~ uptake ~ (mu*mol ~ m^{-2})))
 
 bird_vis_plot <- ggplot(dplyr::filter(bird_move, count > 0),
@@ -84,14 +87,11 @@ bird_vis_plot <- ggplot(dplyr::filter(bird_move, count > 0),
 
 plot_grid(CO2_vis_plot, bird_vis_plot, nrow=1, labels=c("a","b"),
           align = "hv", axis = "lrtb")
-## CO2_mod1 <- gam(log(uptake) ~ s(log(conc), k=5, bs="tp") +
-##                               s(Plant_uo, k=12, bs="re"),
-##                 data=CO2, method="REML")
 
 
 CO2_mod1 <- gam(log(uptake) ~ s(log(conc), k=5, bs="tp") +
                               s(Plant_uo, k=12, bs="re"),
-                data=CO2, method="REML")
+                data=CO2, method="REML", family = "gaussian")
 
 plot(CO2_mod1, pages=1, seWithMean=TRUE)
 
@@ -103,7 +103,7 @@ CO2_mod1_pred <- with(CO2,
 # make the prediction, add this and a column of standard errors to the prediction
 # data.frame. Predictions are on the log scale.
 CO2_mod1_pred <- cbind(CO2_mod1_pred,
-                       predict(CO2_mod1, CO2_mod1_pred, se.fit=TRUE))
+                       predict(CO2_mod1, CO2_mod1_pred, se.fit=TRUE, type="response"))
 
 # make the plot. Note here the use of the exp() function to back-transform the 
 # predictions (which are for log-uptake) to the original scale
@@ -123,8 +123,9 @@ bird_mod1 <- gam(count ~ te(week, latitude, bs=c("cc", "tp"), k=c(10, 10)),
                  data=bird_move, method="REML", family=poisson,
                  knots = list(week = c(0.5, 52.5)))
 
-#Default mgcv gam plot for the two-dimensional tensor product smoother for 
-#bird_mod1 
+#mgcv gam plot for the two-dimensional tensor product smoother for bird_mod1.
+#scheme=2 displays the color scheme (rather than mgcv's default, which only
+#shows contour lines)
 plot(bird_mod1, pages=1, scheme=2, rug=FALSE)
 box()
 bird_move <- transform(bird_move, mod1 = predict(bird_mod1, type="response"))

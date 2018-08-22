@@ -17,7 +17,7 @@ These three choices result in five possible models (figure \ref{fig:models}):
 4. Group-specific smooths without an average trend, but with all smooths having the same wigglyness.
 5. Group-specific smooths with different wigglyness.
 
-![\label{fig:models}Alternate types of functional variation f(x) that can be fitted with HGAMs. The dashed line indicates the average function value for all groups, and each solid line indicates the functional value at a given predictor value for an  individual group level.](../figures/alternate_models.png)
+![\label{fig:models}Alternate types of functional variation f(x) that can be fitted with HGAMs. The dashed line indicates the average function value for all groups, and each solid line indicates the functional value at a given predictor value for an  individual group level. The null model (of no functional relationship between the covariate and outcome, top right), is not explicitly assigned a model number.](../figures/alternate_models.png)
 
 It is important to note that "similar wiggliness" and "similar shape" are two distinct concepts; functions can have very similar wiggliness but very different shapes. Wigglyness measures how quickly a function changes across its range, and it is easy to construct two functions that differ in shape but have the same wiggliness. For this paper, we consider two functions to have similar shape if the average squared distance between the functions is small (assuming the functions have been scaled to have a mean value of zero across their ranges). This definition is somewhat restricted; for instance, a cyclic function would not be considered to have the same shape as a phase-shifted version of that function, nor would two normal distributions with the same mean but different standard deviations. The benefit of this definition of shape, however, is that it is straightforward to translate into quadratic penalties as we have been using. Figure \ref{fig:models}, model 4 illustrates the case where models have different shapes. Similarly, two curves could have very similar overall shape, but differ in their wiggliness. For instance, if one function was equal to the second function plus a high-frequency oscillation. Figure \ref{fig:models} model 3 illustrates this.
 
@@ -25,30 +25,33 @@ We will discuss the trade-offs between different models and guidelines about whe
 
 ## Coding hierarchical GAMs in R
 
-Each of the models in Figure \ref{fig:models} can be coded straightforwardly in *mgcv*. Throughout the section when describing how to set these models up, we will refer to the response variable as `y`,  continuous predictor variables as `x` (or `x1` and  `x2`, in the case multiple predictors), and `fac` to designate the discrete grouping factor whose variation we are interested in understanding[^ordered].
+Each of the models in Figure \ref{fig:models} can be coded straightforwardly in *mgcv*. 
+We will use two example datasets to demonstrate how to code these models (see the supplemental code to reproduce these examples):
+
+A. The `CO2` dataset, available in R via the `datasets` package. This data is from an experimental study by @potvin_statistical_1990 of CO~2~ uptake in grasses under varying concentrations of CO~2~, measuring how concentration-uptake functions varied between plants from two locations (Mississippi and Quebec) and two temperature treatments (chilled and warm). Twelve plants were used and CO~2~ uptake measured at 7 CO~2~ concentrations for each plant (figure \ref{fig:vis_data}a). Here we will focus on how to use HGAMs to estimate inter-plant variation in functional responses. This data set has been modified from the default version available with R, to recode the `Plant` variable as an unordered factor `Plant_uo`[^ordered].
+
+B. Simulated bird movement data along a migration corridor, sampled throughout the year (see supplemental code). This dataset consists of records of numbers of observed locations of 100 tagged individuals each from six species of bird, at ten locations along a latitudinal gradient, with one observation taken every four weeks. Not every bird was observed at each time point, so counts vary randomly between location and week. The data set (`bird_move`) consists of the variables `count`, `latitude`, `week` and `species` (figure \ref{fig:vis_data}b). This example will allow us to demonstrate how to fit these models with interactions and with non-normal (count) data. The true model used to generate this data was model 2: a single global function plus species-specific deviations around that global function. 
+
+
 
 [^ordered]: Note that it is important to know how the group-level variable `fac` is coded in R. If it is coded as a character, *mgcv* will raise an error message, as it requires a factor. It is also important to know whether the factor is coded as ordered or unordered (see `?factor` for more details on this). This matters when fitting groupwise smooths using the `by=` argument (as is used for fitting models 3 and 5, shown below). If the factor is unordered, *mgcv* will set up a model with one smooth for each grouping level. If the factor is ordered, *mgcv* will set any basis functions for the first grouping level to zero. In model 3 the ungrouped smooth will then correspond to the first grouping level, rather than the average functional response, and the group-specific smooths will correspond to deviations from the first group. In model 5, using an ordered factor will result in the first group not having a smooth term associated with it at all.
 
-We will also use two example datasets to demonstrate how to code these models (see the supplemental code to reproduce these examples):
 
-A. The `CO2` dataset, available in R via the `datasets` package. This data is from an experimental study by @potvin_statistical_1990 of CO~2~ uptake in grasses under varying concentrations of CO~2~, measuring how concentration-uptake functions varied between plants from two locations (Mississippi and Quebec) and two temperature treatments (chilled and warm). Twelve plants were used and CO~2~ uptake measured at 7 CO~2~ concentrations for each plant (figure \ref{fig:vis_data}a). Here we will focus on how to use HGAMs to estimate inter-plant variation in functional responses.
-
-B. Simulated bird movement data along a migration corridor, sampled throughout the year (see supplemental code). This dataset consists of records of numbers of observed locations of 100 tagged individuals each from six species of bird, at ten locations along a latitudinal gradient, with one observation taken every four weeks. Not every bird was observed at each time point, so counts vary randomly between location and week. The data set (`bird_move`) consists of the variables `count`, `latitude`, `week` and `species` (figure \ref{fig:vis_data}b). This example will allow us to demonstrate how to fit these models with interactions and with non-normal (count) data.
-
-
-
-```{r vis_data, echo=FALSE,  fig.width=8, fig.height=4, out.width="\\linewidth", fig.cap="\\label{fig:vis_data}Example data sets used throughout section III. a) Grass $\\text{CO}\\textsubscript{2}$ uptake versus $\\text{CO}\\textsubscript{2}$ concentration for 12 individual plants (black lines). b) Simulated data set of bird migration, with point size corresponding to weekly counts of 6 species along a latituidinal gradient (zeros excluded for clarity)."}
+```{r vis_data, echo=FALSE,  fig.width=8, fig.height=4, out.width="\\linewidth", fig.cap="\\label{fig:vis_data}Example data sets used throughout section III. a) Grass $\\text{CO}\\textsubscript{2}$ uptake versus $\\text{CO}\\textsubscript{2}$ concentration for 12 individual plants. Color and line linetype included to distinguish individual plat trends. b) Simulated data set of bird migration, with point size corresponding to weekly counts of 6 species along a latituidinal gradient (zeros excluded for clarity)."}
 
 #The default CO2 plant variable is ordered;
-#This recodes it to an unordered factor (see above for why).
+#This recodes it to an unordered factor (see main text for why).
 CO2 <- transform(CO2, Plant_uo=factor(Plant, ordered=FALSE))
 
 #Loading simuated bird movement data
 bird_move <- read.csv("../data/bird_move.csv") 
 
-CO2_vis_plot <- ggplot(CO2, aes(x=conc, y=uptake, group=Plant)) +
+CO2_vis_plot <- ggplot(CO2, aes(x=conc, y=uptake, group=Plant,color=Plant, lty=Plant)) +
   geom_point() +
   geom_line() +
+  scale_color_manual(values = rep(c("red","blue","black"), times =4))+
+  scale_linetype_manual(values = rep(1:4, each=3))+
+  guides(color="none",linetype="none")+
   labs(x=expression(CO[2] ~ concentration ~ (mL ~ L^{-1})), y=expression(CO[2] ~ uptake ~ (mu*mol ~ m^{-2})))
 
 bird_vis_plot <- ggplot(dplyr::filter(bird_move, count > 0),
@@ -64,29 +67,31 @@ plot_grid(CO2_vis_plot, bird_vis_plot, nrow=1, labels=c("a","b"),
 ```
 
 
-Throughout the examples we use Restricted Maximum Likelihood (REML) to estimate model coefficients and smoothing parameters. We strongly recommend using either REML or marginal likelihood (ML) rather than the default GCV criteria when fitting GAMs, for the reasons outlined in [@wood_fast_2011]. In each case some data processing and manipulation has been done to obtain the graphics and results below. See supplemental code for details on data processing steps.
+Throughout the examples we use Restricted Maximum Likelihood (REML) to estimate model coefficients and smoothing parameters. We strongly recommend using either REML or marginal likelihood (ML) rather than the default GCV criteria when fitting GAMs, for the reasons outlined in [@wood_fast_2011]. In each case some data processing and manipulation has been done to obtain the graphics and results below. See supplemental code for details on data processing steps. 
+
+
 
 ### A single common smooth for all observations (Model 1)
 
 We start with the simplest model we can in our framework and include many details here to ensure that readers are comfortable with the terminology and R functions we are going to use later.
 
-For our `CO2` data set, we will model $\log_e(\texttt{uptake})$ as a function of two smooths: a thin plate regression spline of $\log_e$-concentration, and a random effect for species to model species-specific intercepts [^mult_note]. Mathematically:
+For our `CO2` data set, we will model $\log_e(\texttt{uptake})$ as a function of two smooths: a thin plate regression spline of $\log_e$-concentration, and a random effect for plant to model plant-specific intercepts [^mult_note]. Mathematically:
 
 $$
 \log_e(\texttt{uptake}_i) = f(\log_e(\texttt{conc}_i)) + \zeta_\texttt{Plant\_uo} + \epsilon_i
 $$
 
 
-where $\zeta_\texttt{Plant\_uo}$ is the random effect for plant and $\epsilon_i$ is a Gaussian error term. We assume that $\log_e(\texttt{uptake}_i)$ is normally distributed.
+where $\zeta_\texttt{Plant\_uo}$ is the random effect for plant and $\epsilon_i$ is a Gaussian error term. Here  We assume that $\log_e(\texttt{uptake}_i)$ is normally distributed.
 
 
 [^mult_note]:Note that we're actually modelling $\log_e(\texttt{uptake})$; this can be a useful approach when dealing with estimating multiple functional relationships as it means that functions that differ from each other by a multiplicative constant (so $f_1(x) = \alpha\cdot f_2(x)$ will differ by an additive constant when log-transformed (which can be estimated by simple random effects): $\log_e(f_1(x)) = \log_e(\alpha)+ \log_e(f_2(x))$.
 
 In R we can write our model as:
-```{r co2_mod1_unrun, echo=TRUE, eval=FALSE}
+```{r co2_mod1_unrun, echo=TRUE, eval=FALSE, purl=FALSE}
 CO2_mod1 <- gam(log(uptake) ~ s(log(conc), k=5, bs="tp") +
                               s(Plant_uo, k=12, bs="re"),
-                data=CO2, method="REML")
+                data=CO2, method="REML", family = "gaussian")
 ```
 
 This is the typical GAM setup, with a single smooth term for each variable. Specifying the model is similar to specifying a GLM in R via `glm()`, with the addition of `s()` terms to include one-dimensional or isotropic multidimensional smooths. The first argument to `s()` are the terms to be smoothed, the type of smooth to be used for the term is specified by the `bs` argument, and the number of basis functions is specified by `k`[^k_note].
@@ -98,7 +103,7 @@ This is the typical GAM setup, with a single smooth term for each variable. Spec
 
 CO2_mod1 <- gam(log(uptake) ~ s(log(conc), k=5, bs="tp") +
                               s(Plant_uo, k=12, bs="re"),
-                data=CO2, method="REML")
+                data=CO2, method="REML", family = "gaussian")
 
 plot(CO2_mod1, pages=1, seWithMean=TRUE)
 ```
@@ -106,7 +111,7 @@ plot(CO2_mod1, pages=1, seWithMean=TRUE)
 Figure \ref{fig:co2_mod1} illustrates *mgcv*'s default plotting out for `CO2_mod1`: the left panel shows the estimated smooth of concentration, and the right shows a quantile-quantile plot of the estimates effects vs Gaussian quantiles, which can be used to check our model.
 
 
-Looking at the effects by term is useful, but we are often interested in fitted values or predictions our models. Using the built in prediction functions with *mgcv*, we can estimate what the fitted function (and uncertainty around it) should look like for each level, as shown in Figure \ref{fig:co2_mod1_predict} (see appendix script for the code that generated this figure). 
+Looking at the effects by term is useful, but we are often interested in fitted values or predictions our models. Using the built in prediction functions with *mgcv*, we can estimate what the fitted function (and uncertainty around it) should look like for each level, as shown in Figure \ref{fig:co2_mod1_predict} (see supplemental code for more details on how to generate these predictions). 
 
 ```{r co2_mod1_ggplot,echo=FALSE, fig.width=6, fig.height=4, fig.cap="\\label{fig:co2_mod1_predict} Predicted uptake function ($\\pm$ 2 s.e.) for each plant, based on model 1 (a single global function for uptake plus a individual-level random effect intercept). Model predictions are for log-uptake, but are transformed here to show the fitted function on the original scale of the data.", out.width="\\linewidth"}
 
@@ -118,7 +123,7 @@ CO2_mod1_pred <- with(CO2,
 # make the prediction, add this and a column of standard errors to the prediction
 # data.frame. Predictions are on the log scale.
 CO2_mod1_pred <- cbind(CO2_mod1_pred,
-                       predict(CO2_mod1, CO2_mod1_pred, se.fit=TRUE))
+                       predict(CO2_mod1, CO2_mod1_pred, se.fit=TRUE, type="response"))
 
 # make the plot. Note here the use of the exp() function to back-transform the 
 # predictions (which are for log-uptake) to the original scale
@@ -154,9 +159,10 @@ bird_mod1 <- gam(count ~ te(week, latitude, bs=c("cc", "tp"), k=c(10, 10)),
 
 ```
 
-```{r bird_mod1_plot, echo=FALSE, fig.width = 4, fig.height = 4, outwidth="\\linewidth", dev.args = list(pointsize=10), fig.cap="\\label{fig:bird_mod1}The default plot for this GAM illustrates the average log-abundance of all bird species at each latitude for each week, with yellow colours indicating more individuals and red colours fewer."}
-#Default mgcv gam plot for the two-dimensional tensor product smoother for 
-#bird_mod1 
+```{r bird_mod1_plot, echo=FALSE, fig.width = 4, fig.height = 4, outwidth="\\linewidth", dev.args = list(pointsize=10), fig.cap="\\label{fig:bird_mod1} Plot illustrating the average log-abundance of all bird species at each latitude for each week, with yellow colours indicating more individuals and red colours fewer."}
+#mgcv gam plot for the two-dimensional tensor product smoother for bird_mod1.
+#scheme=2 displays the color scheme (rather than mgcv's default, which only
+#shows contour lines)
 plot(bird_mod1, pages=1, scheme=2, rug=FALSE)
 box()
 ```
