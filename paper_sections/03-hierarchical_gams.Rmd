@@ -21,7 +21,7 @@ These three choices result in five possible models (figure \ref{fig:models}):
 
 It is important to note that "similar wiggliness" and "similar shape" are two distinct concepts; functions can have very similar wiggliness but very different shapes. Wigglyness measures how quickly a function changes across its range, and it is easy to construct two functions that differ in shape but have the same wiggliness. For this paper, we consider two functions to have similar shape if the average squared distance between the functions is small (assuming the functions have been scaled to have a mean value of zero across their ranges). This definition is somewhat restricted; for instance, a cyclic function would not be considered to have the same shape as a phase-shifted version of that function, nor would two normal distributions with the same mean but different standard deviations. The benefit of this definition of shape, however, is that it is straightforward to translate into quadratic penalties as we have been using. Figure \ref{fig:models}, model 4 illustrates the case where models have different shapes. Similarly, two curves could have very similar overall shape, but differ in their wiggliness. For instance, if one function was equal to the second function plus a high-frequency oscillation. Figure \ref{fig:models} model 3 illustrates this.
 
-We will discuss the trade-offs between different models and guidelines about when each of these models is appropriate in section IV. The remainder of this section will focus on how to specify each of these five models using *mgcv*.
+We will discuss the trade-offs between different models and guidelines about when each of these models is appropriate in section V. The remainder of this section will focus on how to specify each of these five models using *mgcv*.
 
 ## Coding hierarchical GAMs in R
 
@@ -230,7 +230,7 @@ The `"fs"`-based approach mentioned above does not work for higher-dimensional t
 multivariate equivalent of the `fs` smooth; it requires more smooth terms than
 `te()`, but can be fit using other mixed effects software such as *lme4*, which
 is useful when fitting models with a large number of group levels (see Section
-IV for details).
+V on computational issues for details).
 
 ```{r bird_mod2}
 bird_mod2 <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
@@ -317,7 +317,7 @@ bird_mod3 <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
 ```
 
 Note here we used a "ts" smooth for the latitude marginal effect; this is a TPRS smooth with the penalty matrix slightly tweaked so that the null space is also penalized. This is to prevent the null space of the global smoother being
-collinear with the null spaces of the groupwise smoothers (see section IV for
+collinear with the null spaces of the groupwise smoothers (see section V for
 more discussion about the issue of collinearity and smoother selection).
 
 The fitted model for `bird_mod3` is visually indistinguishable from `bird_mod2` (figure \ref{fig:bird_mod2}) so we do not illustrate it here.
@@ -329,7 +329,7 @@ We can modify the above models to exclude the global term (which is generally fa
 #### Model 4:
 
 Model 4 (shared smooths) is simply model 2 without the global smooth term: `y~s(x, fac, bs="fs")` or `y~te(x1, x2, fac, bs=c("tp", "tp", "re")`. This model assumes all groups have the same smoothness, but that the individual shapes of the smooth terms are not related. Here we just show how to code these models; plotting them works in the same way as for models 1-3 above, the plots for these datasets are very similar to the plots for model 2. This will not always be the case; if in a given study there are very few data points in each grouping level (relative to the strength of the functional relationship of interest), estimates from model 4
-will typically be much more variable than from model 2, as there is no way for the model to share information on function shape between grouping levels without the global smooth term. See section IV on computational issues for more on how to choose between different models.
+will typically be much more variable than from model 2, as there is no way for the model to share information on function shape between grouping levels without the global smooth term. See section V on computational issues for more on how to choose between different models.
 
 
 ```{r mod4}
@@ -379,5 +379,5 @@ kable(AIC_table, format ="latex", caption="AIC table comparing model fits for ex
 
 ```
 
-It is important to recognize that AIC, like any function of the data, is a random variable and should be expected to have some sampling error [@forster_aic_2011]. In cases when the goal is to select the model that has the best predictive ability, we recommend holding some fraction of the data out prior to the analysis and comparing how well different models fit that data or using $k$-fold cross validation as a more accurate guide to how well a given model may predict out of sample. We also strongly recommend that models are not selected based purely on AIC; instead model selection should be based on expert subject knowledge about the system, the goals of the study, computational time, and most importantly the inferential goals of the study. For instance, while model 3 may fit a given dataset better than model 2, model 2 can be used to simulate functional variation for unobserved group levels, whereas this is not possible within the framework of model 3. The next section discusses these and other model fitting issues in depth.
+It is important to recognize that AIC, like any function of the data, is a random variable and should be expected to have some sampling error [@forster_aic_2011]. In cases when the goal is to select the model that has the best predictive ability, we recommend holding some fraction of the data out prior to the analysis and comparing how well different models fit that data or using $k$-fold cross validation as a more accurate guide to how well a given model may predict out of sample. We also strongly recommend that models are not selected based purely on AIC; instead model selection should be based on expert subject knowledge about the system, the goals of the study, computational time, and most importantly the inferential goals of the study. For instance, while model 3 may fit a given dataset better than model 2, model 2 can be used to simulate functional variation for unobserved group levels, whereas this is not possible within the framework of model 3. The next section works through two examples to show how to choose between different models in a actual workflow, and section V discusses these and other model fitting issues in more depth.
 

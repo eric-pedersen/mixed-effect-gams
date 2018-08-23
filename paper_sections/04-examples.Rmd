@@ -4,7 +4,7 @@ output:
   html_document: default
 ---
 
-# V: Examples
+# IV: Examples
 
 We now go through two worked examples on one data set to highlight how to use these models in practice, and to illustrate how to fit, test, and
 visualize each model. We will demonstrate how to use these models to fit community

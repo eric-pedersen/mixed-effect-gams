@@ -1,5 +1,5 @@
 
-# IV: Computational and statistical issues when fitting HGAMs
+# V: Computational and statistical issues when fitting HGAMs
 
 Which of the five model formulations should you choose for a given data set? There are two major trade-offs to take into account. The first is the bias-variance trade-off: more complex models can account for more fluctuations in the data, but also tend to give more variable predictions, and can overfit.  The second trade-off is model complexity versus computer time: more complex models can include more potential sources of variation and give more information about a given data set, but will generally take more time and computational resources to fit and debug. We discuss both of these trade-offs in this section. we also discuss 
 how to extend the HGAM framework to fit more complex models. 
