@@ -143,7 +143,7 @@ $$
 \mathbb{E}(\texttt{count}_i) = \exp(f(\texttt{week}_i, \texttt{latitude}_i))
 $$
 
-where we assume that $\texttt{count}_i \sim\text{Poisson}$. For the smooth term, $f$, we employ a tensor product of `latitude` and `week`, using a TPRS for the marginal latitude effects, and a cyclic cubic regression spline for the marginal week effect to account for the cyclic nature of weekly effects (we expect week 1 and week 52 to have very similar values), both splines had basis complexity (`k`) of 10. We will also assume the counts of individuals at each location in each week follow a Poisson distribution, and we will ignore species-specific variability. 
+where we assume that $\texttt{count}_i \sim\text{Poisson}$. For the smooth term, $f$, we employ a tensor product of `latitude` and `week`, using a thin plate regression spline (TPRS) for the marginal latitude effects, and a cyclic cubic regression spline for the marginal week effect to account for the cyclic nature of weekly effects (we expect week 1 and week 52 to have very similar values), both splines had basis complexity (`k`) of 10. We will also assume the counts of individuals at each location in each week follow a Poisson distribution, and we will ignore species-specific variability. 
 
 ```{r bird_mod1_comments, echo=FALSE, eval=FALSE}
 # Note for specifying tensor products: you can either specify bs (basis) and
@@ -328,7 +328,9 @@ We can modify the above models to exclude the global term (which is generally fa
 
 #### Model 4:
 
-Model 4 (shared smooths) is simply model 2 without the global smooth term: `y~s(x, fac, bs="fs")` or `y~te(x1, x2, fac, bs=c("tp", "tp", "re")`. This model assumes all groups have the same smoothness, but that the individual shapes of the smooth terms are not related. Here we just show how to code these models; plotting them works in the same was as for models 1-3 above, the plots for these datasets are very similar to the plots for model 2.
+Model 4 (shared smooths) is simply model 2 without the global smooth term: `y~s(x, fac, bs="fs")` or `y~te(x1, x2, fac, bs=c("tp", "tp", "re")`. This model assumes all groups have the same smoothness, but that the individual shapes of the smooth terms are not related. Here we just show how to code these models; plotting them works in the same way as for models 1-3 above, the plots for these datasets are very similar to the plots for model 2. This will not always be the case; if in a given study there are very few data points in each grouping level (relative to the strength of the functional relationship of interest), estimates from model 4
+will typically be much more variable than from model 2, as there is no way for the model to share information on function shape between grouping levels without the global smooth term. See section IV on computational issues for more on how to choose between different models.
+
 
 ```{r mod4}
 CO2_mod4 <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5,  bs="fs", m=2),
@@ -341,7 +343,7 @@ bird_mod4 <- gam(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
 
 #### Model 5:
 
-Model 5 is simply model 3 without the first term: `y~s(x, by=fac)` or `y~te(x1,x2, by=fac)`. (Plots are very similar to model 3.)
+Model 5 is simply model 3 without the first term: `y~s(x, by=fac)` or `y~te(x1,x2, by=fac)` (as above, plots are very similar to model 3).
 
 ```{r mod5}
 CO2_mod5 <- gam(log(uptake) ~ s(log(conc), by=Plant_uo, k=5, bs="tp", m=2) +
@@ -359,7 +361,7 @@ bird_mod5 <- gam(count ~ te(week, latitude, by=species, bs= c("cc", "ts"),
 
 These models can be compared using standard model comparison tools. Model 2 and model 3 will generally be nested in model 1 (depending on how each model is specified) so ANOVA comparisons may be used to test if the groupwise smoother is necessary. However, we do not currently recommend this method. Given the uncertainty about what degrees of freedom to assign to models with varying smooths, and the fact that slightly different model specifications may not result in nested models, we do not think there is sufficient theory on how accurate parametric p-values will be for comparing these models (see `?mgcv::anova.gam` for more discussion on ANOVA comparisons for GAMs).
 
-Comparing models based on AIC is a more robust approach to comparing the different modelling approaches, as there is a well-developed theory of how to include effects of penalization and smoothing parameter uncertainty when estimating the model complexity penalty for AIC [@wood_smoothing_2016]. We demonstrate this approach in Table \ref{tab:AIC_table}. Going by AIC, there is strong support for including among-group functional variability for both the CO2 dataset and the `bird_move` dataset (compare models 1 versus models 2-5). For the CO2 dataset (Table \ref{tab:AIC_table}A), there is relatively strong evidence that there is more inter-group variability in smoothness than model 2 allows, and weaker evidence that model 4 or 5 (separate smooths for all plants) show the best fit. For the `bird_move` dataset (Table \ref{tab:AIC_table}B), model 2 (global smooth plus group-level smooths with a shared penalty) fits the data best, which is good as that is how we simulated the data!
+Comparing models based on AIC is a more robust approach to comparing the different modelling approaches, as there is a well-developed theory of how to include effects of penalization and smoothing parameter uncertainty when estimating the model complexity penalty for AIC [@wood_smoothing_2016]. We demonstrate this approach in Table \ref{tab:AIC_table}. Using AIC, there is strong support for including among-group functional variability for both the CO2 dataset and the `bird_move` dataset (compare models 1 versus models 2-5). For the CO2 dataset (Table \ref{tab:AIC_table}A), there is relatively strong evidence that there is more inter-group variability in smoothness than model 2 allows, and weaker evidence that model 4 or 5 (separate smooths for all plants) show the best fit. For the `bird_move` dataset (Table \ref{tab:AIC_table}B), model 2 (global smooth plus group-level smooths with a shared penalty) fits the data best, which is good as that is how we simulated the data!
 
 
 ```{r AIC_table, echo=F,  fig.width=4, fig.height=6,message=F, warning=F, cache=T}

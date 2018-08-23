@@ -296,7 +296,7 @@ print(cowplot::plot_grid(overfit_vis_plot,
                          deriv_plot,
                          ncol = 1,
                          labels = "auto",
-                         label_y = c(1,1.1)))
+                         label_y = c(1,1.2)))
 #Note: this code takes quite a long time to run! It's fitting all 10 models.
 #Run once if possible, then rely on the cached code. There's a reason it's split off from the rest of the chunks of code.
 source("../code/functions.R")

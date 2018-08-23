@@ -39,7 +39,7 @@ theme_update(panel.grid = element_blank())
 In this paper, we discuss an extension to two popular approaches to modelling complex structures in ecological data: the generalized additive model (GAM) and the hierarchical model (HGLM). The hierarchical GAM (HGAM), allows the user
 to model nonlinear functional relationships between covariates and outcomes
 where the shape of the function itself varies between different grouping levels. We describe the theoretical connection between these models and
-HGLMs and GAMs, how to model different assumptions about the degree of
+HGLMs and GAMs, explain how to model different assumptions about the degree of
 inter-group variability in functional response, and show how HGAMs can be readily fitted
 using existing GAM software, the mgcv package in R. We also discuss computational
 and statistical issues with fitting these models, and demonstrate how to fit HGAMs
