@@ -462,7 +462,7 @@ to balance penalties between nested smooth terms (this is why nested random
 effects can be fitted). We have observed that *mgcv* still occasionally
 finds solutions with simulated data where the global term is over-smoothed.
 
-To avoid this issue we recommend both careful choice of basis and setting model degrees of freedom so that the groupwise terms are either slightly less flexible than the global term or have a smaller nullspace. For instance, in the examples in section III, we used smoothers with an unpenalized nullspace (standard thin-plate splines) for the global smooth and ones with no nullspace for the groupwise terms[^gsnull]. When using thin-plate splines, it may also help to use splines with a lower order of derivative penalized in the groupwise smooths than the global smooths, as lower-order "tp" splines have fewer basis functions in the nullspace. For example, we used `m=2` (penalizing squared second derivatives) for the global smooth, and `m=1` (penalizing squared first derivatives) for groupwise smooths in models 2 and 3. Another option would be to use a lower number of basis functions (`k`) for groupwise relative to global terms, as this will reduce the maximum flexibility possible in the groupwise terms. We do caution that these are just rules of thumb. As of this writing, there is no published work looking what the effect of adding groupwise smooths has on the statistical properties of estimating a global smooth. In cases where an accurately estimated global smooth is essential, we recommend either fitting model 1, or using Markov Random Fields (Appendix A) and calculate the global smooth by averaging across grouping levels.
+To avoid this issue we recommend both careful choice of basis and setting model degrees of freedom so that the groupwise terms are either slightly less flexible than the global term or have a smaller nullspace. For instance, in the examples in section III, we used smoothers with an unpenalized nullspace (standard thin-plate splines) for the global smooth and ones with no nullspace for the groupwise terms[^gsnull]. When using thin-plate splines, it may also help to use splines with a lower order of derivative penalized in the groupwise smooths than the global smooths, as lower-order "tp" splines have fewer basis functions in the nullspace. For example, we used `m=2` (penalizing squared second derivatives) for the global smooth, and `m=1` (penalizing squared first derivatives) for groupwise smooths in models 2 and 3. Another option would be to use a lower number of basis functions (`k`) for groupwise relative to global terms, as this will reduce the maximum flexibility possible in the groupwise terms. We do caution that these are just rules of thumb. In cases where an accurately estimated global smooth is essential, we recommend either fitting model 1 or using specialized functional regression software such as the *refund* package [@scheipl_functional_2014], which enforce constraints on the groupwise smooths so that they always sum to zero at any given point (avoiding the collinearity issue). See below for more information on functional regression.
 
 [^gsnull]: For model 2, the "fs" smoother, and tensor products of random effect ("re") and other smooth terms do not have a penalized nullspace by construction (they are full rank), as noted above. For model 3 groupwise terms, we used basis types that had a penalty added to the nullspace, so called "shrinkage" methods: `bs="tp"`, `"cs"`, or `"ps"` have this property.
 
@@ -489,13 +489,14 @@ take a specified model formula and automatically convert it into code for the JA
 (or BUGS) Bayesian statistical packages, which can be adapted by the user to
 their own needs.
 
-<!-- appendix
  Similarly, the *brms* package [@burkner_brms:_2017], which can
 fit complex statistical models using the Bayesian software stan
-[@carpenter_stan:_2017] allows for the inclusion of smooth terms as part of the
+[@carpenter_stan:_2017] allows for the inclusion of *mgcv*-style smooth terms as part of the
 model specification. The *brms* package does not currently support `te()` tensor products or factor-smooth basis terms (`bs="fs"`), but does support `t2`-style tensor products,
-which means all of the models fitted in this paper can be fit by *brms*. For 
-instance, `CO2_mod2` could be coded like this: 
+which means all of the models fitted in this paper can be fit by *brms*. 
+
+<!-- probably unnessecary code
+For instance, `CO2_mod2` could be coded like this: 
 
 
 ```{r brms_model, echo=T, eval =F,   message=F, warning=F}
@@ -526,16 +527,14 @@ be extracted with:
 ```{r brms_code, echo=T, eval =F, message=F, warning=F}
 stancode(CO2_mod2_brms)
 ```
-
-**should we mention gretagam at this point? and does INLAbru have any capacity for HGAMs? I'm not familiar enough with INLAbru's inner workings. I do know that glmmTMB cannot currently include mgcv-style smooths.**
 -->
 
-<!--## Beyond HGAMs: functional regression
+## Beyond HGAMs: functional regression
 
 The HGAM models we have discussed are actually a type of *functional regression*, which is an extension of standard regression models to cases where the outcome variable $y_i$ and/or the predictor variables $x_i$ for a given outcome are functions, rather than single variables [@ramsay_functional_2005]. HGAMs as we have described them are a form of function-on-scalar regression [@ramsay_functional_2005; @reiss_fast_2010], where we are trying to estimate a smooth function that varies between grouping levels. 
 
 We have deliberately focused our paper on these simpler classes of functional regression model, and chosen to use the term HGAM rather than functional regression, as we believe that this more clearly connects these models to modelling approaches already familiar to ecologists. Further, we consider the unit of analysis to still be individual observations, as compared to functional regression where the the unit of analysis is whole functions (for instance, we are interested in cases like species distribution modelling, where the presence of a given species may be predicted from a sum of several species-specific functions of different environmental variables). However, there is an extensive literature dedicated to how to fit more complex functional regression models for any interested reader (see @ramsay_functional_2005 for a good introduction, and @scheipl_generalized_2016 for more recent work in this field). The `refund` package [@reiss_fast_2010; @scheipl_functional_2014; @scheipl_generalized_2016] uses the statistical machinery from `mgcv` to fit these models, and should be usable by anyone familiar with standard R and `mgcv` modelling syntax. 
 Functional regression is also a major area of study in Bayesian statistics (e.g., @kaufman_bayesian_2010). 
--->
+
 
 

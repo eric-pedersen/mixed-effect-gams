@@ -62,7 +62,7 @@ on example data.
 ```
 
 
-# Conclusions
+# Conclusion
 
 HGAMs are a powerful tool to model intergroup variability, and we have attempted 
 to illustrate some of the range and possibilities that these models are capable
