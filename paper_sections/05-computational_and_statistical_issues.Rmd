@@ -471,7 +471,7 @@ To avoid this issue we recommend both careful choice of basis and setting model 
 As mentioned in section II, the penalty matrix can also be treated as the 
 inverse of a prior covariance matrix for model parameters $\mathbf{\beta}$.
 Intuitively, the basis functions and penalty we use form a prior (in the informal sense) on how we'd like our model term to behave. REML gives an
-empirical Bayes estimate of the smooth model (CITEX), where terms in the 
+empirical Bayes estimate of the smooth model [@laird_random-effects_1982], where terms in the 
 nullspace of the smooth have improper, flat priors (i.e., any value for these terms are considered equally likely), any terms in the
 range space are treated as having a multivariate normal distribution, and the
 penalty terms are treated as having an improper flat prior (see
