@@ -476,7 +476,7 @@ nullspace of the smooth have improper, flat priors (i.e., any value for these te
 range space are treated as having a multivariate normal distribution, and the
 penalty terms are treated as having an improper flat prior (see
 @wood_generalized_2017 for more details on this connection). The posterior Bayesian
-covariance matrix for model parameters can be extracted from any fitting
+covariance matrix for model parameters can be extracted from any fitted
 `gam`/`bam` model with `model$Vp` or `vcov(model)`. This can in turn be used
 to generate predictions from the posterior distribution of the model, as the 
 Bayesian covariance matrix already incorporates the uncertainty from having to
