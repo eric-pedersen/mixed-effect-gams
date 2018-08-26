@@ -30,7 +30,7 @@ fit separate penalties for each group level or assign a common penalty for all
 group levels (i.e., deciding between models 2 & 3 or models 4 & 5). If the
 functional relationships we are trying to estimate for different group levels
 actually vary in how wiggly they are, setting the penalty for all group-level
-smooths equal (models 2 &4) will either lead to overly variable estimates for the
+smooths equal (models 2 & 4) will either lead to overly variable estimates for the
 least variable group levels, over-smoothed (biased) estimates for the most
 wiggly terms, or a mixture of these two, depending on the fitting criteria.
 
@@ -125,7 +125,7 @@ of the true function (Fig. \ref{fig:var_pen}b).
 This implies that assuming equal smoothness will result in underestimating
 the true smoothness of low-variability terms, and thus lead to more variable
 estimates of these terms. If this is a potential issue, we recommend fitting
-both models 4 ad 5 and using standard model evaluation criteria (e.g., AIC) to
+both models 4 and 5 and using standard model evaluation criteria (e.g., AIC) to
 determine if there is evidence for among-group variability in smoothness. For
 instance, the AIC for model 4 fit to this data is `r round(AIC(mod1))`, whereas
 it is `r round(AIC(mod2))` for model 5, implying a substantial improvement in fit by
