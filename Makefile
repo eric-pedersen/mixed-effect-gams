@@ -2,7 +2,7 @@ all: main md fig tex
 main: md fig tex
 
 
-md: paper_sections/01-intro.Rmd paper_sections/02-gams.Rmd paper_sections/03-hierarchical_gams.Rmd paper_sections/04-computational_and_statistical_issues.Rmd paper_sections/05-examples.Rmd
+md: paper_sections/01-intro.Rmd paper_sections/02-gams.Rmd paper_sections/03-hierarchical_gams.Rmd paper_sections/04-examples.Rmd paper_sections/05-computational_and_statistical_issues.Rmd 
 
 fig: figures/temp_growth_example.png figures/alternate_models.png code/plotting_smooth_curves.R 
 				R --vanilla --slave -e "source('code/plotting_smooth_curves.R')"

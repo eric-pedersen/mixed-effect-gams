@@ -224,6 +224,153 @@ kable(AIC_table, format ="latex", caption="AIC table comparing model fits for ex
   group_rows("B. bird_move models", 6,10)
 
 
+zooplankton <- read.csv("../data/zooplankton_example.csv")
+
+#This is what the data looks like:
+str(zooplankton)
+levels(zooplankton$taxon)
+levels(zooplankton$lake)
+zoo_train <- subset(zooplankton, year%%2==0)
+zoo_test <- subset(zooplankton, year%%2==1)
+zoo_comm_mod4 <- gam(density_scaled~s(day, taxon,
+                                      bs="fs",
+                                      k=10,
+                                      xt=list(bs="cc")),
+                     data=zoo_train,
+                     knots = list(day =c(1, 365)),
+                     method = "ML"
+                     )
+
+printCoefmat(summary(zoo_comm_mod4)$s.table)
+zoo_comm_mod5 <- update(zoo_comm_mod4,
+                        formula = density_scaled~s(day, by=taxon,
+                                                   k=10, bs="cc"))
+
+printCoefmat(summary(zoo_comm_mod5)$s.table)
+#Create synthetic data to use to compare predictions
+zoo_plot_data = expand.grid(day = 1:365, taxon = factor(levels(zoo_train$taxon)))
+
+#extract predicted values and standard errors for both models
+zoo_mod4_fit = predict(zoo_comm_mod4, zoo_plot_data, se.fit = T)
+zoo_mod5_fit = predict(zoo_comm_mod5, zoo_plot_data, se.fit = T)
+
+zoo_plot_data$mod4_fit = as.numeric(zoo_mod4_fit$fit)
+zoo_plot_data$mod5_fit = as.numeric(zoo_mod5_fit$fit)
+
+zoo_plot_data$mod4_se = as.numeric(zoo_mod4_fit$se.fit)
+zoo_plot_data$mod5_se = as.numeric(zoo_mod5_fit$se.fit)
+
+#Plot the model output, with means plus standard deviations for each model.
+zoo_plot = ggplot(zoo_plot_data, aes(x=day))+
+  facet_wrap(~taxon, nrow = 2)+
+  geom_point(data= zoo_train, aes(y=density_scaled),size=0.1)+
+  geom_line(aes(y=mod4_fit, color = "Model 4"))+
+  geom_line(aes(y=mod5_fit, color = "Model 5"))+
+  geom_ribbon(aes(ymin = mod4_fit - 2*mod4_se, 
+                  ymax = mod4_fit + 2*mod4_se,
+                  fill="Model 4"), 
+              alpha=0.25)+
+  geom_ribbon(aes(ymin = mod5_fit - 2*mod5_se, 
+                  ymax = mod5_fit + 2*mod5_se,
+                  fill="Model 5"), 
+              alpha=0.25)+
+  scale_y_continuous("Scaled log-transformed density")+
+  scale_x_continuous(expand = c(0,0))+
+  scale_color_manual("", breaks = c("Model 4", "Model 5"), values = c("black","red"))+
+  scale_fill_manual("", breaks = c("Model 4", "Model 5"), values = c("black","red"))+
+  theme(legend.position = "bottom")
+
+print(zoo_plot)
+get_MSE = function(obs, pred) mean((obs-pred)^2)
+#Getting the out of sample predictions for both models:
+zoo_test$mod4 = as.numeric(predict(zoo_comm_mod4,zoo_test))
+zoo_test$mod5 = as.numeric(predict(zoo_comm_mod5,zoo_test))
+
+#Correlations between fitted and observed values for all species:
+#\n is in variable titles to add a line break in the printed table. 
+zoo_test_summary = zoo_test %>%
+  group_by(taxon)%>%
+  summarise(`model 4 MSE` = round(get_MSE(density_scaled,mod4),2),
+            `model 5 MSE` = round(get_MSE(density_scaled,mod5),2))
+
+kable(zoo_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. MSE values represent the average squared difference between model predictions and observations for test data.", booktabs = T)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+  kable_styling(full_width = F)
+daphnia_train <- subset(zoo_train, taxon=="D. mendotae")
+daphnia_test <- subset(zoo_test, taxon=="D. mendotae")
+
+zoo_daph_mod1 <- gam(density_scaled~s(day, bs="cc",k=10),
+                     data=daphnia_train,
+                     knots=list(day =c(1, 365)),
+                     method="ML"
+                     )
+
+printCoefmat(summary(zoo_daph_mod1)$s.table)
+zoo_daph_mod2 <- update(zoo_daph_mod1,
+                        formula = density_scaled~s(day, bs="cc", k=10) +
+                                                 s(day, lake, k=10, bs="fs",
+                                                   xt=list(bs="cc")))
+
+
+printCoefmat(summary(zoo_daph_mod2)$s.table)
+zoo_daph_mod3 <- update(zoo_daph_mod1,
+                        formula=density_scaled~s(day, bs="cc", k=10) +
+                                               s(day, by=lake, k=10,
+                                                 bs="cc"))
+
+printCoefmat(summary(zoo_daph_mod3)$s.table)
+#Create synthetic data to use to compare predictions
+daph_plot_data = expand.grid(day = 1:365, lake = factor(levels(zoo_train$lake)))
+
+
+daph_mod1_fit = predict(zoo_daph_mod1, daph_plot_data, se.fit = T)
+daph_mod2_fit = predict(zoo_daph_mod2, daph_plot_data, se.fit = T)
+daph_mod3_fit = predict(zoo_daph_mod3, daph_plot_data, se.fit = T)
+
+
+daph_plot_data$mod1_fit = as.numeric(daph_mod1_fit$fit)
+daph_plot_data$mod2_fit = as.numeric(daph_mod2_fit$fit)
+daph_plot_data$mod3_fit = as.numeric(daph_mod3_fit$fit)
+
+daph_plot_data$mod1_se = as.numeric(daph_mod1_fit$se.fit)
+daph_plot_data$mod2_se = as.numeric(daph_mod2_fit$se.fit)
+daph_plot_data$mod3_se = as.numeric(daph_mod3_fit$se.fit)
+
+daph_plot = ggplot(daph_plot_data, aes(x=day))+
+  facet_wrap(~lake, nrow = 2)+
+  geom_point(data= daphnia_train, aes(y=density_scaled),size=0.1)+
+  geom_line(aes(y=mod1_fit, linetype = "Model 1", size = "Model 1"))+
+  geom_line(aes(y=mod2_fit,color = "Model 2"))+
+  geom_line(aes(y=mod3_fit,color = "Model 3"))+
+  geom_ribbon(aes(ymin = mod2_fit - 2*mod2_se, 
+                  ymax = mod2_fit + 2*mod2_se,fill = "Model 2"), 
+              alpha=0.25)+
+  geom_ribbon(aes(ymin = mod3_fit - 2*mod3_se, 
+                  ymax = mod3_fit + 2*mod3_se,fill = "Model 3"), 
+              alpha=0.25)+
+  scale_y_continuous("Scaled log-transformed density")+
+  scale_x_continuous(expand = c(0,0))+
+  scale_color_manual("", breaks = c("Model 2", "Model 3"), values = c("black","red"))+
+  scale_fill_manual("", breaks = c("Model 2", "Model 3"), values = c("black","red"))+
+  scale_linetype_manual("", breaks = c("Model 1"), values = 2)+
+  scale_size_manual("", breaks = c("Model 1"), values = 2)+
+  theme(legend.position = "bottom")
+
+print(daph_plot)
+#Getting the out of sample predictions for both models:
+daphnia_test$mod1 = as.numeric(predict(zoo_daph_mod1,daphnia_test))
+daphnia_test$mod2 = as.numeric(predict(zoo_daph_mod2,daphnia_test))
+daphnia_test$mod3 = as.numeric(predict(zoo_daph_mod3,daphnia_test))
+
+# We'll look at the correlation between fitted and observed values for all species:
+daph_test_summary = daphnia_test %>%
+  group_by(lake)%>%
+  summarise(`model 1 MSE` = round(get_MSE(density_scaled,mod1),2),
+            `model 2 MSE` = round(get_MSE(density_scaled,mod2),2),
+            `model 3 MSE` = round(get_MSE(density_scaled,mod3),2))
+
+kable(daph_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 1-3 applied to the *D. mendotae* dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).", booktabs = T)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+  kable_styling(full_width = F)
+
 set.seed(1)
 
 calc_2nd_deriv = function(x,y){
@@ -442,152 +589,5 @@ kable(comp_resources_table,format ="latex", caption="Relative computational time
 ## )
 ## plot(marginal_effects(CO2_mod2_brms), points=TRUE, ask=FALSE, plot=TRUE)
 ## stancode(CO2_mod2_brms)
-
-zooplankton <- read.csv("../data/zooplankton_example.csv")
-
-#This is what the data looks like:
-str(zooplankton)
-levels(zooplankton$taxon)
-levels(zooplankton$lake)
-zoo_train <- subset(zooplankton, year%%2==0)
-zoo_test <- subset(zooplankton, year%%2==1)
-zoo_comm_mod4 <- gam(density_scaled~s(day, taxon,
-                                      bs="fs",
-                                      k=10,
-                                      xt=list(bs="cc")),
-                     data=zoo_train,
-                     knots = list(day =c(1, 365)),
-                     method = "ML"
-                     )
-
-printCoefmat(summary(zoo_comm_mod4)$s.table)
-zoo_comm_mod5 <- update(zoo_comm_mod4,
-                        formula = density_scaled~s(day, by=taxon,
-                                                   k=10, bs="cc"))
-
-printCoefmat(summary(zoo_comm_mod5)$s.table)
-#Create synthetic data to use to compare predictions
-zoo_plot_data = expand.grid(day = 1:365, taxon = factor(levels(zoo_train$taxon)))
-
-#extract predicted values and standard errors for both models
-zoo_mod4_fit = predict(zoo_comm_mod4, zoo_plot_data, se.fit = T)
-zoo_mod5_fit = predict(zoo_comm_mod5, zoo_plot_data, se.fit = T)
-
-zoo_plot_data$mod4_fit = as.numeric(zoo_mod4_fit$fit)
-zoo_plot_data$mod5_fit = as.numeric(zoo_mod5_fit$fit)
-
-zoo_plot_data$mod4_se = as.numeric(zoo_mod4_fit$se.fit)
-zoo_plot_data$mod5_se = as.numeric(zoo_mod5_fit$se.fit)
-
-#Plot the model output, with means plus standard deviations for each model.
-zoo_plot = ggplot(zoo_plot_data, aes(x=day))+
-  facet_wrap(~taxon, nrow = 2)+
-  geom_point(data= zoo_train, aes(y=density_scaled),size=0.1)+
-  geom_line(aes(y=mod4_fit, color = "Model 4"))+
-  geom_line(aes(y=mod5_fit, color = "Model 5"))+
-  geom_ribbon(aes(ymin = mod4_fit - 2*mod4_se, 
-                  ymax = mod4_fit + 2*mod4_se,
-                  fill="Model 4"), 
-              alpha=0.25)+
-  geom_ribbon(aes(ymin = mod5_fit - 2*mod5_se, 
-                  ymax = mod5_fit + 2*mod5_se,
-                  fill="Model 5"), 
-              alpha=0.25)+
-  scale_y_continuous("Scaled log-transformed density")+
-  scale_x_continuous(expand = c(0,0))+
-  scale_color_manual("", breaks = c("Model 4", "Model 5"), values = c("black","red"))+
-  scale_fill_manual("", breaks = c("Model 4", "Model 5"), values = c("black","red"))+
-  theme(legend.position = "bottom")
-
-print(zoo_plot)
-get_MSE = function(obs, pred) mean((obs-pred)^2)
-#Getting the out of sample predictions for both models:
-zoo_test$mod4 = as.numeric(predict(zoo_comm_mod4,zoo_test))
-zoo_test$mod5 = as.numeric(predict(zoo_comm_mod5,zoo_test))
-
-#Correlations between fitted and observed values for all species:
-#\n is in variable titles to add a line break in the printed table. 
-zoo_test_summary = zoo_test %>%
-  group_by(taxon)%>%
-  summarise(`model 4 MSE` = round(get_MSE(density_scaled,mod4),2),
-            `model 5 MSE` = round(get_MSE(density_scaled,mod5),2))
-
-kable(zoo_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. MSE values represent the average squared difference between model predictions and observations for test data.", booktabs = T)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
-  kable_styling(full_width = F)
-daphnia_train <- subset(zoo_train, taxon=="D. mendotae")
-daphnia_test <- subset(zoo_test, taxon=="D. mendotae")
-
-zoo_daph_mod1 <- gam(density_scaled~s(day, bs="cc",k=10),
-                     data=daphnia_train,
-                     knots=list(day =c(1, 365)),
-                     method="ML"
-                     )
-
-printCoefmat(summary(zoo_daph_mod1)$s.table)
-zoo_daph_mod2 <- update(zoo_daph_mod1,
-                        formula = density_scaled~s(day, bs="cc", k=10) +
-                                                 s(day, lake, k=10, bs="fs",
-                                                   xt=list(bs="cc")))
-
-
-printCoefmat(summary(zoo_daph_mod2)$s.table)
-zoo_daph_mod3 <- update(zoo_daph_mod1,
-                        formula=density_scaled~s(day, bs="cc", k=10) +
-                                               s(day, by=lake, k=10,
-                                                 bs="cc"))
-
-printCoefmat(summary(zoo_daph_mod3)$s.table)
-#Create synthetic data to use to compare predictions
-daph_plot_data = expand.grid(day = 1:365, lake = factor(levels(zoo_train$lake)))
-
-
-daph_mod1_fit = predict(zoo_daph_mod1, daph_plot_data, se.fit = T)
-daph_mod2_fit = predict(zoo_daph_mod2, daph_plot_data, se.fit = T)
-daph_mod3_fit = predict(zoo_daph_mod3, daph_plot_data, se.fit = T)
-
-
-daph_plot_data$mod1_fit = as.numeric(daph_mod1_fit$fit)
-daph_plot_data$mod2_fit = as.numeric(daph_mod2_fit$fit)
-daph_plot_data$mod3_fit = as.numeric(daph_mod3_fit$fit)
-
-daph_plot_data$mod1_se = as.numeric(daph_mod1_fit$se.fit)
-daph_plot_data$mod2_se = as.numeric(daph_mod2_fit$se.fit)
-daph_plot_data$mod3_se = as.numeric(daph_mod3_fit$se.fit)
-
-daph_plot = ggplot(daph_plot_data, aes(x=day))+
-  facet_wrap(~lake, nrow = 2)+
-  geom_point(data= daphnia_train, aes(y=density_scaled),size=0.1)+
-  geom_line(aes(y=mod1_fit, linetype = "Model 1", size = "Model 1"))+
-  geom_line(aes(y=mod2_fit,color = "Model 2"))+
-  geom_line(aes(y=mod3_fit,color = "Model 3"))+
-  geom_ribbon(aes(ymin = mod2_fit - 2*mod2_se, 
-                  ymax = mod2_fit + 2*mod2_se,fill = "Model 2"), 
-              alpha=0.25)+
-  geom_ribbon(aes(ymin = mod3_fit - 2*mod3_se, 
-                  ymax = mod3_fit + 2*mod3_se,fill = "Model 3"), 
-              alpha=0.25)+
-  scale_y_continuous("Scaled log-transformed density")+
-  scale_x_continuous(expand = c(0,0))+
-  scale_color_manual("", breaks = c("Model 2", "Model 3"), values = c("black","red"))+
-  scale_fill_manual("", breaks = c("Model 2", "Model 3"), values = c("black","red"))+
-  scale_linetype_manual("", breaks = c("Model 1"), values = 2)+
-  scale_size_manual("", breaks = c("Model 1"), values = 2)+
-  theme(legend.position = "bottom")
-
-print(daph_plot)
-#Getting the out of sample predictions for both models:
-daphnia_test$mod1 = as.numeric(predict(zoo_daph_mod1,daphnia_test))
-daphnia_test$mod2 = as.numeric(predict(zoo_daph_mod2,daphnia_test))
-daphnia_test$mod3 = as.numeric(predict(zoo_daph_mod3,daphnia_test))
-
-# We'll look at the correlation between fitted and observed values for all species:
-daph_test_summary = daphnia_test %>%
-  group_by(lake)%>%
-  summarise(`model 1 MSE` = round(get_MSE(density_scaled,mod1),2),
-            `model 2 MSE` = round(get_MSE(density_scaled,mod2),2),
-            `model 3 MSE` = round(get_MSE(density_scaled,mod3),2))
-
-kable(daph_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 1-3 applied to the *D. mendotae* dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).", booktabs = T)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
-  kable_styling(full_width = F)
 #This is just to make sure that the figures occur before the bibliography. 
 cat('\\FloatBarrier')
