@@ -1,11 +1,5 @@
----
-output:
-  pdf_document: default
-  word_document: default
-  html_document: default
----
 
-#II: An Review of Generalized Additive Models
+#II: A review of Generalized Additive Models
 
 The generalized linear model [GLM; @McCullagh:1989ti] relates a response ($y$) to a linear combination of explanatory variables. The response is assumed to be conditionally distributed according to some exponential family distribution (e.g., letting the response be a trial, a count or a strictly positive real number leads to binomial, Poisson or Gamma distributions, respectively). The generalized additive model [GAM; @Hastie:1990vg; @Ruppert:2003uc; @Wood:2006vg] allows the relationships between the explanatory variables (henceforth covariates) and the response to be described by smooth terms (usually *splines* [@deBoor:1978wq], but potentially other structures). In general we have models of the form:
 $$
@@ -19,9 +13,9 @@ f_j(x_j) = \sum_{k=1}^K \beta_{j,k} b_{j,k}(x_j).
 $$
 $K$, referred to as "basis size", "basis complexity" or "basis richness", determines the maximum complexity of each smooth.
 
-It would seem that large basis size could lead to overfitting, but this counteracted by a *smoothing penalty* that influences basis function coefficients so as to prevent excess wiggliness and ensure appropriate complexity of each smooth term.  For each term, a *penalty matrix* $(\mathbf{S})$, specific to the form of the basis functions, is pre- and post-multiplied by the parameter vector $\boldsymbol{\beta}$ to calculate the penalty $(\mathbf{S}^T $\boldsymbol{\beta} \mathbf{S})$.  We then penalize the model likelihood by the penalty term, controlling the trade-off via a *smoothing parameter* $(\lambda})$).  The penalized likelihood used to fit the model is thus
+It would seem that large basis size could lead to overfitting, but this counteracted by a *smoothing penalty* that influences basis function coefficients so as to prevent excess wiggliness and ensure appropriate complexity of each smooth term.  For each term, a *penalty matrix* $(\mathbf{S})$, specific to the form of the basis functions, is pre- and post-multiplied by the parameter vector $\boldsymbol{\beta}$ to calculate the penalty $(\mathbf{S}^T \boldsymbol{\beta} \mathbf{S})$.  We then penalize the model likelihood by the penalty term, controlling the trade-off via a *smoothing parameter* ($\lambda$).  The penalized likelihood used to fit the model is thus
 $$
-L - $\boldsymbol{\lambda} \mathbf{S}^T $\boldsymbol{\beta} \mathbf{S}
+L - \boldsymbol{\lambda} \mathbf{S}^T \boldsymbol{\beta} \mathbf{S}
 $$
 
 Figure \ref{fig:smoothing_effect} shows the results of setting different smoothing parameters for a simple one-dimensional smoothing problem: optimal smoothing in the first plot; the second plot shows what happens when the smoothing parameter is set to zero: interpolation (the penalty has no effect); the right plot shows when the smoothing parameter is set to a very large value, resulting in a straight line.

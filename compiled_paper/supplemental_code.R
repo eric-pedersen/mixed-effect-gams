@@ -14,6 +14,14 @@ library(dplyr)
 theme_set(theme_bw())
 theme_update(panel.grid = element_blank())
 
+table_out_format <- ifelse("pdf_document" %in% rmarkdown::all_output_formats("full_document.Rmd"),
+                    "latex",
+                     ifelse("html_document" %in% rmarkdown::all_output_formats("full_document.Rmd"),
+                            "html",
+                            NA_character_)
+                      )
+
+
 
 
 # example of varying lambda
@@ -66,8 +74,8 @@ plot_grid(p1, p2, p3, align = "hv", axis = "lrtb", ncol = 3, labels = "auto")
 #This recodes it to an unordered factor (see main text for why).
 CO2 <- transform(CO2, Plant_uo=factor(Plant, ordered=FALSE))
 
-#Loading simuated bird movement data
-bird_move <- read.csv("../data/bird_move.csv") 
+#Loading simulated bird movement data
+bird_move <- read.csv("../data/bird_move.csv")
 
 CO2_vis_plot <- ggplot(CO2, aes(x=conc, y=uptake, group=Plant,color=Plant, lty=Plant)) +
   geom_point() +
@@ -105,7 +113,7 @@ CO2_mod1_pred <- with(CO2,
 CO2_mod1_pred <- cbind(CO2_mod1_pred,
                        predict(CO2_mod1, CO2_mod1_pred, se.fit=TRUE, type="response"))
 
-# make the plot. Note here the use of the exp() function to back-transform the 
+# make the plot. Note here the use of the exp() function to back-transform the
 # predictions (which are for log-uptake) to the original scale
 ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
   facet_wrap(~Plant_uo) +
@@ -134,7 +142,7 @@ ggplot(bird_move, aes(x=mod1, y=count)) +
   facet_wrap(~species) +
   geom_point() +
   geom_abline() +
-  labs(x="Predicted count", y= "Observed count") 
+  labs(x="Predicted count", y= "Observed count")
 CO2_mod2 <- gam(log(uptake) ~ s(log(conc), k=5, m=2) +
                               s(log(conc), Plant_uo, k=5,  bs="fs", m=2),
                 data=CO2, method="REML")
@@ -149,7 +157,7 @@ ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
   geom_ribbon(aes(ymin=exp(mod2-2*mod2_se),
                   ymax=exp(mod2+2*mod2_se)), alpha=0.25) +
   labs(x=expression(CO[2] ~ concentration ~ (mL ~ L^{-1})),
-       y=expression(CO[2] ~ uptake ~ (mu*mol ~ m^{-2}))) 
+       y=expression(CO[2] ~ uptake ~ (mu*mol ~ m^{-2})))
 bird_mod2 <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
                             k=c(10, 10), m=c(2, 2)) +
                          t2(week, latitude, species, bs=c("cc", "tp", "re"),
@@ -166,14 +174,14 @@ bird_mod2_indiv <- ggplot(data=bird_move, aes(x=week, y=latitude, fill=mod2,colo
   scale_y_continuous(expand=c(0, 0), breaks=c(0, 30, 60)) +
   labs(x = "Week", y = "Latitude") +
   theme(legend.position="right")
-  
+
 bird_mod2_indiv_fit <- ggplot(data=bird_move, aes(x=mod2, y=count)) +
   facet_wrap(~ species, ncol=6) +
   geom_point() +
   geom_abline() +
-  labs(x="Predicted count (model 2)", y= "Observed count") 
+  labs(x="Predicted count (model 2)", y= "Observed count")
 
-plot_grid(bird_mod2_indiv, bird_mod2_indiv_fit, ncol=1, align="vh", axis = "lrtb", 
+plot_grid(bird_mod2_indiv, bird_mod2_indiv_fit, ncol=1, align="vh", axis = "lrtb",
           labels=c("a","b"), rel_heights= c(1,1))
 ## CO2_mod3 <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
 ##                               s(log(conc), by=Plant_uo, k=5, m=1, bs="ts") +
@@ -218,7 +226,7 @@ AIC_table = AIC(CO2_mod1,CO2_mod2, CO2_mod3, CO2_mod4, CO2_mod5,
   mutate_at(.vars = vars(df,AIC), .funs = funs(round,.args = list(digits=0)))
 
 
-kable(AIC_table, format ="latex", caption="AIC table comparing model fits for example datasets", booktabs = T)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+kable(AIC_table, format =table_out_format, caption="AIC table comparing model fits for example datasets", booktabs = T)%>% 
   kable_styling(full_width = F)%>%
   group_rows("A. CO2 models", 1,5)%>%
   group_rows("B. bird_move models", 6,10)
@@ -232,21 +240,18 @@ levels(zooplankton$taxon)
 levels(zooplankton$lake)
 zoo_train <- subset(zooplankton, year%%2==0)
 zoo_test <- subset(zooplankton, year%%2==1)
-zoo_comm_mod4 <- gam(density_scaled~s(day, taxon,
+zoo_comm_mod4 <- gam(density_scaled ~s(day, taxon,
                                       bs="fs",
                                       k=10,
                                       xt=list(bs="cc")),
                      data=zoo_train,
                      knots = list(day =c(1, 365)),
-                     method = "ML"
-                     )
-
-printCoefmat(summary(zoo_comm_mod4)$s.table)
-zoo_comm_mod5 <- update(zoo_comm_mod4,
-                        formula = density_scaled~s(day, by=taxon,
-                                                   k=10, bs="cc"))
-
-printCoefmat(summary(zoo_comm_mod5)$s.table)
+                     method = "ML")
+zoo_comm_mod5 <- gam(density_scaled~s(day, by=taxon,
+                           k=10, bs="cc"),
+                     data=zoo_train,
+                     knots = list(day =c(1, 365)),
+                     method = "ML")
 #Create synthetic data to use to compare predictions
 zoo_plot_data = expand.grid(day = 1:365, taxon = factor(levels(zoo_train$taxon)))
 
@@ -266,13 +271,13 @@ zoo_plot = ggplot(zoo_plot_data, aes(x=day))+
   geom_point(data= zoo_train, aes(y=density_scaled),size=0.1)+
   geom_line(aes(y=mod4_fit, color = "Model 4"))+
   geom_line(aes(y=mod5_fit, color = "Model 5"))+
-  geom_ribbon(aes(ymin = mod4_fit - 2*mod4_se, 
+  geom_ribbon(aes(ymin = mod4_fit - 2*mod4_se,
                   ymax = mod4_fit + 2*mod4_se,
-                  fill="Model 4"), 
+                  fill="Model 4"),
               alpha=0.25)+
-  geom_ribbon(aes(ymin = mod5_fit - 2*mod5_se, 
+  geom_ribbon(aes(ymin = mod5_fit - 2*mod5_se,
                   ymax = mod5_fit + 2*mod5_se,
-                  fill="Model 5"), 
+                  fill="Model 5"),
               alpha=0.25)+
   scale_y_continuous("Scaled log-transformed density")+
   scale_x_continuous(expand = c(0,0))+
@@ -287,13 +292,13 @@ zoo_test$mod4 = as.numeric(predict(zoo_comm_mod4,zoo_test))
 zoo_test$mod5 = as.numeric(predict(zoo_comm_mod5,zoo_test))
 
 #Correlations between fitted and observed values for all species:
-#\n is in variable titles to add a line break in the printed table. 
+#\n is in variable titles to add a line break in the printed table.
 zoo_test_summary = zoo_test %>%
   group_by(taxon)%>%
   summarise(`model 4 MSE` = round(get_MSE(density_scaled,mod4),2),
             `model 5 MSE` = round(get_MSE(density_scaled,mod5),2))
 
-kable(zoo_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. MSE values represent the average squared difference between model predictions and observations for test data.", booktabs = T)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+kable(zoo_test_summary, format = table_out_format, caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. MSE values represent the average squared difference between model predictions and observations for test data.", booktabs = T)%>%
   kable_styling(full_width = F)
 daphnia_train <- subset(zoo_train, taxon=="D. mendotae")
 daphnia_test <- subset(zoo_test, taxon=="D. mendotae")
@@ -301,21 +306,22 @@ daphnia_test <- subset(zoo_test, taxon=="D. mendotae")
 zoo_daph_mod1 <- gam(density_scaled~s(day, bs="cc",k=10),
                      data=daphnia_train,
                      knots=list(day =c(1, 365)),
-                     method="ML"
-                     )
+                     method="ML")
 
-printCoefmat(summary(zoo_daph_mod1)$s.table)
-zoo_daph_mod2 <- update(zoo_daph_mod1,
-                        formula = density_scaled~s(day, bs="cc", k=10) +
-                                                 s(day, lake, k=10, bs="fs",
-                                                   xt=list(bs="cc")))
-
+printCoefmat(summary(zoo_daph_mod1)$s.table)                     
+zoo_daph_mod2 <- gam(density_scaled~s(day, bs="cc", k=10) +
+                            s(day, lake, k=10, bs="fs",
+                              xt=list(bs="cc")),
+                     data=daphnia_train,
+                     knots=list(day =c(1, 365)),
+                     method="ML")
 
 printCoefmat(summary(zoo_daph_mod2)$s.table)
-zoo_daph_mod3 <- update(zoo_daph_mod1,
-                        formula=density_scaled~s(day, bs="cc", k=10) +
-                                               s(day, by=lake, k=10,
-                                                 bs="cc"))
+zoo_daph_mod3 <- gam(density_scaled~s(day, bs="cc", k=10) +
+                                    s(day, by=lake, k=10, bs="cc"),
+                     data=daphnia_train,
+                     knots=list(day =c(1, 365)),
+                     method="ML")
 
 printCoefmat(summary(zoo_daph_mod3)$s.table)
 #Create synthetic data to use to compare predictions
@@ -341,11 +347,11 @@ daph_plot = ggplot(daph_plot_data, aes(x=day))+
   geom_line(aes(y=mod1_fit, linetype = "Model 1", size = "Model 1"))+
   geom_line(aes(y=mod2_fit,color = "Model 2"))+
   geom_line(aes(y=mod3_fit,color = "Model 3"))+
-  geom_ribbon(aes(ymin = mod2_fit - 2*mod2_se, 
-                  ymax = mod2_fit + 2*mod2_se,fill = "Model 2"), 
+  geom_ribbon(aes(ymin = mod2_fit - 2*mod2_se,
+                  ymax = mod2_fit + 2*mod2_se,fill = "Model 2"),
               alpha=0.25)+
-  geom_ribbon(aes(ymin = mod3_fit - 2*mod3_se, 
-                  ymax = mod3_fit + 2*mod3_se,fill = "Model 3"), 
+  geom_ribbon(aes(ymin = mod3_fit - 2*mod3_se,
+                  ymax = mod3_fit + 2*mod3_se,fill = "Model 3"),
               alpha=0.25)+
   scale_y_continuous("Scaled log-transformed density")+
   scale_x_continuous(expand = c(0,0))+
@@ -368,7 +374,7 @@ daph_test_summary = daphnia_test %>%
             `model 2 MSE` = round(get_MSE(density_scaled,mod2),2),
             `model 3 MSE` = round(get_MSE(density_scaled,mod3),2))
 
-kable(daph_test_summary,format ="latex", caption="Out-of-sample predictive ability for model 1-3 applied to the *D. mendotae* dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).", booktabs = T)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+kable(daph_test_summary,format = table_out_format, caption="Out-of-sample predictive ability for model 1-3 applied to the *D. mendotae* dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).", booktabs = T)%>%
   kable_styling(full_width = F)
 
 set.seed(1)
@@ -382,7 +388,7 @@ calc_2nd_deriv = function(x,y){
 freq_vals = c(1/4,1/2,1,2,4)
 dat = crossing(x = seq(0,2*pi,length=150),freq = freq_vals)%>%
   mutate(y = sin(freq*x) +rnorm(n(), 0, 0.2),
-         grp = paste("frequency = ",freq,sep= ""), 
+         grp = paste("frequency = ",freq,sep= ""),
          grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")))
 
 mod1 = bam(y~s(x,k=30,grp, bs="fs"), data=dat)
@@ -392,7 +398,7 @@ mod2 = bam(y~s(x,k=30,by=grp)+s(grp,bs="re"), data=dat)
 
 
 overfit_predict_data = crossing(x = seq(0,2*pi,length=500), freq = freq_vals)%>%
-  mutate(grp = paste("frequency = ",freq,sep= ""), 
+  mutate(grp = paste("frequency = ",freq,sep= ""),
          grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")),
          y = sin(freq*x))%>%
   mutate(fit1 = as.numeric(predict(mod1,newdata = .,type = "response")),
@@ -402,7 +408,7 @@ overfit_predict_data_long = overfit_predict_data %>%
   gather(model, value, y, fit1, fit2)%>%
   mutate(model = recode(model, y = "true value",fit1 = "model 4 fit",
                         fit2 = "model 5 fit"),
-         model = factor(model, levels=  c("true value","model 4 fit", 
+         model = factor(model, levels=  c("true value","model 4 fit",
                                           "model 5 fit")))
 
 deriv_est_data = overfit_predict_data%>%
@@ -417,7 +423,7 @@ deriv_est_data = overfit_predict_data%>%
   gather(key=model,value = obs_sqr_deriv,fit1_int,fit2_int)%>%
   mutate(model = factor(ifelse(model=="fit1_int", "model 4 fit",
                                "model 5 fit"),
-                        levels = c("model 4 fit", 
+                        levels = c("model 4 fit",
                                    "model 5 fit")))
 
 
@@ -462,7 +468,7 @@ get_n_coef = function(model) length(coef(model))
 
 get_n_iter = function(model) model$outer.info$iter
 get_n_out_iter = function(model) model$iter
-  
+
 bird_move = read.csv("../data/bird_move.csv")
 
 comp_resources = crossing(model_number = c("1","2","3","4","5"),
@@ -474,24 +480,24 @@ comp_resources = crossing(model_number = c("1","2","3","4","5"),
 CO2$Plant_uo = factor(CO2$Plant, levels = levels(CO2$Plant), ordered = F)
 
 
-comp_resources[1,"time"] = system.time(CO2_mod1 <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+s(Plant_uo, k =12,  bs="re"), 
+comp_resources[1,"time"] = system.time(CO2_mod1 <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+s(Plant_uo, k =12,  bs="re"),
                                                     data= CO2,method="REML",
                                                     control = list(keepData=TRUE)))[3]
 
-comp_resources[2,"time"] = system.time(bird_mod1 <- gam(count ~ te(week,latitude, bs= c("cc", "tp"), k=c(10,10)), 
+comp_resources[2,"time"] = system.time(bird_mod1 <- gam(count ~ te(week,latitude, bs= c("cc", "tp"), k=c(10,10)),
                                                      data= bird_move, method="REML", family= poisson,
                                                      control = list(keepData=TRUE)))[3]
 
 comp_resources[3,"time"] = system.time(CO2_mod2 <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
-                                                       s(log(conc), Plant_uo, k=5, bs="fs",m=1), 
+                                                       s(log(conc), Plant_uo, k=5, bs="fs",m=1),
                                                      data= CO2,method="REML",
                                                      control = list(keepData=TRUE)))[3]
 
 
-comp_resources[4,"time"] = system.time(bird_mod2 <- gam(count ~ te(week,latitude, bs= c("cc", "tp"), 
+comp_resources[4,"time"] = system.time(bird_mod2 <- gam(count ~ te(week,latitude, bs= c("cc", "tp"),
                                                                  k=c(10,10),m=c(2,2))+
-                                                        te(week,latitude,species, bs= c("cc", "tp","re"), 
-                                                           k=c(10,10,6),m = c(1,1,1)), 
+                                                        te(week,latitude,species, bs= c("cc", "tp","re"),
+                                                           k=c(10,10,6),m = c(1,1,1)),
                                                       data= bird_move, method="REML", family= poisson,
                                                       control = list(keepData=TRUE)))[3]
 
@@ -499,30 +505,30 @@ comp_resources[4,"time"] = system.time(bird_mod2 <- gam(count ~ te(week,latitude
 comp_resources[5,"time"] = system.time(
   CO2_mod3 <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
                     s(log(conc),by= Plant_uo, k =5,  bs="ts",m=1)+
-                    s(Plant_uo,bs="re",k=12), 
+                    s(Plant_uo,bs="re",k=12),
                   data= CO2,method="REML",
                   control = list(keepData=TRUE)))[3]
 
 
 
 comp_resources[6,"time"] = system.time(
-  bird_mod3 <- gam(count ~ te(week,latitude, bs= c("cc", "tp"), 
+  bird_mod3 <- gam(count ~ te(week,latitude, bs= c("cc", "tp"),
                               k=c(10,10),m=c(2,2)) +
-                     te(week,latitude, bs= c("cc", "tp"), 
-                        k=c(10,10),m=c(1,1),by= species), 
+                     te(week,latitude, bs= c("cc", "tp"),
+                        k=c(10,10),m=c(1,1),by= species),
                    data= bird_move, method="REML", family= poisson,
                    control = list(keepData=TRUE)))[3]
 
 
 comp_resources[7,"time"] = system.time(
-  CO2_mod4 <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5,  bs="fs",m=2), 
+  CO2_mod4 <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5,  bs="fs",m=2),
                   data= CO2,method="REML",
                   control = list(keepData=TRUE)))[3]
 
 
 comp_resources[8,"time"] = system.time(
-  bird_mod4 <- gam(count ~ te(week,latitude,species, bs= c("cc", "tp","re"), 
-                              k=c(10,10,6),m = 2), 
+  bird_mod4 <- gam(count ~ te(week,latitude,species, bs= c("cc", "tp","re"),
+                              k=c(10,10,6),m = 2),
                    data= bird_move, method="REML", family= poisson,
                    control = list(keepData=TRUE))
 )[3]
@@ -532,19 +538,19 @@ comp_resources[9,"time"] = system.time(
   CO2_mod5 <- gam(log(uptake) ~ s(log(conc),by= Plant_uo, k =5,  bs="tp",m=2)+
                     s(Plant_uo,bs="re",k=12), data= CO2,method="REML",
                   control = list(keepData=TRUE))
-  
+
 )[3]
 
 comp_resources[10,"time"] = system.time(
-  bird_mod5 <- gam(count ~ te(week,latitude,by=species, bs= c("cc", "tp"), 
-                              k=c(10,10),m = 2), 
+  bird_mod5 <- gam(count ~ te(week,latitude,by=species, bs= c("cc", "tp"),
+                              k=c(10,10),m = 2),
                    data= bird_move, method="REML", family= poisson,
                    control = list(keepData=TRUE))
 )[3]
 
 
 comp_resources$model = list(CO2_mod1, bird_mod1, CO2_mod2, bird_mod2,
-                            CO2_mod3, bird_mod3,CO2_mod4, bird_mod4, 
+                            CO2_mod3, bird_mod3,CO2_mod4, bird_mod4,
                             CO2_mod5, bird_mod5)
 
 comp_resources = comp_resources %>%
@@ -563,7 +569,7 @@ comp_resources_table =comp_resources %>%
             `penalties` = n_smooths
             )%>%
   group_by(data_source) %>%
-  mutate(`relative time` = `relative time`/`relative time`[1],#scales processing time relative to model 1 
+  mutate(`relative time` = `relative time`/`relative time`[1],#scales processing time relative to model 1
          `relative time` = ifelse(`relative time`<10, signif(`relative time`,1), signif(`relative time`, 2)) #rounds to illustrate differences in timing.
          )%>%
   ungroup()%>%
@@ -589,5 +595,5 @@ kable(comp_resources_table,format ="latex", caption="Relative computational time
 ## )
 ## plot(marginal_effects(CO2_mod2_brms), points=TRUE, ask=FALSE, plot=TRUE)
 ## stancode(CO2_mod2_brms)
-#This is just to make sure that the figures occur before the bibliography. 
+#This is just to make sure that the figures occur before the bibliography.
 cat('\\FloatBarrier')

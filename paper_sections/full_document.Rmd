@@ -32,6 +32,14 @@ library(dplyr)
 #Set the default theme for ggplot objects to theme_bw()
 theme_set(theme_bw())
 theme_update(panel.grid = element_blank())
+
+table_out_format <- ifelse("pdf_document" %in% rmarkdown::all_output_formats("full_document.Rmd"),
+                    "latex",
+                     ifelse("html_document" %in% rmarkdown::all_output_formats("full_document.Rmd"),
+                            "html",
+                            NA_character_)
+                      )
+
 ```
 
 # Abstract
