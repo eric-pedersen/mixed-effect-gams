@@ -10,7 +10,7 @@ For these examples, data are from a long-term study in seasonal dynamics of zoop
 Here inferential aims are *(i)* estimate variability in seasonality among species in the community, and *(ii)* estimate between-lake variability for the most abundant taxon in the sample (*Daphnia mendotae*). As we are
 focusing on seasonal cycles rather than average or maximum abundances. We have
 log-transformed all densities, then centered and scaled them by the within year,
-species and lake mean; all species in all lake-years will have a mean scaled density of zero and standard deviation of one.
+species and lake mean; all species in all lake-years will have a mean scaled density of zero and standard deviation of one. 
 
 ```{r view_zoo, include = FALSE, message=FALSE,  cache=TRUE}
 zooplankton <- read.csv("../data/zooplankton_example.csv")
@@ -26,7 +26,7 @@ to test the fit:
 
 ```{r zoo_train, echo=TRUE, message=FALSE,  cache=TRUE}
 zoo_train <- subset(zooplankton, year%%2==0)
-zoo_test <- subset(zooplankton, year%%2==1)
+zoo_test <- subset(zooplankton, year%%2==1) 
 ```
 
 Our step will be to demonstrate how to model community-level
@@ -34,7 +34,7 @@ variability in seasonality, by regressing scaled density on day of year, with
 species-specific curves. As we are not interested here in average seasonal
 dynamics, we will focus on models 4 and 5 (if we wanted to estimate the
 seasonal dynamics for rarer species, adding a global smooth term might be
-useful, so we could could borrow information from the more common species). As the data are seasonal, we use cyclic smoothers as the basis for seasonal dynamics.  Therefore we need to specific start and end points for our cycles using the `knots` argument to `gam`, as well as specify that this is smoother type to the factor-smooth using the `xt` argument:
+useful, so we could could borrow information from the more common species). As the data are seasonal,  we use cyclic smoothers as the basis for seasonal dynamics.  Therefore we need to specify start and end points for our cycles using the `knots` argument to `gam`, as well as specify that this is smoother type to the factor-smooth using the `xt` argument:
 
 ### Model 4:
 
@@ -47,6 +47,7 @@ zoo_comm_mod4 <- gam(density_scaled ~s(day, taxon,
                      knots = list(day =c(1, 365)),
                      method = "ML")
 ```
+
 
 Note that we use maximum likelihood (`method = "ML"`) as our smoothing selection method. This is required as we want to compare models that differ in their fixed effects.
 
@@ -67,7 +68,7 @@ for model 4 and
 for model 5 (the mean squared error for the original data equals 1 because
 of the scaling).  Model 5 has a somewhat lower AIC (`AIC(zoo_comm_mod4)` = `r round(AIC(zoo_comm_mod4))`, `AIC(zoo_comm_mod5)` = `r round(AIC(zoo_comm_mod5))`), implying a better overall fit. However, the two models are almost indistinguishable when plotted on top of each other (Figure \ref{fig:zoo_comp}).
 
-```{r zoo_comm_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=5, fig.height=4, fig.cap = "\\label{fig:zoo_comp}Species-specific seasonal dynamics for the eight zooplankon species tracked in Lake Mendota. Black points indicate individual plankton observations (after log-transformation and centering and scaling). Lines indicate predicted average values for model 4 (black) and model 5 (red). Ribbons indicate $\\pm$ 2 standard errors around the mean."}
+```{r zoo_comm_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=5, fig.height=4, fig.cap = "\\label{fig:zoo_comp}Species-specific seasonal dynamics for the eight zooplankon species tracked in Lake Mendota. Black points indicate individual plankton observations (after log-transformation and centering and scaling). Lines indicate predicted average values for model 4 (black) and model 5 (red). Ribbons indicate $\\pm$ 2 standard errors around the mean. "}
 #Create synthetic data to use to compare predictions
 zoo_plot_data = expand.grid(day = 1:365, taxon = factor(levels(zoo_train$taxon)))
 
@@ -105,7 +106,7 @@ print(zoo_plot)
 ```
 
 Model 5's higher AIC than model 4 seems to be driven by the low seasonality of *Keratella cochlearis* and *Leptodiaptomus siciloides* relative to the other species. Still, both
-models show very similar fits to the training data.  Model 5 is only slightly better at predicting out of sample fits for *K. cochlearis*, and not at all better for *L. siciloides*  (Table \ref{tab:zoo_comm_outofsample}).
+models show very similar fits to the training data. Model 5 is only slightly better at predicting out of sample fits for *K. cochlearis*, and not at all better for *L. siciloides*  (Table \ref{tab:zoo_comm_outofsample}).
 
 
 ```{r zoo_comm_outofsample, echo=FALSE, message=FALSE,  cache=TRUE}
@@ -130,6 +131,8 @@ Here, we will compare models 1, 2, and 3 to determine if a single global functio
 is appropriate for all four lakes, or if we can more effectively model variation between
 lakes with a shared smooth and lake-specific smooths.
 
+
+
 ### Model 1:
 
 ```{r zoo_daph_mod1, echo=TRUE, message=FALSE,  cache=TRUE}
@@ -141,7 +144,7 @@ zoo_daph_mod1 <- gam(density_scaled~s(day, bs="cc",k=10),
                      knots=list(day =c(1, 365)),
                      method="ML")
 
-printCoefmat(summary(zoo_daph_mod1)$s.table)                     
+printCoefmat(summary(zoo_daph_mod1)$s.table)
 ```
 
 ### Model 2:
@@ -170,13 +173,14 @@ printCoefmat(summary(zoo_daph_mod3)$s.table)
 
 The AIC values indicate that both model 2 (`r round(AIC(zoo_daph_mod2), 2)`) and 3
 (`r round(AIC(zoo_daph_mod3), 2)`) are better fits than model 1 (`r round(AIC(zoo_daph_mod1), 2)`),
-but models 2 and 3 have similar fits to one another. There does not seem to be a
+but models 2 and 3 have similar fits. There does not seem to be a
 large amount of inter-lake variability (the effective degrees of freedom per
 lake are low in models 2 & 3). Model 3 indicates that only Lake Waubesa
 deviates substantially from the overall dynamics. Plots for all three models
 (Figure \ref{fig:daph_smooth}) show that Mendota and Monona lakes are very close
 to the average and to one another for both models (which is unsurprising, as they
-are very closely connected by a short river), but both Kegonsa and Waubesa show
+are very closely connected by a short river), 
+but both Kegonsa and Waubesa show
 evidence of a more pronounced spring bloom and lower winter abundances.  While
 this is stronger in Lake Waubesa, it is still detectable with simpler model 2 in Lake Kegonsa (Figure \ref{fig:daph_smooth}, black line).
 
@@ -225,7 +229,7 @@ print(daph_plot)
 Model 2 is able to predict as well or better out of sample as
 model 1 or 3 (Table \ref{tab:zoo_daph_outofsample}), indicating that jointly smoothing the lakes together improved model
 prediction. None of the models did well in terms of predicting Lake
-Kegonsa dynamics out of sample (with a MSE of between 0.95-0.99, compared to a MSE of the original data of 1), indicating that this model may be be missing
+Kegonsa dynamics out of sample (with a MSE of between 0.95-0.99, compared to a MSE of the original data of 1),  indicating that this model may be be missing
 substantial year-to-year variability in *D. mendotae* dynamics in this lake.
 
 ```{r zoo_daph_outofsample, echo=FALSE, message=FALSE,  cache=TRUE}
@@ -241,6 +245,6 @@ daph_test_summary = daphnia_test %>%
             `model 2 MSE` = round(get_MSE(density_scaled,mod2),2),
             `model 3 MSE` = round(get_MSE(density_scaled,mod3),2))
 
-kable(daph_test_summary,format = table_out_format, caption="Out-of-sample predictive ability for model 1-3 applied to the *D. mendotae* dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).", booktabs = T)%>%
+kable(daph_test_summary,format = table_out_format, caption="Out-of-sample predictive ability for model 1-3 applied to the \\textit{D. mendotae} dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).", booktabs = T)%>%
   kable_styling(full_width = F)
 ```

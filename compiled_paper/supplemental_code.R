@@ -130,7 +130,6 @@ ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
 bird_mod1 <- gam(count ~ te(week, latitude, bs=c("cc", "tp"), k=c(10, 10)),
                  data=bird_move, method="REML", family=poisson,
                  knots = list(week = c(0.5, 52.5)))
-
 #mgcv gam plot for the two-dimensional tensor product smoother for bird_mod1.
 #scheme=2 displays the color scheme (rather than mgcv's default, which only
 #shows contour lines)
@@ -143,7 +142,7 @@ ggplot(bird_move, aes(x=mod1, y=count)) +
   geom_point() +
   geom_abline() +
   labs(x="Predicted count", y= "Observed count")
-CO2_mod2 <- gam(log(uptake) ~ s(log(conc), k=5, m=2) +
+CO2_mod2 <- gam(log(uptake) ~ s(log(conc), k=5, m=2) + 
                               s(log(conc), Plant_uo, k=5,  bs="fs", m=2),
                 data=CO2, method="REML")
 plot(CO2_mod2, page=1, seWithMean=TRUE)
@@ -239,7 +238,7 @@ str(zooplankton)
 levels(zooplankton$taxon)
 levels(zooplankton$lake)
 zoo_train <- subset(zooplankton, year%%2==0)
-zoo_test <- subset(zooplankton, year%%2==1)
+zoo_test <- subset(zooplankton, year%%2==1) 
 zoo_comm_mod4 <- gam(density_scaled ~s(day, taxon,
                                       bs="fs",
                                       k=10,
@@ -308,7 +307,7 @@ zoo_daph_mod1 <- gam(density_scaled~s(day, bs="cc",k=10),
                      knots=list(day =c(1, 365)),
                      method="ML")
 
-printCoefmat(summary(zoo_daph_mod1)$s.table)                     
+printCoefmat(summary(zoo_daph_mod1)$s.table)
 zoo_daph_mod2 <- gam(density_scaled~s(day, bs="cc", k=10) +
                             s(day, lake, k=10, bs="fs",
                               xt=list(bs="cc")),
@@ -374,7 +373,7 @@ daph_test_summary = daphnia_test %>%
             `model 2 MSE` = round(get_MSE(density_scaled,mod2),2),
             `model 3 MSE` = round(get_MSE(density_scaled,mod3),2))
 
-kable(daph_test_summary,format = table_out_format, caption="Out-of-sample predictive ability for model 1-3 applied to the *D. mendotae* dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).", booktabs = T)%>%
+kable(daph_test_summary,format = table_out_format, caption="Out-of-sample predictive ability for model 1-3 applied to the \\textit{D. mendotae} dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).", booktabs = T)%>%
   kable_styling(full_width = F)
 
 set.seed(1)

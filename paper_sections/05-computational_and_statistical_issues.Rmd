@@ -6,15 +6,15 @@ how to extend the HGAM framework to fit more complex models.
 
 ## Bias-variance trade-offs
 
-The bias-variance trade-off is a fundamental concept in statistics. When trying to estimate any value (in the case of GAMs, a
-smooth relationship between predictors and data), bias measures how far,
+The bias-variance trade-off is a fundamental concept in statistics. When trying to estimate any relationship (in the case of GAMs, a
+smooth relationship between predictors and data) bias measures how far,
 on average, an estimate is from the true value. The variance of an estimator corresponds to how much that
-estimator would fluctuate if applied to multiple different samples taken from the
+estimator would fluctuate if applied to multiple different samples of the same size taken from the
 same population. These two properties tend to be traded off when fitting models.
 For instance, rather than estimating a population mean from data, we could
 simply use a fixed value regardless of the observed data. This estimate would
 have no variance (as it is always the same) but would have high bias unless the
-true population mean happened to equal zero [^mean_note]. Penalization is useful because that a penalty term slightly increases model bias, but can substantially decrease variance [@efron_steins_1977].
+true population mean happened to equal zero [^mean_note].  Penalization is useful because that a penalty term slightly increases model bias, but can substantially decrease variance [@efron_steins_1977].
 
 In GAMs, the bias-variance trade-off is managed by the terms of the penalty matrix, and equivalently random effect variances in HGLMs. Larger penalties correspond to
 lower variance, as the estimated function is unable to wiggle a great deal, but
@@ -120,9 +120,7 @@ entire data set, using REML criteria to estimate penalties. For this example
 resulted in *mgcv* underestimating the penalty for the lowest frequency (most smooth)
 terms, but accurately estimating the true smoothness of the highest frequency
 terms as measured by the squared second derivative of the smooth fit versus that
-of the true function (Fig. \ref{fig:var_pen}b).
-
-This implies that assuming equal smoothness will result in underestimating
+of the true function (Fig. \ref{fig:var_pen}b). This implies that assuming equal smoothness will result in underestimating
 the true smoothness of low-variability terms, and thus lead to more variable
 estimates of these terms. If this is a potential issue, we recommend fitting
 both models 4 and 5 and using standard model evaluation criteria (e.g., AIC) to
@@ -471,7 +469,7 @@ covariance matrix for model parameters can be extracted from any fitted
 to generate predictions from the posterior distribution of the model, as the
 Bayesian covariance matrix already incorporates the uncertainty from having to
 estimate the covariance matrix into it [the standard confidence intervals used in
-*mgcv* are in fact Bayesian posterior credible intervals, which happen to have good frequentist properties; @wood_confidence_2006]. Viewing our GAM as Bayesian is a somewhat unavoidable consequence of the equivalence of random effects and splines: if we think that there some true smooth that we wish to estimate, we must take a Bayesian view of our random effects (splines) as we don't think that the true smooth changes each time we collect data [@wood_generalized_2017, Section 5.8].
+*mgcv* are in fact Bayesian posterior credible intervals, which happen to have good frequentist properties; @wood_confidence_2006]. Viewing our GAM as Bayesian is a somewhat unavoidable consequence of the equivalence of random effects and splines: if we think that there is some true smooth that we wish to estimate, we must take a Bayesian view of our random effects (splines) as we do not think that the true smooth changes each time we collect data [@wood_generalized_2017, Section 5.8].
 
 This also means that HGAMs can also be included as components in a more complex
 fully Bayesian model. The *mgcv* package includes a function `jagam` that can
