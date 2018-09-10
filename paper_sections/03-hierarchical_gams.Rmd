@@ -218,11 +218,11 @@ ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
        y=expression(CO[2] ~ uptake ~ (mu*mol ~ m^{-2})))
 ```
 
-The `"fs"`-based approach mentioned above does not work for higher-dimensional tensor product smooths. Instead, the group-specific term can be specified with a tensor product of the continuous smooths and a random effect for the grouping parameter[^fs_note]. e.g.: `y ~ te(x1, x2, bs="tp", m=2) + t2(x1, x2, fac, bs=c("tp","tp","re"), m=2, full=TRUE)`. We illustrate this approach below on the bird migration data. 
+The factor smooth-based approach mentioned above does not work for higher-dimensional tensor product smooths. Instead, the group-specific term can be specified with a tensor product of the continuous smooths and a random effect for the grouping parameter[^fs_note]. e.g.: `y ~ te(x1, x2, bs="tp", m=2) + t2(x1, x2, fac, bs=c("tp","tp","re"), m=2, full=TRUE)`. We illustrate this approach below on the bird migration data. 
 
 [^fs_note]: As mentioned in section II, these terms can be specified either with
 `te()` or `t2()` terms. Using `t2` as above (with `full=TRUE`) is essentially a
-multivariate equivalent of the `fs` smooth; it requires more smooth terms than
+multivariate equivalent of the factor smooth; it requires more smooth terms than
 `te()`, but can be fit using other mixed effects software such as *lme4*, which
 is useful when fitting models with a large number of group levels (see Section
 V on computational issues for details).
@@ -274,7 +274,7 @@ y ~ s(x, bs="tp") + s(x, by=fac, m=1, bs="ts") + s(fac, bs="re")`.
 ```
 Note three major differences here from how model 2 was specified:
 
-1.  We explicitly include a random effect for the intercept (the `bs="re"` term), as group-specific intercepts are not incorporated into factor `by` variable smooths (as would be the case with `bs="fs"` or a tensor product random effect).
+1.  We explicitly include a random effect for the intercept (the `bs="re"` term), as group-specific intercepts are not incorporated into factor `by` variable smooths (as would be the case with a factor smooth or a tensor product random effect).
 2. We explicitly use a basis with a fully penalized null space for the group-level smooth (`bs="ts"`, for TPRS with shrinkage). The `by` method does not automatically penalize the null space, so there is potential for collinearity between unpenalized components of the global and group-level smoothers.  Using `ts` helps reduce this issue.
 3. We specify `m=1` instead of `m=2` for the groupwise smooths, which means the marginal TPRS basis for this term will penalize the squared 1st derivative of the function, rather than the second derivative. This, also, reduces co-linearity between the global smooth term and the group-specific terms which occasionally leads to high uncertainty around the global smooth (see section V for more details). TPRS with `m=1` have a more restricted null space than m=2 smoothers, so should not be as collinear with the global smooth  [@baayen_autocorrelated_2016; @wieling_investigating_2016]. We have observed that this is much more of an issue when fitting model 3 compared to model 2.
 

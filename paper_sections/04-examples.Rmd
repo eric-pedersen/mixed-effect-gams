@@ -34,7 +34,7 @@ variability in seasonality, by regressing scaled density on day of year, with
 species-specific curves. As we are not interested here in average seasonal
 dynamics, we will focus on models 4 and 5 (if we wanted to estimate the
 seasonal dynamics for rarer species, adding a global smooth term might be
-useful, so we could could borrow information from the more common species). As the data are seasonal,  we use cyclic smoothers as the basis for seasonal dynamics.  Therefore we need to specify start and end points for our cycles using the `knots` argument to `gam`, as well as specify that this is smoother type to the factor-smooth using the `xt` argument:
+useful, so we could could borrow information from the more common species). As the data are seasonal,  we use cyclic smoothers as the basis for seasonal dynamics.  Therefore we need to specify start and end points for our cycles using the `knots` argument to `gam`, as well as specify that this is smoother type to the factor smooth using the `xt` argument:
 
 ### Model 4:
 

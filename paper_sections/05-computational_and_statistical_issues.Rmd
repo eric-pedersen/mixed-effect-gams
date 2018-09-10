@@ -398,7 +398,7 @@ the same functions (e.g., `summary`, `AIC`, `plot`, etc.) so it is simple to
 substitute for `gam` if you need to speed a model up.
 
 Both `gamm` and `gamm4` require a few changes to model code.
-First, there are a few limitations on how you are able to specify models 1-5 in both frameworks. Factor smooth (`bs="fs"`) basis setups work in both `gamm` and `gamm4`. As the *nlme* package does not support crossed random effects, it is not possible to have two "fs" terms for the same grouping variable in `gamm` models (e.g., `y~s(x1, grp, bs="fs")+s(x2, grp, bs="fs")`. These type of crossed random effects are allowed in *gamm4*. The use of `te` and `ti` terms are not possible in *gamm4*, due to
+First, there are a few limitations on how you are able to specify models 1-5 in both frameworks. Factor smooth (`bs="fs"`) basis setups work in both `gamm` and `gamm4`. As the *nlme* package does not support crossed random effects, it is not possible to have two factor smooth terms for the same grouping variable in `gamm` models (e.g., `y~s(x1, grp, bs="fs")+s(x2, grp, bs="fs")`. These type of crossed random effects are allowed in *gamm4*. The use of `te` and `ti` terms are not possible in *gamm4*, due to
 issues with how random effects are specified in the *lme4* package, making it impossible to code models where multiple penalties apply to a single basis function. Instead, for
 multidimensional group-level smooths, the alternate function `t2` needs to be used
 to generate these terms, as it creates tensor products with only a single penalty for
@@ -443,7 +443,7 @@ strong global effect. This concurvity issue may also increase the time it takes
 to fit these models (for example, compare the time it takes to fit models 3 and
 5 in Table \ref{tab:comp_time}). These models can still be estimated
 because of penalty terms;  all of the methods we have discussed for fitting
-model 2 ("fs" terms or random effect tensor products) automatically create a
+model 2 (factor smooth terms or random effect tensor products) automatically create a
 penalty for the null space of the group-level terms, so that only the global
 term has its own unpenalized null space. Both the REML and ML criteria work
 to balance penalties between nested smooth terms (this is why nested random
@@ -452,7 +452,7 @@ finds solutions with simulated data where the global term is over-smoothed.
 
 To avoid this issue, we recommend both careful choice of basis and setting model degrees of freedom so that groupwise terms are either slightly less flexible than the global term or have a smaller null space. In the examples in section III, we used smoothers with an unpenalized null space (standard thin-plate splines) for the global smooth and ones with no null space for the groupwise terms[^gsnull]. When using thin-plate splines, it may also help to use splines with a lower order of derivative penalized in the groupwise smooths than the global smooths, as lower-order "tp" splines have fewer basis functions in the null space. For example, we used `m=2` (penalizing squared second derivatives) for the global smooth, and `m=1` (penalizing squared first derivatives) for groupwise smooths in models 2 and 3. Another option is to use a lower number of basis functions (`k`) for groupwise relative to global terms.  This will reduce the maximum flexibility possible in the groupwise terms. We do caution that these are just rules of thumb. In cases where an accurately estimated global smooth is essential, we recommend either fitting model 1 or using specialized functional regression software such as the *refund* package [@scheipl_functional_2014], which enforces constraints on the groupwise smooths so that they always sum to zero at any given point (avoiding the collinearity issue). Also, see below for more information on functional regression.
 
-[^gsnull]: For model 2, the "fs" smoother, and tensor products of random effect ("re") and other smooth terms do not have a penalized nullspace by construction (they are full rank), as noted above. For model 3 groupwise terms, we used basis types that had a penalty added to the nullspace, so called "shrinkage" methods: `bs="tp"`, `"cs"`, or `"ps"` have this property.
+[^gsnull]: For model 2 both the factor smooth, and tensor products of random effect ("re") and other smooth terms do not have a penalized nullspace by construction (they are full rank), as noted above. For model 3 groupwise terms, we used basis types that had a penalty added to the nullspace, so called "shrinkage" methods: `bs="tp"`, `"cs"`, or `"ps"` have this property.
 
 ## A brief foray into the land of Bayes
 
@@ -480,7 +480,7 @@ their own needs.
  Similarly, the *brms* package [@burkner_brms:_2017], which can
 fit complex statistical models using the Bayesian software stan
 [@carpenter_stan:_2017] allows for the inclusion of *mgcv*-style smooth terms as part of the
-model specification. The *brms* package does not currently support `te()` tensor products or factor-smooth basis terms (`bs="fs"`), but does support `t2`-style tensor products,
+model specification. The *brms* package does not currently support `te()` tensor products or factor smooth basis terms, but does support `t2`-style tensor products,
 which means all of the models fitted in this paper can be fit by *brms*.
 
 <!-- probably unnessecary code
