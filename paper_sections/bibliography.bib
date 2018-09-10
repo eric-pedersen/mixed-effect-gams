@@ -16,20 +16,13 @@
   Urldate                  = {2009-11-02}
 }
 
-@Article{baayen_autocorrelated_2016,
-  Title                    = {Autocorrelated errors in experimental data in the language sciences: {Some} solutions offered by {Generalized} {Additive} {Mixed} {Models}},
-  Author                   = {Baayen, R. Harald and van Rij, Jacolien and de Cat, Cecile and Wood, Simon N.},
-  Journal                  = {arXiv:1601.02043 [stat]},
-  Year                     = {2016},
-
-  Month                    = jan,
-  Note                     = {arXiv: 1601.02043},
-
-  Abstract                 = {A problem that tends to be ignored in the statistical analysis of experimental data in the language sciences is that responses often constitute time series, which raises the problem of autocorrelated errors. If the errors indeed show autocorrelational structure, evaluation of the significance of predictors in the model becomes problematic due to potential anti-conservatism of p-values. This paper illustrates two tools offered by Generalized Additive Mixed Models (GAMMs) (Lin and Zhang, 1999; Wood, 2006, 2011, 2013) for dealing with autocorrelated errors, as implemented in the current version of the fourth author's mgcv package (1.8.9): the possibility to specify an ar(1) error model for Gaussian models, and the possibility of using factor smooths for random-effect factors such as subject and item. These factor smooths are set up to have the same smoothing parameters, and are penalized to yield the non-linear equivalent of random intercepts and random slopes in the classical linear framework. Three case studies illustrate these issues.},
-  File                     = {Baayen_2016_Autocorrelated errors in experimental data in the language sciences.pdf:D\:\\Documents\\papers\\indexed_papers\\Baayen_2016_Autocorrelated errors in experimental data in the language sciences.pdf:application/pdf},
-  Keywords                 = {auto-correlation, functional mixed effect models, functional regression, generalized additive modeling, mixed models, nonlinear regression, project: hierarchical additive model tutorial paper, skimmed, statistics for high dimensional systems},
-  Shorttitle               = {Autocorrelated errors in experimental data in the language sciences},
-  Urldate                  = {2016-02-07}
+@incollection{baayen_autocorrelated_2018,
+	title = {Autocorrelated errors in experimental data in the language sciences: {some} solutions offered by {Generalized} {Additive} {Mixed} {Models}},
+	booktitle = {Mixed-{Effects} {Regression} {Models} in {Linguistics}},
+	publisher = {Springer},
+	author = {Baayen, R Harald and van Rij, Jacolien and de Cat, Cecile and Wood, Simon},
+	year = {2018},
+	pages = {49--69},
 }
 
 @Article{Bolker:2009cs,
@@ -75,9 +68,7 @@
   Year                     = {2011},
   Pages                    = {284},
 
-  Abstract                 = {Variance parameters in mixed or multilevel models can be difficult to estimate, especially when the number of groups is small. We propose a maximum penalized likelihood approach which is equivalent to estimating variance parameters by their marginal posterior mode, given a weakly informative prior distribution. By choosing the prior from the gamma family with at least 1 degree of freedom, we ensure that the prior density is zero at the boundary and thus the marginal posterior mode of the group-level variance will be positive. The use of a weakly informative prior allows us to stabilize our estimates while remaining faithful to the data.},
-  File                     = {Chung_2011_Avoiding boundary estimates in linear mixed models through weakly informative.pdf:D\:\\Documents\\papers\\indexed_papers\\Chung_2011_Avoiding boundary estimates in linear mixed models through weakly informative.pdf:application/pdf},
-  Keywords                 = {bayesian statistics, indexed, multilevel modeling, parameter estimation, project: hierarchical additive model tutorial paper, read, statistics}
+  Abstract                 = {Variance parameters in mixed or multilevel models can be difficult to estimate, especially when the number of groups is small. We propose a maximum penalized likelihood approach which is equivalent to estimating variance parameters by their marginal posterior mode, given a weakly informative prior distribution. By choosing the prior from the gamma family with at least 1 degree of freedom, we ensure that the prior density is zero at the boundary and thus the marginal posterior mode of the group-level variance will be positive. The use of a weakly informative prior allows us to stabilize our estimates while remaining faithful to the data.}
 }
 
 @Article{clough_generalized_2012,
@@ -87,9 +78,7 @@
   Year                     = {2012},
 
   Doi                      = {10.1890/11-1899.1},
-  File                     = {Clough_2012_A generalized approach to modeling and estimating indirect effects in ecology.pdf:D\:\\Documents\\papers\\indexed_papers\\Clough_2012_A generalized approach to modeling and estimating indirect effects in ecology.pdf:application/pdf},
   ISSN                     = {0012-9658},
-  Keywords                 = {bayesian statistics, causality, DAG, D separation, indexed, multilevel modeling, project: hierarchical additive model tutorial paper, read, statistics, statistics for dependence, structural equation modeling},
   Url                      = {http://www.esajournals.org/doi/abs/10.1890/11-1899.1}
 }
 
@@ -210,9 +199,7 @@ have been detrimental to statistical practice, in that they have steered falsifi
 away from the very useful tools of Bayesian inference and have discouraged Bayesians 
 from checking the fit of their models. From my experience using and developing 
 Bayesian methods in social and environmental science, I have found model checking and 
-falsification to be central in the modeling process.},
-  File                     = {Gelman_2011_Induction and deduction in Bayesian data analysis.pdf:D\:\\Documents\\papers\\indexed_papers\\Gelman_2011_Induction and deduction in Bayesian data analysis.pdf:application/pdf},
-  Keywords                 = {bayesian statistics, error-statistical inference, indexed, misidentification, misspecification, philosophy of science, project: hierarchical additive model tutorial paper, read, statistics}
+falsification to be central in the modeling process.}
 }
 
 @Article{gelman_weakly_2008,
@@ -238,7 +225,7 @@ falsification to be central in the modeling process.},
 }
 
 @Article{Gelman:2006jh,
-  Title                    = {{Multilevel (Hierarchical) Modeling: What It Can and Cannot Do}},
+  Title                    = {{Multilevel (hierarchical) modeling: what it can and cannot do}},
   Author                   = {Gelman, Andrew},
   Journal                  = {Technometrics},
   Year                     = {2006},
@@ -292,9 +279,6 @@ falsification to be central in the modeling process.},
 
   Abstract                 = {Explained variance (R2) is a familiar summary of the fit of a linear regression and has been generalized in various ways to multilevel (hierarchical) models. The multilevel models that we consider in this article are characterized by hierarchical data structures in which individuals are grouped into units (which themselves might be further grouped into larger units), and variables are measured on individuals and each grouping unit. The models are based on regression relationships at different levels, with the first level corresponding to the individual data and subsequent levels corresponding to between-group regressions of individual predictor effects on grouping unit variables. We present an approach to defining R2 at each level of the multilevel model, rather than attempting to create a single summary measure of fit. Our method is based on comparing variances in a single fitted model rather than with a null model. In simple regression, our measure generalizes the classical adjusted R2. We also discuss a related variance comparison to summarize the degree to which estimates at each level of the model are pooled together based on the level-specific regression relationship, rather than estimated separately. This pooling factor is related to the concept of shrinkage in simple hierarchical models. We illustrate the methods on a dataset of radon in houses within counties using a series of models ranging from a simple linear regression model to a multilevel varying-intercept, varying-slope model.},
   Doi                      = {10.1198/004017005000000517},
-  File                     = {American Statistical Association - Technometrics - 48(2)\:241:C\:\\Users\\Eric\\AppData\\Roaming\\Zotero\\Zotero\\Profiles\\l6x18nox.default\\zotero\\storage\\A9DD7HBA\\004017005000000517.html:text/html;Gelman_2006_Bayesian measures of explained variance and pooling in multilevel (hierarchical).pdf:D\:\\Documents\\papers\\indexed_papers\\Gelman_2006_Bayesian measures of explained variance and pooling in multilevel (hierarchical).pdf:application/pdf},
-  ISSN                     = {0040-1706},
-  Keywords                 = {bayesian statistics, goodness-of-fit testing, indexed, multilevel modeling, project: hierarchical additive model tutorial paper, read},
   Url                      = {http://pubs.amstat.org/doi/abs/10.1198/004017005000000517},
   Urldate                  = {2011-06-18}
 }
@@ -309,8 +293,6 @@ falsification to be central in the modeling process.},
   Volume                   = {preprint},
 
   Abstract                 = {A substantial school in the philosophy of science identifies Bayesian inference with inductive inference and even rationality as such, and seems to be strengthened by the rise and practical success of Bayesian statistics. We argue that the most successful forms of Bayesian statistics do not actually support that particular philosophy but rather accord much better with sophisticated forms of hypothetico-deductivism. We examine the actual role played by prior distributions in Bayesian models, and the crucial aspects of model checking and model revision, which fall outside the scope of Bayesian confirmation theory. We draw on the literature on the consistency of Bayesian updating and also on our experience of applied work in social science. Clarity about these matters should benefit not just philosophy of science, but also statistical practice. At best, the inductivist view has encouraged researchers to fit and compare models without checking them; at worst, theorists have actively discouraged practitioners from performing model checking because it does not fit into their framework.},
-  File                     = {arXiv.org Snapshot:C\:\\Users\\Eric\\AppData\\Roaming\\Zotero\\Zotero\\Profiles\\l6x18nox.default\\zotero\\storage\\38U4NCGS\\1006.html:text/html},
-  Keywords                 = {bayesian statistics, frequentist statistics, important reference, philosophy of science, project: hierarchical additive model tutorial paper, read, statistics},
   Url                      = {http://arxiv.org/abs/1006.3868},
   Urldate                  = {2010-06-28}
 }
@@ -358,7 +340,7 @@ falsification to be central in the modeling process.},
   Doi                      = {10.2307/2290838},
   File                     = {Handcock_1994_Kriging and Splines.pdf:D\:\\Documents\\papers\\indexed_papers\\Handcock_1994_Kriging and Splines.pdf:application/pdf},
   ISSN                     = {0162-1459},
-  Keywords                 = {gaussian processes, kriging, prediction, project: hierarchical additive model tutorial paper, skimmed, smoothing, spatial statistics, splines, statistics for dependence},
+  Keywords                 = {Gaussian processes, kriging, prediction, project: hierarchical additive model tutorial paper, skimmed, smoothing, spatial statistics, splines, statistics for dependence},
   Shorttitle               = {Kriging and {Splines}},
   Url                      = {http://www.jstor.org.ezproxy.library.wisc.edu/stable/2290838},
   Urldate                  = {2016-03-10}
@@ -386,7 +368,6 @@ falsification to be central in the modeling process.},
   Abstract                 = {In semiparametric regression models, penalized splines can be used to describe complex, non-linear relationships between the mean response and covariates. In some applications it is desirable to restrict the shape of the splines so as to enforce properties such as monotonicity or convexity on regression functions. We describe a method for imposing such shape constraints on penalized splines within a linear mixed model framework. We employ Markov chain Monte Carlo (MCMC) methods for model fitting, using a truncated prior distribution to impose the requisite shape restrictions. We develop a computationally efficient MCMC sampler by using a correspondingly truncated multivariate normal proposal distribution, which is a restricted version of the approximate sampling distribution of the model parameters in an unconstrained version of the model. We also describe a cheap approximation to this methodology that can be applied for shape-constrained scatterplot smoothing. Our methods are illustrated through two applications, the first involving the length of dugongs and the second concerned with growth curves for sitka spruce trees.},
   Doi                      = {10.1016/j.csda.2011.04.018},
   ISSN                     = {0167-9473},
-  Keywords                 = {bayesian statistics, frequentist statistics, functional mixed effect models, generalized additive modeling, indexed, markov chain Monte Carlo, mixed models, penalization, project: hierarchical additive model tutorial paper, regression, Shape constraint, spline regression},
   Urldate                  = {2012-12-04}
 }
 
@@ -400,9 +381,7 @@ falsification to be central in the modeling process.},
 
   Abstract                 = {Linear mixed effects methods for the analysis of longitudinal data provide a convenient framework for modelling within-individual correlation across time. Using spline functions allows for flexible modelling of the response as a smooth function of time. A computational connection between linear mixed effects modelling and spline smoothing has resulted in a cross-fertilization of these two fields. The connection has popularized the use of spline functions in longitudinal data analysis and the use of mixed effects software in smoothing analyses. However, care must be taken in exploiting this connection, as resulting estimates of the underlying population mean might not track the data well and associated standard errors might not reflect the true variability in the data. We discuss these shortcomings and suggest some easy-to-compute methods to eliminate them.},
   Doi                      = {10.1214/13-EJS809},
-  File                     = {Heckman_2013_Penalized regression, mixed effects models and appropriate modelling.pdf:D\:\\Documents\\papers\\indexed_papers\\Heckman_2013_Penalized regression, mixed effects models and appropriate modelling.pdf:application/pdf},
   ISSN                     = {1935-7524},
-  Keywords                 = {bayesian statistics, functional mixed effect models, generalized additive modeling, mixed models, penalization, project: hierarchical additive model tutorial paper, smoothing, unread},
   Language                 = {EN},
   Urldate                  = {2013-06-04}
 }
@@ -417,9 +396,6 @@ falsification to be central in the modeling process.},
   Abstract                 = {Summary. Non-Gaussian spatial data are very common in many disciplines. For instance, count data are common in disease mapping, and binary data are common in ecology. When fitting spatial regressions for such data, one needs to account for dependence to ensure reliable inference for the regression coefficients. The spatial generalized linear mixed model offers a very popular and flexible approach to modelling such data, but this model suffers from two major shortcomings: variance inflation due to spatial confounding and high dimensional spatial random effects that make fully Bayesian inference for such models computationally challenging. We propose a new parameterization of the spatial generalized linear mixed model that alleviates spatial confounding and speeds computation by greatly reducing the dimension of the spatial random effects. We illustrate the application of our approach to simulated binary, count and Gaussian spatial data sets, and to a large infant mortality data set.},
   Copyright                = {{\textcopyright} 2012 Royal Statistical Society},
   Doi                      = {10.1111/j.1467-9868.2012.01041.x},
-  File                     = {Hughes_2012_Dimension reduction and alleviation of confounding for spatial generalized.pdf:D\:\\Documents\\papers\\indexed_papers\\Hughes_2012_Dimension reduction and alleviation of confounding for spatial generalized.pdf:application/pdf;Snapshot:C\:\\Users\\Eric\\AppData\\Roaming\\Zotero\\Zotero\\Profiles\\l6x18nox.default\\zotero\\storage\\7TX9GERT\\abstract.html:text/html},
-  ISSN                     = {1467-9868},
-  Keywords                 = {bayesian statistics, functional mixed effect models, generalised linear models, mixed models, project: hierarchical additive model tutorial paper, read, spatial statistics, statistics, statistics for dependence, statistics for high dimensional systems, statistics for networks},
   Language                 = {en},
   Url                      = {http://onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2012.01041.x/abstract},
   Urldate                  = {2012-10-16}
@@ -437,9 +413,7 @@ falsification to be central in the modeling process.},
   Volume                   = {41},
   Abstract                 = {Project Euclid - mathematics and statistics online},
   Doi                      = {10.1214/aoms/1177697089},
-  File                     = {Kimeldorf_1970_A correspondence between bayesian estimation on stochastic processes and.pdf:D\:\\Pedersen\\Documents\\papers\\indexed_papers\\Kimeldorf_1970_A correspondence between bayesian estimation on stochastic processes and.pdf:application/pdf},
   ISSN                     = {0003-4851, 2168-8990},
-  Keywords                 = {gaussian processes, regression, unread, stochastic processes, hierachical gams, generalised additive model},
   Language                 = {EN},
   Mrnumber                 = {MR254999},
   Owner                    = {Pedersen},
@@ -483,9 +457,7 @@ falsification to be central in the modeling process.},
   Type                     = {Doctoral thesis},
 
   Abstract                 = {Regression models describing the dependence between a univariate response and a set of covariates play a fundamental role in statistics. In the last two decades, a tremendous effort has been made in developing flexible regression techniques such as generalized additive models (GAMs) with the aim of modellingthe expected value of a response variable as a sum of smooth unspecified functions of predictors. Many nonparametric regression methodologies exist including local-weighted regression and smoothing splines. Here the focus is on penalized regression spline methods which can be viewed as a generalization of smoothing splines with a more flexible choice of bases and penalties. This thesis addresses three issues. First, the problem of model misspecifi-cation is treated by extending the instrumental variable approach to the GAM context. Second, we study the theoretical and empirical properties of the con-fidence intervals for the smooth component functions of a GAM. Third, we consider the problem of variable selection within this flexible class of models.
-All results are supported by theoretical arguments and extensive simulation experiments which shed light on the practical performance of the methods discussed in this thesis.},
-  File                     = {marra_2010_some problems in model specification and inference for generalized additive.pdf:D\:\\Documents\\papers\\indexed_papers\\marra_2010_some problems in model specification and inference for generalized additive.pdf:application/pdf},
-  Keywords                 = {bayesian statistics, confidence interval estimation, frequentist/Bayesian synthesis, frequentist statistics, generalized additive modeling, parameter estimation, penalization, project: hierarchical additive model tutorial paper, skimmed, smoothing}
+All results are supported by theoretical arguments and extensive simulation experiments which shed light on the practical performance of the methods discussed in this thesis.}
 }
 
 @Book{McCullagh:1989ti,
@@ -634,7 +606,7 @@ All results are supported by theoretical arguments and extensive simulation expe
   Doi                      = {10.1111/2041-210X.12359},
   File                     = {Thorson_2015_Spatial factor analysis.pdf:D\:\\Documents\\papers\\indexed_papers\\Thorson_2015_Spatial factor analysis.pdf:application/pdf},
   ISSN                     = {2041-210X},
-  Keywords                 = {gaussian processes, movement ecology, multivariate statistics, project: hierarchical additive model tutorial paper, random matrices, random processes, read, spatial ecology, spatial statistics, species distribution model, statistics, statistics for clustering, statistics for dependence},
+  Keywords                 = {Gaussian processes, movement ecology, multivariate statistics, project: hierarchical additive model tutorial paper, random matrices, random processes, read, spatial ecology, spatial statistics, species distribution model, statistics, statistics for clustering, statistics for dependence},
   Language                 = {en},
   Shorttitle               = {Spatial factor analysis},
   Url                      = {http://onlinelibrary.wiley.com/doi/10.1111/2041-210X.12359/abstract},
@@ -651,8 +623,6 @@ All results are supported by theoretical arguments and extensive simulation expe
   Note                     = {arXiv: 1206.5754},
 
   Abstract                 = {Gaussian processes (GP) are powerful tools for probabilistic modeling purposes. They can be used to define prior distributions over latent functions in hierarchical Bayesian models. The prior over functions is defined implicitly by the mean and covariance function, which determine the smoothness and variability of the function. The inference can then be conducted directly in the function space by evaluating or approximating the posterior process. Despite their attractive theoretical properties GPs provide practical challenges in their implementation. GPstuff is a versatile collection of computational tools for GP models compatible with Linux and Windows MATLAB and Octave. It includes, among others, various inference methods, sparse approximations and tools for model assessment. In this work, we review these tools and demonstrate the use of GPstuff in several models.},
-  File                     = {Vanhatalo_2012_Bayesian modeling with Gaussian processes using the GPstuff toolbox.pdf:D\:\\Documents\\papers\\indexed_papers\\Vanhatalo_2012_Bayesian modeling with Gaussian processes using the GPstuff toolbox.pdf:application/pdf},
-  Keywords                 = {gaussian processes, Matlab, nonparametric estimation, project: hierarchical additive model tutorial paper, read, software package, statistics for dependence, stochastic processes, time series and statistics for dynamic systems, user manual},
   Url                      = {http://arxiv.org/abs/1206.5754},
   Urldate                  = {2015-05-04}
 }
@@ -669,10 +639,6 @@ All results are supported by theoretical arguments and extensive simulation expe
   Volume                   = {48},
   Abstract                 = {In designed experiments and in particular longitudinal studies, the aim may be to assess the effect of a quantitative variable such as time on treatment effects. Modelling treatment effects can be complex in the presence of other sources of variation. Three examples are presented to illustrate an approach to analysis in such cases. The first example is a longitudinal experiment on the growth of cows under a factorial treatment structure where serial correlation and variance heterogeneity complicate the analysis. The second example involves the calibration of optical density and the concentration of a protein DNase in the presence of sampling variation and variance heterogeneity. The final example is a multienvironment agricultural field experiment in which a yield?seeding rate relationship is required for several varieties of lupins. Spatial variation within environments, heterogeneity between environments and variation between varieties all need to be incorporated in the analysis. In this paper, the cubic smoothing spline is used in conjunction with fixed and random effects, random coefficients and variance modelling to provide simultaneous modelling of trends and covariance structure. The key result that allows coherent and flexible empirical model building in complex situations is the linear mixed model representation of the cubic smoothing spline. An extension is proposed in which trend is partitioned into smooth and non?smooth components. Estimation and inference, the analysis of the three examples and a discussion of extensions and unresolved issues are also presented.},
   Doi                      = {10.1111/1467-9876.00154},
-  File                     = {Verbyla_2002_The analysis of designed experiments and longitudinal data by using smoothing.pdf:D\:\\Pedersen\\Documents\\papers\\indexed_papers\\Verbyla Arũnas P._2002_The analysis of designed experiments and longitudinal data by using smoothing.pdf:application/pdf},
-  ISSN                     = {0035-9254},
-  Keywords                 = {gaussian processes, generalised additive model, hierachical gams, regression, skimmed, statistics for functional data},
-  Owner                    = {Pedersen},
   Timestamp                = {2018.05.04},
   Url                      = {https://rss.onlinelibrary.wiley.com/doi/abs/10.1111/1467-9876.00154},
   Urldate                  = {2018-05-04}
@@ -960,16 +926,19 @@ in the package.},
 
 @article{scheipl_functional_2014,
 	title = {Functional additive mixed models},
+	volume = {24},
 	issn = {10.1080/10618600.2014.901914},
 	url = {http://www.tandfonline.com/doi/suppl/10.1080/10618600.2014.901914?scroll=top},
+	abstract = {We propose an extensive framework for additive regression models for correlated functional responses, allowing for multiple partially nested or crossed functional random effects with flexible correlation structures for, for example, spatial, temporal, or longitudinal functional data. Additionally, our framework includes linear and nonlinear effects of functional and scalar covariates that may vary smoothly over the index of the functional response. It accommodates densely or sparsely observed functional responses and predictors which may be observed with additional error and includes both spline-based and functional principal component-based terms. Estimation and inference in this framework is based on standard additive mixed models, allowing us to take advantage of established methods and robust, flexible algorithms. We provide easy-to-use open source software in the pffr() function for the R package refund. Simulations show that the proposed method recovers relevant effects reliably, handles small sampl...},
 	language = {en},
+	number = {2},
 	urldate = {2017-09-06},
 	journal = {Journal of Computational and Graphical Statistics},
 	author = {Scheipl, Fabian and Staicu, Ana-Maria and Greven, Sonja},
 	month = apr,
-	year = {2014}
+	year = {2014},
+	pages = {477--501}
 }
-
 
 
 @article{reiss_fast_2010,
@@ -1069,7 +1038,7 @@ in the package.},
 }
 
 @article{kaufman_bayesian_2010,
-	title = {Bayesian functional {ANOVA} modeling using gaussian process prior distributions},
+	title = {Bayesian functional {ANOVA} modeling using Gaussian process prior distributions},
 	volume = {5},
 	number = {1},
 	journal = {Bayesian Analysis},
