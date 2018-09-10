@@ -44,13 +44,7 @@ table_out_format <- ifelse("pdf_document" %in% rmarkdown::all_output_formats("fu
 
 # Abstract
 
-In this paper, we discuss an extension to two popular approaches to modelling complex structures in ecological data: the generalized additive model (GAM) and the hierarchical model (HGLM). The hierarchical GAM (HGAM), allows modelling of nonlinear functional relationships between covariates and outcomes
-where the shape of the function itself varies between different grouping levels. We describe the theoretical connection between these models,
-HGLMs and GAMs, explain how to model different assumptions about the degree of
-inter-group variability in functional response, and show how HGAMs can be readily fitted
-using existing GAM software, the mgcv package in R. We also discuss computational
-and statistical issues with fitting these models, and demonstrate how to fit HGAMs
-on example data.
+In this paper, we discuss an extension to two popular approaches to modelling complex structures in ecological data: the generalized additive model (GAM) and the hierarchical model (HGLM). The hierarchical GAM (HGAM) allows modelling of nonlinear functional relationships between covariates and outcomes where the shape of the function itself varies between different grouping levels. We describe the theoretical connection between these models, HGLMs and GAMs, explain how to accommodate different assumptions about the degree of inter-group variability in functional response, and show how HGAMs can be readily fitted using the **mgcv** package in R. We also discuss computational and statistical issues with fitting these models, and demonstrate how to fit HGAMs on example data.
 
 ```{r child = '01-intro.Rmd'}
 ```
@@ -71,10 +65,7 @@ on example data.
 
 # Conclusion
 
-HGAMs are a powerful tool to model intergroup variability, and we have attempted
-to illustrate some of the range and possibilities that these models are capable
-of, how to fit them, and some issues that may arise during
-model fitting and testing.
+HGAMs are a powerful tool to model intergroup variability, and we have attempted to illustrate some of the range and possibilities that these models are capable of, how to fit them, and some of the issues that may arise during model fitting and testing.
 Specifying these models and techniques for fitting them are active areas statistical research, so this paper should be viewed as a jumping-off point for these models, rather than an end-point; we refer the reader to the rich literature on GAMs [e.g. @wood_generalized_2017] and functional regression [@ramsay_functional_2005; @kaufman_bayesian_2010; @scheipl_functional_2014] for more on these ideas.
 
 
