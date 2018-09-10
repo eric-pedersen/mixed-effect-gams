@@ -239,30 +239,24 @@ levels(zooplankton$taxon)
 levels(zooplankton$lake)
 zoo_train <- subset(zooplankton, year%%2==0)
 zoo_test <- subset(zooplankton, year%%2==1) 
-zoo_comm_mod4 <- gam(density_scaled ~s(day, taxon,
-                                      bs="fs",
-                                      k=10,
-                                      xt=list(bs="cc")),
-                     data=zoo_train,
-                     knots = list(day =c(1, 365)),
-                     method = "ML")
-zoo_comm_mod5 <- gam(density_scaled~s(day, by=taxon,
-                           k=10, bs="cc"),
-                     data=zoo_train,
-                     knots = list(day =c(1, 365)),
-                     method = "ML")
+zoo_comm_mod4 <-
+  gam(density_scaled ~ s(day, taxon, bs="fs", k=10, xt=list(bs="cc")),
+      data=zoo_train, knots=list(day=c(1, 365)), method="ML")
+zoo_comm_mod5 <-
+  gam(density_scaled ~ taxon + s(day, by=taxon, k=10, bs="cc"),
+      data=zoo_train, knots=list(day=c(1, 365)), method="ML")
 #Create synthetic data to use to compare predictions
-zoo_plot_data = expand.grid(day = 1:365, taxon = factor(levels(zoo_train$taxon)))
+zoo_plot_data <- expand.grid(day = 1:365, taxon = factor(levels(zoo_train$taxon)))
 
 #extract predicted values and standard errors for both models
-zoo_mod4_fit = predict(zoo_comm_mod4, zoo_plot_data, se.fit = T)
-zoo_mod5_fit = predict(zoo_comm_mod5, zoo_plot_data, se.fit = T)
+zoo_mod4_fit <- predict(zoo_comm_mod4, zoo_plot_data, se.fit = T)
+zoo_mod5_fit <- predict(zoo_comm_mod5, zoo_plot_data, se.fit = T)
 
-zoo_plot_data$mod4_fit = as.numeric(zoo_mod4_fit$fit)
-zoo_plot_data$mod5_fit = as.numeric(zoo_mod5_fit$fit)
+zoo_plot_data$mod4_fit <- as.numeric(zoo_mod4_fit$fit)
+zoo_plot_data$mod5_fit <- as.numeric(zoo_mod5_fit$fit)
 
-zoo_plot_data$mod4_se = as.numeric(zoo_mod4_fit$se.fit)
-zoo_plot_data$mod5_se = as.numeric(zoo_mod5_fit$se.fit)
+zoo_plot_data$mod4_se <- as.numeric(zoo_mod4_fit$se.fit)
+zoo_plot_data$mod5_se <- as.numeric(zoo_mod5_fit$se.fit)
 
 #Plot the model output, with means plus standard deviations for each model.
 zoo_plot = ggplot(zoo_plot_data, aes(x=day))+
@@ -284,7 +278,7 @@ zoo_plot = ggplot(zoo_plot_data, aes(x=day))+
   scale_fill_manual("", breaks = c("Model 4", "Model 5"), values = c("black","red"))+
   theme(legend.position = "bottom")
 
-print(zoo_plot)
+zoo_plot
 get_MSE = function(obs, pred) mean((obs-pred)^2)
 #Getting the out of sample predictions for both models:
 zoo_test$mod4 = as.numeric(predict(zoo_comm_mod4,zoo_test))
@@ -297,30 +291,26 @@ zoo_test_summary = zoo_test %>%
   summarise(`model 4 MSE` = round(get_MSE(density_scaled,mod4),2),
             `model 5 MSE` = round(get_MSE(density_scaled,mod5),2))
 
-kable(zoo_test_summary, format = table_out_format, caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. MSE values represent the average squared difference between model predictions and observations for test data.", booktabs = T)%>%
-  kable_styling(full_width = F)
+kable(zoo_test_summary, format = table_out_format, caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. MSE values represent the average squared difference between model predictions and observations for test data.", booktabs = TRUE)%>%
+  kable_styling(full_width = FALSE)
 daphnia_train <- subset(zoo_train, taxon=="D. mendotae")
 daphnia_test <- subset(zoo_test, taxon=="D. mendotae")
 
-zoo_daph_mod1 <- gam(density_scaled~s(day, bs="cc",k=10),
-                     data=daphnia_train,
-                     knots=list(day =c(1, 365)),
-                     method="ML")
+zoo_daph_mod1 <-
+  gam(density_scaled ~ s(day, bs="cc", k=10),
+      data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
 
 printCoefmat(summary(zoo_daph_mod1)$s.table)
-zoo_daph_mod2 <- gam(density_scaled~s(day, bs="cc", k=10) +
-                            s(day, lake, k=10, bs="fs",
-                              xt=list(bs="cc")),
-                     data=daphnia_train,
-                     knots=list(day =c(1, 365)),
-                     method="ML")
+zoo_daph_mod2 <-
+  gam(density_scaled ~ s(day, bs="cc", k=10) +
+        s(day, lake, k=10, bs="fs", xt=list(bs="cc")),
+      data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
 
 printCoefmat(summary(zoo_daph_mod2)$s.table)
-zoo_daph_mod3 <- gam(density_scaled~s(day, bs="cc", k=10) +
-                                    s(day, by=lake, k=10, bs="cc"),
-                     data=daphnia_train,
-                     knots=list(day =c(1, 365)),
-                     method="ML")
+zoo_daph_mod3 <-
+  gam(density_scaled ~ lake + s(day, bs="cc", k=10) + 
+        s(day, by=lake, k=10, bs="cc"),
+      data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
 
 printCoefmat(summary(zoo_daph_mod3)$s.table)
 #Create synthetic data to use to compare predictions

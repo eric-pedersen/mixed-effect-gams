@@ -39,26 +39,19 @@ useful, so we could could borrow information from the more common species). As t
 ### Model 4:
 
 ```{r zoo_comm_mod4, echo=TRUE, message=FALSE,  cache=TRUE, fig.width=8, fig.height=5}
-zoo_comm_mod4 <- gam(density_scaled ~s(day, taxon,
-                                      bs="fs",
-                                      k=10,
-                                      xt=list(bs="cc")),
-                     data=zoo_train,
-                     knots = list(day =c(1, 365)),
-                     method = "ML")
+zoo_comm_mod4 <-
+  gam(density_scaled ~ s(day, taxon, bs="fs", k=10, xt=list(bs="cc")),
+      data=zoo_train, knots=list(day=c(1, 365)), method="ML")
 ```
-
 
 Note that we use maximum likelihood (`method = "ML"`) as our smoothing selection method. This is required as we want to compare models that differ in their fixed effects.
 
 ### Model 5:
 
 ```{r zoo_comm_mod5, echo=TRUE, message=FALSE,  cache=TRUE, fig.width=8, fig.height=5}
-zoo_comm_mod5 <- gam(density_scaled~s(day, by=taxon,
-                           k=10, bs="cc"),
-                     data=zoo_train,
-                     knots = list(day =c(1, 365)),
-                     method = "ML")
+zoo_comm_mod5 <-
+  gam(density_scaled ~ taxon + s(day, by=taxon, k=10, bs="cc"),
+      data=zoo_train, knots=list(day=c(1, 365)), method="ML")
 ```
 
 Both models have very similar fits, with a mean squared error of
@@ -66,21 +59,21 @@ Both models have very similar fits, with a mean squared error of
 for model 4 and
 `r round(var(residuals(zoo_comm_mod5)),2)`
 for model 5 (the mean squared error for the original data equals 1 because
-of the scaling).  Model 5 has a somewhat lower AIC (`AIC(zoo_comm_mod4)` = `r round(AIC(zoo_comm_mod4))`, `AIC(zoo_comm_mod5)` = `r round(AIC(zoo_comm_mod5))`), implying a better overall fit. However, the two models are almost indistinguishable when plotted on top of each other (Figure \ref{fig:zoo_comp}).
+of the scaling).  Model 4 has a somewhat lower AIC (`AIC(zoo_comm_mod4)` = `r round(AIC(zoo_comm_mod4))`, `AIC(zoo_comm_mod5)` = `r round(AIC(zoo_comm_mod5))`), implying a better overall fit. However, the two models are almost indistinguishable when plotted on top of each other (Figure \ref{fig:zoo_comp}).
 
 ```{r zoo_comm_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=5, fig.height=4, fig.cap = "\\label{fig:zoo_comp}Species-specific seasonal dynamics for the eight zooplankon species tracked in Lake Mendota. Black points indicate individual plankton observations (after log-transformation and centering and scaling). Lines indicate predicted average values for model 4 (black) and model 5 (red). Ribbons indicate $\\pm$ 2 standard errors around the mean. "}
 #Create synthetic data to use to compare predictions
-zoo_plot_data = expand.grid(day = 1:365, taxon = factor(levels(zoo_train$taxon)))
+zoo_plot_data <- expand.grid(day = 1:365, taxon = factor(levels(zoo_train$taxon)))
 
 #extract predicted values and standard errors for both models
-zoo_mod4_fit = predict(zoo_comm_mod4, zoo_plot_data, se.fit = T)
-zoo_mod5_fit = predict(zoo_comm_mod5, zoo_plot_data, se.fit = T)
+zoo_mod4_fit <- predict(zoo_comm_mod4, zoo_plot_data, se.fit = T)
+zoo_mod5_fit <- predict(zoo_comm_mod5, zoo_plot_data, se.fit = T)
 
-zoo_plot_data$mod4_fit = as.numeric(zoo_mod4_fit$fit)
-zoo_plot_data$mod5_fit = as.numeric(zoo_mod5_fit$fit)
+zoo_plot_data$mod4_fit <- as.numeric(zoo_mod4_fit$fit)
+zoo_plot_data$mod5_fit <- as.numeric(zoo_mod5_fit$fit)
 
-zoo_plot_data$mod4_se = as.numeric(zoo_mod4_fit$se.fit)
-zoo_plot_data$mod5_se = as.numeric(zoo_mod5_fit$se.fit)
+zoo_plot_data$mod4_se <- as.numeric(zoo_mod4_fit$se.fit)
+zoo_plot_data$mod5_se <- as.numeric(zoo_mod5_fit$se.fit)
 
 #Plot the model output, with means plus standard deviations for each model.
 zoo_plot = ggplot(zoo_plot_data, aes(x=day))+
@@ -102,11 +95,11 @@ zoo_plot = ggplot(zoo_plot_data, aes(x=day))+
   scale_fill_manual("", breaks = c("Model 4", "Model 5"), values = c("black","red"))+
   theme(legend.position = "bottom")
 
-print(zoo_plot)
+zoo_plot
 ```
 
 Model 5's higher AIC than model 4 seems to be driven by the low seasonality of *Keratella cochlearis* and *Leptodiaptomus siciloides* relative to the other species. Still, both
-models show very similar fits to the training data. Model 5 is only slightly better at predicting out of sample fits for *K. cochlearis*, and not at all better for *L. siciloides*  (Table \ref{tab:zoo_comm_outofsample}).
+models show very similar fits to the training data. Model 4 is slightly better at predicting out of sample fits for all taxa except Calanoid copepods (Table \ref{tab:zoo_comm_outofsample}).
 
 
 ```{r zoo_comm_outofsample, echo=FALSE, message=FALSE,  cache=TRUE}
@@ -122,8 +115,8 @@ zoo_test_summary = zoo_test %>%
   summarise(`model 4 MSE` = round(get_MSE(density_scaled,mod4),2),
             `model 5 MSE` = round(get_MSE(density_scaled,mod5),2))
 
-kable(zoo_test_summary, format = table_out_format, caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. MSE values represent the average squared difference between model predictions and observations for test data.", booktabs = T)%>%
-  kable_styling(full_width = F)
+kable(zoo_test_summary, format = table_out_format, caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. MSE values represent the average squared difference between model predictions and observations for test data.", booktabs = TRUE)%>%
+  kable_styling(full_width = FALSE)
 ```
 
 Now let's look at how to fit inter-lake variability in dynamics for just *Daphnia mendotae*.
@@ -135,38 +128,34 @@ lakes with a shared smooth and lake-specific smooths.
 
 ### Model 1:
 
-```{r zoo_daph_mod1, echo=TRUE, message=FALSE,  cache=TRUE}
+```{r zoo_daph_mod1, echo=TRUE, message=FALSE, cache=TRUE}
 daphnia_train <- subset(zoo_train, taxon=="D. mendotae")
 daphnia_test <- subset(zoo_test, taxon=="D. mendotae")
 
-zoo_daph_mod1 <- gam(density_scaled~s(day, bs="cc",k=10),
-                     data=daphnia_train,
-                     knots=list(day =c(1, 365)),
-                     method="ML")
+zoo_daph_mod1 <-
+  gam(density_scaled ~ s(day, bs="cc", k=10),
+      data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
 
 printCoefmat(summary(zoo_daph_mod1)$s.table)
 ```
 
 ### Model 2:
 ```{r zoo_daph_mod2, echo=TRUE, message=FALSE,  cache=TRUE}
-zoo_daph_mod2 <- gam(density_scaled~s(day, bs="cc", k=10) +
-                            s(day, lake, k=10, bs="fs",
-                              xt=list(bs="cc")),
-                     data=daphnia_train,
-                     knots=list(day =c(1, 365)),
-                     method="ML")
+zoo_daph_mod2 <-
+  gam(density_scaled ~ s(day, bs="cc", k=10) +
+        s(day, lake, k=10, bs="fs", xt=list(bs="cc")),
+      data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
 
 printCoefmat(summary(zoo_daph_mod2)$s.table)
 ```
 
 ### Model 3:
 
-```{r zoo_daph_mod3, echo=TRUE, message=FALSE,  cache=TRUE}
-zoo_daph_mod3 <- gam(density_scaled~s(day, bs="cc", k=10) +
-                                    s(day, by=lake, k=10, bs="cc"),
-                     data=daphnia_train,
-                     knots=list(day =c(1, 365)),
-                     method="ML")
+```{r zoo_daph_mod3, echo=TRUE, message=FALSE, cache=TRUE}
+zoo_daph_mod3 <-
+  gam(density_scaled ~ lake + s(day, bs="cc", k=10) + 
+        s(day, by=lake, k=10, bs="cc"),
+      data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
 
 printCoefmat(summary(zoo_daph_mod3)$s.table)
 ```
