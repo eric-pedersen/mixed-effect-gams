@@ -75,7 +75,7 @@ basis_penalty_plot = ggplot(aes(x=basis_x,y=basis_y,fill=value),
                             data=spline_basis_penalties)+
   geom_tile(color="black")+
   theme_bw()+
-  scale_fill_gradient2("penalty",high = "#b2182b",low="#2166ac",midpoint = 0 )+
+  scale_fill_gradient2("penalty",high = "#b2182b",low="#0000ff",midpoint = 0 ,limits=c(-1,1))+
   theme(strip.background = element_blank())+
   labs(x="", y="")+
   coord_fixed()+
