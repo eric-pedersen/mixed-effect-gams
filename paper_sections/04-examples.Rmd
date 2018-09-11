@@ -61,7 +61,7 @@ for model 4 and
 for model 5 (the mean squared error for the original data equals 1 because
 of the scaling).  Model 4 has a somewhat lower AIC (`AIC(zoo_comm_mod4)` = `r round(AIC(zoo_comm_mod4))`, `AIC(zoo_comm_mod5)` = `r round(AIC(zoo_comm_mod5))`), implying a better overall fit. However, the two models are almost indistinguishable when plotted on top of each other (Figure \ref{fig:zoo_comp}).
 
-```{r zoo_comm_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=5, fig.height=4, fig.cap = "\\label{fig:zoo_comp}Species-specific seasonal dynamics for the eight zooplankon species tracked in Lake Mendota. Black points indicate individual plankton observations (after log-transformation and centering and scaling). Lines indicate predicted average values for model 4 (black) and model 5 (red). Ribbons indicate $\\pm$ 2 standard errors around the mean. "}
+```{r zoo_comm_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=6, fig.height=4, fig.cap = "\\label{fig:zoo_comp}Species-specific seasonal dynamics for the eight zooplankon species tracked in Lake Mendota. Black points indicate individual plankton observations (after log-transformation and centering and scaling). Lines indicate predicted average values for model 4 (green) and model 5 (orange). Shaded bands are drawn at $\\pm$ 2 standard errors around the mean. "}
 #Create synthetic data to use to compare predictions
 zoo_plot_data <- expand.grid(day = 1:365, taxon = factor(levels(zoo_train$taxon)))
 
@@ -72,28 +72,25 @@ zoo_mod5_fit <- predict(zoo_comm_mod5, zoo_plot_data, se.fit = T)
 zoo_plot_data$mod4_fit <- as.numeric(zoo_mod4_fit$fit)
 zoo_plot_data$mod5_fit <- as.numeric(zoo_mod5_fit$fit)
 
-zoo_plot_data$mod4_se <- as.numeric(zoo_mod4_fit$se.fit)
-zoo_plot_data$mod5_se <- as.numeric(zoo_mod5_fit$se.fit)
+zoo_plot_data <- gather(zoo_plot_data, model, fit, mod4_fit, mod5_fit)
 
-#Plot the model output, with means plus standard deviations for each model.
-zoo_plot = ggplot(zoo_plot_data, aes(x=day))+
-  facet_wrap(~taxon, nrow = 2)+
-  geom_point(data= zoo_train, aes(y=density_scaled),size=0.1)+
-  geom_line(aes(y=mod4_fit, color = "Model 4"))+
-  geom_line(aes(y=mod5_fit, color = "Model 5"))+
-  geom_ribbon(aes(ymin = mod4_fit - 2*mod4_se,
-                  ymax = mod4_fit + 2*mod4_se,
-                  fill="Model 4"),
-              alpha=0.25)+
-  geom_ribbon(aes(ymin = mod5_fit - 2*mod5_se,
-                  ymax = mod5_fit + 2*mod5_se,
-                  fill="Model 5"),
-              alpha=0.25)+
-  scale_y_continuous("Scaled log-transformed density")+
-  scale_x_continuous(expand = c(0,0))+
-  scale_color_manual("", breaks = c("Model 4", "Model 5"), values = c("black","red"))+
-  scale_fill_manual("", breaks = c("Model 4", "Model 5"), values = c("black","red"))+
-  theme(legend.position = "bottom")
+zoo_plot_data <- mutate(zoo_plot_data, se = c(as.numeric(zoo_mod4_fit$se.fit),
+                                                as.numeric(zoo_mod5_fit$se.fit)),
+                         upper = fit + (2 * se),
+                         lower = fit - (2 * se))
+
+zoo_plot <- ggplot(zoo_plot_data) +
+    geom_point(aes(y=density_scaled, x = day), size=0.1, data = zoo_train) +
+    geom_ribbon(aes(x = day, ymin = lower, ymax = upper, fill = model), 
+                alpha = 0.2) +
+    geom_path(aes(x = day, y = fit, colour = model)) +
+    theme(legend.position = "top") +
+    labs(y = "Scaled log-transformed density", x = "Day of Year") +
+    facet_wrap(~ taxon, nrow = 2) +
+    scale_fill_brewer(name = "", palette = "Dark2",
+                      labels = paste("Model", 4:5)) +
+    scale_colour_brewer(name = "",
+                        palette = "Dark2", labels = paste("Model", 4:5))
 
 zoo_plot
 ```
@@ -102,7 +99,7 @@ Model 5's higher AIC than model 4 seems to be driven by the low seasonality of *
 models show very similar fits to the training data. Model 4 is slightly better at predicting out of sample fits for all taxa except Calanoid copepods (Table \ref{tab:zoo_comm_outofsample}).
 
 
-```{r zoo_comm_outofsample, echo=FALSE, message=FALSE,  cache=TRUE}
+```{r zoo_comm_outofsample, echo=FALSE, message=FALSE, cache=TRUE}
 get_MSE = function(obs, pred) mean((obs-pred)^2)
 #Getting the out of sample predictions for both models:
 zoo_test$mod4 = as.numeric(predict(zoo_comm_mod4,zoo_test))
@@ -115,16 +112,14 @@ zoo_test_summary = zoo_test %>%
   summarise(`model 4 MSE` = round(get_MSE(density_scaled,mod4),2),
             `model 5 MSE` = round(get_MSE(density_scaled,mod5),2))
 
+names(zoo_test_summary) <- c("Taxon", "Model 4 MSE", "Model 5 MSE")
+
 kable(zoo_test_summary, format = table_out_format, caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. MSE values represent the average squared difference between model predictions and observations for test data.", booktabs = TRUE)%>%
   kable_styling(full_width = FALSE)
 ```
 
 Now let's look at how to fit inter-lake variability in dynamics for just *Daphnia mendotae*.
-Here, we will compare models 1, 2, and 3 to determine if a single global function
-is appropriate for all four lakes, or if we can more effectively model variation between
-lakes with a shared smooth and lake-specific smooths.
-
-
+Here, we will compare models 1, 2, and 3 to determine if a single global function is appropriate for all four lakes, or if we can more effectively model variation between lakes with a shared smooth and lake-specific smooths.
 
 ### Model 1:
 
@@ -135,7 +130,6 @@ daphnia_test <- subset(zoo_test, taxon=="D. mendotae")
 zoo_daph_mod1 <-
   gam(density_scaled ~ s(day, bs="cc", k=10),
       data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
-
 printCoefmat(summary(zoo_daph_mod1)$s.table)
 ```
 
@@ -145,7 +139,6 @@ zoo_daph_mod2 <-
   gam(density_scaled ~ s(day, bs="cc", k=10) +
         s(day, lake, k=10, bs="fs", xt=list(bs="cc")),
       data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
-
 printCoefmat(summary(zoo_daph_mod2)$s.table)
 ```
 
@@ -154,9 +147,8 @@ printCoefmat(summary(zoo_daph_mod2)$s.table)
 ```{r zoo_daph_mod3, echo=TRUE, message=FALSE, cache=TRUE}
 zoo_daph_mod3 <-
   gam(density_scaled ~ lake + s(day, bs="cc", k=10) + 
-        s(day, by=lake, k=10, bs="cc"),
+        s(day, by=lake, k=10, bs="cc", m=1),
       data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
-
 printCoefmat(summary(zoo_daph_mod3)$s.table)
 ```
 
@@ -173,45 +165,40 @@ but both Kegonsa and Waubesa show
 evidence of a more pronounced spring bloom and lower winter abundances.  While
 this is stronger in Lake Waubesa, it is still detectable with simpler model 2 in Lake Kegonsa (Figure \ref{fig:daph_smooth}, black line).
 
-```{r zoo_daph_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE, fig.width=5, fig.height=4, fig.cap="\\label{fig:daph_smooth}Raw data (points) and fitted models (lines) for \textit{D. mendota} data. Dashed black line: model 1 (no inter-lake variation in dynamics); solid black line: model 2 (interlake variation with similar smoothness); red line: model 3 (varying smooths among lakes). Red and black ribbons indicate $\\pm$ 2 standard errors around each model."}
+```{r zoo_daph_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE, fig.width=6, fig.height=4, fig.cap="\\label{fig:daph_smooth}Raw data (points) and fitted models (lines) for \\textit{D. mendota} data. Green: model 1 (no inter-lake variation in dynamics); orange: model 2 (interlake variation with similar smoothness); purple: model 3 (varying smooths among lakes). Shaded bands are drawn at $\\pm$ 2 standard errors around each model."}
 #Create synthetic data to use to compare predictions
-daph_plot_data = expand.grid(day = 1:365, lake = factor(levels(zoo_train$lake)))
+daph_plot_data <- expand.grid(day = 1:365, lake = factor(levels(zoo_train$lake)))
 
+daph_mod1_fit <- predict(zoo_daph_mod1, daph_plot_data, se.fit = TRUE)
+daph_mod2_fit <- predict(zoo_daph_mod2, daph_plot_data, se.fit = TRUE)
+daph_mod3_fit <- predict(zoo_daph_mod3, daph_plot_data, se.fit = TRUE)
 
-daph_mod1_fit = predict(zoo_daph_mod1, daph_plot_data, se.fit = T)
-daph_mod2_fit = predict(zoo_daph_mod2, daph_plot_data, se.fit = T)
-daph_mod3_fit = predict(zoo_daph_mod3, daph_plot_data, se.fit = T)
+daph_plot_data$mod1_fit <- as.numeric(daph_mod1_fit$fit)
+daph_plot_data$mod2_fit <- as.numeric(daph_mod2_fit$fit)
+daph_plot_data$mod3_fit <- as.numeric(daph_mod3_fit$fit)
 
+daph_plot_data <- gather(daph_plot_data, model, fit, mod1_fit, mod2_fit, mod3_fit)
 
-daph_plot_data$mod1_fit = as.numeric(daph_mod1_fit$fit)
-daph_plot_data$mod2_fit = as.numeric(daph_mod2_fit$fit)
-daph_plot_data$mod3_fit = as.numeric(daph_mod3_fit$fit)
+daph_plot_data <- mutate(daph_plot_data, se = c(as.numeric(daph_mod1_fit$se.fit),
+                                                as.numeric(daph_mod2_fit$se.fit),
+                                                as.numeric(daph_mod3_fit$se.fit)),
+                         upper = fit + (2 * se),
+                         lower = fit - (2 * se))
 
-daph_plot_data$mod1_se = as.numeric(daph_mod1_fit$se.fit)
-daph_plot_data$mod2_se = as.numeric(daph_mod2_fit$se.fit)
-daph_plot_data$mod3_se = as.numeric(daph_mod3_fit$se.fit)
+daph_plot <- ggplot(daph_plot_data) +
+    geom_point(aes(y=density_scaled, x = day), size=0.1, data = daphnia_train) +
+    geom_ribbon(aes(x = day, ymin = lower, ymax = upper, fill = model), 
+                alpha = 0.2) +
+    geom_path(aes(x = day, y = fit, colour = model)) +
+    theme(legend.position = "top") +
+    labs(y = "Scaled log-transformed density", x = "Day of Year") +
+    facet_wrap(~ lake, nrow = 2) +
+    scale_fill_brewer(name = "", palette = "Dark2",
+                      labels = paste("Model", 1:3)) +
+    scale_colour_brewer(name = "",
+                        palette = "Dark2", labels = paste("Model", 1:3))
 
-daph_plot = ggplot(daph_plot_data, aes(x=day))+
-  facet_wrap(~lake, nrow = 2)+
-  geom_point(data= daphnia_train, aes(y=density_scaled),size=0.1)+
-  geom_line(aes(y=mod1_fit, linetype = "Model 1", size = "Model 1"))+
-  geom_line(aes(y=mod2_fit,color = "Model 2"))+
-  geom_line(aes(y=mod3_fit,color = "Model 3"))+
-  geom_ribbon(aes(ymin = mod2_fit - 2*mod2_se,
-                  ymax = mod2_fit + 2*mod2_se,fill = "Model 2"),
-              alpha=0.25)+
-  geom_ribbon(aes(ymin = mod3_fit - 2*mod3_se,
-                  ymax = mod3_fit + 2*mod3_se,fill = "Model 3"),
-              alpha=0.25)+
-  scale_y_continuous("Scaled log-transformed density")+
-  scale_x_continuous(expand = c(0,0))+
-  scale_color_manual("", breaks = c("Model 2", "Model 3"), values = c("black","red"))+
-  scale_fill_manual("", breaks = c("Model 2", "Model 3"), values = c("black","red"))+
-  scale_linetype_manual("", breaks = c("Model 1"), values = 2)+
-  scale_size_manual("", breaks = c("Model 1"), values = 2)+
-  theme(legend.position = "bottom")
-
-print(daph_plot)
+daph_plot
 ```
 
 
