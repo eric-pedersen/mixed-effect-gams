@@ -262,9 +262,12 @@ zoo_comm_mod5 <- gam(density_adj ~ s(day, by=taxon,
 #Create synthetic data to use to compare predictions
 zoo_plot_data <- expand.grid(day = 1:365, taxon = factor(levels(zoo_train$taxon)), year_f = 1980)
 
-#extract predicted values and standard errors for both models
-zoo_mod4_fit <- predict(zoo_comm_mod4, zoo_plot_data, se.fit = T)
-zoo_mod5_fit <- predict(zoo_comm_mod5, zoo_plot_data, se.fit = T)
+#extract predicted values and standard errors for both models. the exclude = "s(taxon,year_f)" 
+#term indicates that predictions should be made excluding the effect of the
+#taxon by year random effect (effectively setting making predictions averaging
+#over year-taxon effects).
+zoo_mod4_fit <- predict(zoo_comm_mod4, zoo_plot_data, se.fit = T, exclude = "s(taxon,year_f)")
+zoo_mod5_fit <- predict(zoo_comm_mod5, zoo_plot_data, se.fit = T, exclude = "s(taxon,year_f)")
 
 zoo_plot_data$mod4_fit <- as.numeric(zoo_mod4_fit$fit)
 zoo_plot_data$mod5_fit <- as.numeric(zoo_mod5_fit$fit)
@@ -302,8 +305,7 @@ get_RMSE <- function(fit, obs) sqrt(mean((fit-obs)^2))
 
 # we need to compare how well this model fits with a null model. here we'll use an
 # intercept-only model
-zoo_comm_mod0 <- gam(density_adj ~ s(taxon,bs="re") +
-                                   s(taxon, year_f, bs="re"),
+zoo_comm_mod0 <- gam(density_adj ~ s(taxon,bs="re"),
                      data=zoo_train,
                      knots = list(day =c(1, 365)),
                      family = Gamma(link ="log"), 
@@ -319,13 +321,21 @@ zoo_test_summary = zoo_test %>%
     mod5 = predict(zoo_comm_mod5, ., type="response"))%>%
   group_by(taxon)%>%
   summarise(
-    `Intercept only` = format(get_RMSE(mod0, density_adj), scientific = T, digits=2),
-    `Model 4` = format(get_RMSE(mod4, density_adj), scientific = T, digits=2),
-    `Model 5` = format(get_RMSE(mod5, density_adj), scientific = T, digits=2))
+    `Intercept only` = format(get_RMSE(mod0, density_adj), scientific = T, digits=3),
+    `Model 4` = format(get_RMSE(mod4, density_adj), scientific = T, digits=3),
+    `Model 5` = format(get_RMSE(mod5, density_adj), scientific = T, digits=3))%>%
+  mutate(taxon = cell_spec(taxon, italic = c(T,F,F,T,T,T,T,T))) #need to specify this to ensure that species names are italized in the table
 
-kable(zoo_test_summary, format = table_out_format, caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. RMSE values represent the average squared difference between model predictions and observations for test data.", booktabs = T)%>%
-  add_header_above(c(" " = 1, "Total RMSE of held out data (individuals/m^2)" = 3))%>%
-  kable_styling(full_width = F)
+kable(zoo_test_summary, 
+      format = table_out_format, 
+      caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. RMSE values represent the square root of the average squared difference between model predictions and observations for test data.  Intercept only results are for a null model with only year and year-by taxon random effect intercepts included.", 
+      booktabs = TRUE,
+      escape = FALSE)%>%
+  add_header_above(c(" " = 1, "Total RMSE of held out data ($individuals/m^2$)" = 3),escape = FALSE)%>%
+  kable_styling(full_width = FALSE) %>%
+  row_spec(2:3,italic = FALSE) %>%
+  row_spec(2:3, italic = FALSE)
+  
 daphnia_train <- subset(zoo_train, taxon=="D. mendotae")
 daphnia_test <- subset(zoo_test, taxon=="D. mendotae")
 
@@ -365,9 +375,13 @@ printCoefmat(summary(zoo_daph_mod3)$s.table)
 #Create synthetic data to use to compare predictions
 daph_plot_data <- expand.grid(day = 1:365, lake = factor(levels(zoo_train$lake)),year_f = 1980)
 
-daph_mod1_fit <- predict(zoo_daph_mod1, daph_plot_data, se.fit = TRUE)
-daph_mod2_fit <- predict(zoo_daph_mod2, daph_plot_data, se.fit = TRUE)
-daph_mod3_fit <- predict(zoo_daph_mod3, daph_plot_data, se.fit = TRUE)
+#extract predicted values and standard errors for both models. the exclude = "s(taxon,year_f)" 
+#term indicates that predictions should be made excluding the effect of the
+#taxon by year random effect (effectively setting making predictions averaging
+#over year-taxon effects).
+daph_mod1_fit <- predict(zoo_daph_mod1, daph_plot_data, se.fit = TRUE, exclude = "s(lake,year_f)")
+daph_mod2_fit <- predict(zoo_daph_mod2, daph_plot_data, se.fit = TRUE, exclude = "s(lake,year_f)")
+daph_mod3_fit <- predict(zoo_daph_mod3, daph_plot_data, se.fit = TRUE, exclude = "s(lake,year_f)")
 
 daph_plot_data$mod1_fit <- as.numeric(daph_mod1_fit$fit)
 daph_plot_data$mod2_fit <- as.numeric(daph_mod2_fit$fit)
@@ -401,8 +415,7 @@ daph_plot <- ggplot(daph_plot_data, aes(x=day))+
 daph_plot
 # we need to compare how well this model fits with a null model. here we'll use an
 # intercept-only model
-zoo_daph_mod0 <- gam(density_adj~s(lake, bs="re") + 
-                                 s(lake, year_f,bs="re"),
+zoo_daph_mod0 <- gam(density_adj~s(lake, bs="re"),
                      data=daphnia_train,
                      knots=list(day =c(1, 365)),
                      family=Gamma(link ="log"),

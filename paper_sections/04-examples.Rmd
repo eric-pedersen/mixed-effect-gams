@@ -5,12 +5,16 @@ visualize each model. We will demonstrate how to use these models to fit communi
 data, to show when using a global trend may or may not be justified, and to
 illustrate how to use these models to fit seasonal time series.
 
-For these examples, data are from a long-term study in seasonal dynamics of zooplankton, collected by the Richard Lathrop. The data were collected from a chain of lakes in Wisconsin (Mendota, Monona, Kegnonsa, and Waubesa) approximately bi-weekly from 1976 to 1994. They consist of samples of the zooplankton communities, taken from the deepest point of each lake via vertical tow. The data are provided by the Wisconsin Department of Natural Resources and their collection and processing are fully described in @lathrop_madison_2000.
+For these examples, data are from a long-term study in seasonal dynamics of zooplankton, collected by the Richard Lathrop. The data were collected from a chain of lakes in Wisconsin (Mendota, Monona, Kegnonsa, and Waubesa) approximately bi-weekly from 1976 to 1994. They consist of samples of the zooplankton communities, taken from the deepest point of each lake via vertical tow. The data are provided by the Wisconsin Department of Natural Resources and their collection and processing are fully described in @lathrop_madison_2000. 
 
-Here inferential aims are *(i)* estimate variability in seasonality among species in the community in a single lake (Mendota), and *(ii)* estimate among-lake variability for the most abundant taxon in the sample (*Daphnia mendotae*) across the four lakes. As we are
-focusing on seasonal cycles rather than average or maximum abundances. We have
-log-transformed all densities, then centered and scaled them by the within year,
-species and lake means; all species in all lake-years will have a mean scaled density of zero and standard deviation of one. To enable evaluation of out-of-sample performance, we split the data into testing and training sets. As there are multiple years of data, so we use data from the even years to fit (train) models, and the odd years to test the fit.
+
+Zooplankon in temperate lakes often undergo seasonal cycles, where the abundance of each species fluctuates up and down across the course of the year, with each species typically showing a distinct pattern of seasonal cycles. The inferential aims of these examples are to *(i)* estimate variability in seasonality among species in the community in a single lake (Mendota), and *(ii)* estimate among-lake variability for the most abundant taxon in the sample (*Daphnia mendotae*) across the four lakes. To enable evaluation of out-of-sample performance, we split the data into testing and training sets. As there are multiple years of data, we used data from the even years to fit (train) models, and the odd years to test the fit.
+
+Each record consists of counts of a given zooplankton taxon taken from a subsample from a single vertical net tow, which was then scaled to account for the relative volume of subsample versus the whole net sample and the area of the net tow and rounded to 1000 give estimated population density per $m^2$ for each taxon at each point in time in each sampled lake. As this meant that data were not counts, and observed densities spanned four orders of magnitude, we modelled density using a Gamma distribution with a log-link. For any net tow sample where a given taxon was not observed, we set that taxon's density to 1000 (the minimum possible sample size)[^censored].
+
+[^censored]: A more appropriate model for this data would be to assume that density is *left censored*, where 1000 is treated as a threshold which the data may lie below, but it is not possible to measure lower than this. However, **mgcv** does not currently have a left-censored family. The **brms** package, for Bayesian model fitting, can fit a left-censored Gamma distribution, so it would be possible to fit this model using that software. We discuss using HGAMs in **brms** in section V. 
+
+
 
 ```{r view_zoo, include = FALSE, message=FALSE,  cache=TRUE}
 zooplankton <- read.csv("../data/zooplankton_example.csv")%>%
@@ -27,7 +31,8 @@ zoo_train <- subset(zooplankton, year%%2==0)
 zoo_test <- subset(zooplankton, year%%2==1) 
 ```
 
-First, we demonstrate how to model community-level variability in seasonality, by regressing scaled density on day of year, with species-specific curves. As we are not interested here in average seasonal dynamics, we will focus on models 4 and 5 (if we wanted to estimate the seasonal dynamics for rarer species, adding a global smooth term might be useful, so we could could borrow information from the more common species). As the data are seasonal,  we use cyclic smoothers as the basis for seasonal dynamics.  Therefore we need to specify start and end points for our cycles using the `knots` argument to `gam`, as well as specify that this is smoother type to the factor-smooth interaction term using the `xt` argument:
+First, we demonstrate how to model community-level variability in seasonality, by regressing scaled density on day of year, with species-specific curves. As we are not interested here in average seasonal dynamics, we will focus on models 4 and 5 (if we wanted to estimate the seasonal dynamics for rarer species, adding a global smooth term might be useful, so we could could borrow information from the more common species). As the data are seasonal,  we use cyclic smoothers as the basis for seasonal dynamics.  Therefore we need to specify start and end points for our cycles using the `knots` argument to `gam`, as well as specify that this is smoother type to the factor-smooth interaction term using the `xt` argument (the `xt` argument is how any extra information that a smoother might need is supplied; see `?mgcv::s` for more information). Note that we also include a random effect smoother for both `taxon` and `taxon:year_f`, where `year_f` is just `year` transformed into a factor variable, to deal with the fact that average zooplankton densities can show large year-to-year variation. The argument `drop.unused.levels=FALSE` is also included so the `gam` function does not drop the year factor levels corresponding to those in the held-out test data set. 
+
 
 ### Model 4:
 
@@ -61,16 +66,19 @@ zoo_comm_mod5 <- gam(density_adj ~ s(day, by=taxon,
                      drop.unused.levels = FALSE)
 ```
 
-Both models have very similar fits, with a mean squared error of `r round(var(residuals(zoo_comm_mod4)),2)` for model 4 and `r round(var(residuals(zoo_comm_mod5)),2)`
-for model 5 (the mean squared error for the original data equals 1 because of the scaling).  Model 4 has a somewhat lower AIC (`AIC(zoo_comm_mod4)` = `r as.integer(round(AIC(zoo_comm_mod4)))`, `AIC(zoo_comm_mod5)` = `r as.integer(round(AIC(zoo_comm_mod5)))`), implying a better overall fit. However, the two models are almost indistinguishable when plotted on top of each other (Figure \ref{fig:zoo_comp}).
+Both models have very similar fits, with a mean squared error of `r round(var(residuals(zoo_comm_mod4)),2)` for model 4 and `r round(var(residuals(zoo_comm_mod5)),2)` for model 5. Model 4 has a somewhat lower AIC (`AIC(zoo_comm_mod4)` = `r as.integer(round(AIC(zoo_comm_mod4)))`, `AIC(zoo_comm_mod5)` = `r as.integer(round(AIC(zoo_comm_mod5)))`), implying a better overall fit. However, the two models are almost indistinguishable when plotted on top of each other, with only *L. siciloides* showing visibly different fits between the two models (Figure \ref{fig:zoo_comp}); model 4 estimates that *L. siciloides* has a weak seasonal peak mid-summer and late fall, whereas model 5 does not find any significant seasonal dynamics for this species. 
 
-```{r zoo_comm_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=6, fig.height=6, fig.cap = "\\label{fig:zoo_comp}Species-specific seasonal dynamics for the eight zooplankon species tracked in Lake Mendota. Black points indicate individual plankton observations (after log-transformation and centering and scaling). Lines indicate predicted average values for model 4 (black) and model 5 (red). Ribbons indicate $\\pm$ 2 standard errors around the mean. "}
+
+```{r zoo_comm_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=6, fig.height=6, fig.cap = "\\label{fig:zoo_comp}Species-specific seasonal dynamics for the eight zooplankon species tracked in Lake Mendota. Black points indicate individual plankton observations (after log-transformation and centering and scaling). Lines indicate predicted average values for model 4 (black) and model 5 (red). Ribbons indicate $\\pm$ 2 standard errors around the mean."}
 #Create synthetic data to use to compare predictions
 zoo_plot_data <- expand.grid(day = 1:365, taxon = factor(levels(zoo_train$taxon)), year_f = 1980)
 
-#extract predicted values and standard errors for both models
-zoo_mod4_fit <- predict(zoo_comm_mod4, zoo_plot_data, se.fit = T)
-zoo_mod5_fit <- predict(zoo_comm_mod5, zoo_plot_data, se.fit = T)
+#extract predicted values and standard errors for both models. the exclude = "s(taxon,year_f)" 
+#term indicates that predictions should be made excluding the effect of the
+#taxon by year random effect (effectively setting making predictions averaging
+#over year-taxon effects).
+zoo_mod4_fit <- predict(zoo_comm_mod4, zoo_plot_data, se.fit = T, exclude = "s(taxon,year_f)")
+zoo_mod5_fit <- predict(zoo_comm_mod5, zoo_plot_data, se.fit = T, exclude = "s(taxon,year_f)")
 
 zoo_plot_data$mod4_fit <- as.numeric(zoo_mod4_fit$fit)
 zoo_plot_data$mod5_fit <- as.numeric(zoo_mod5_fit$fit)
@@ -101,7 +109,7 @@ zoo_plot <- ggplot(zoo_plot_data) +
 zoo_plot
 ```
 
-Differences between models seem to be driven by the low seasonality of *Keratella cochlearis* and *Leptodiaptomus siciloides* relative to the other species, and how this is captured by the more flexible model 5. Still, both models show very similar fits to the training data. Model 4 is slightly better at predicting out of sample fits for all taxa except Calanoid copepods (Table \ref{tab:zoo_comm_outofsample}).
+Differences between models seem to be driven by the low seasonality of *Keratella cochlearis* and *Leptodiaptomus siciloides* relative to the other species, and how this is captured by the more flexible model 5. Still, both models show very similar fits to the training data. Model 4 is slightly better at predicting out of sample fits for all taxa except *M. edax* (Table \ref{tab:zoo_comm_outofsample}). However, 
 
 
 ```{r zoo_comm_outofsample, echo=FALSE, message=FALSE,  cache=TRUE}
@@ -114,8 +122,7 @@ get_RMSE <- function(fit, obs) sqrt(mean((fit-obs)^2))
 
 # we need to compare how well this model fits with a null model. here we'll use an
 # intercept-only model
-zoo_comm_mod0 <- gam(density_adj ~ s(taxon,bs="re") +
-                                   s(taxon, year_f, bs="re"),
+zoo_comm_mod0 <- gam(density_adj ~ s(taxon,bs="re"),
                      data=zoo_train,
                      knots = list(day =c(1, 365)),
                      family = Gamma(link ="log"), 
@@ -131,13 +138,21 @@ zoo_test_summary = zoo_test %>%
     mod5 = predict(zoo_comm_mod5, ., type="response"))%>%
   group_by(taxon)%>%
   summarise(
-    `Intercept only` = format(get_RMSE(mod0, density_adj), scientific = T, digits=2),
-    `Model 4` = format(get_RMSE(mod4, density_adj), scientific = T, digits=2),
-    `Model 5` = format(get_RMSE(mod5, density_adj), scientific = T, digits=2))
+    `Intercept only` = format(get_RMSE(mod0, density_adj), scientific = T, digits=3),
+    `Model 4` = format(get_RMSE(mod4, density_adj), scientific = T, digits=3),
+    `Model 5` = format(get_RMSE(mod5, density_adj), scientific = T, digits=3))%>%
+  mutate(taxon = cell_spec(taxon, italic = c(T,F,F,T,T,T,T,T))) #need to specify this to ensure that species names are italized in the table
 
-kable(zoo_test_summary, format = table_out_format, caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. RMSE values represent the square root of the average squared difference between model predictions and observations for test data.", booktabs = T)%>%
-  add_header_above(c(" " = 1, "Total RMSE of held out data (individuals/m^2)" = 3))%>%
-  kable_styling(full_width = F)
+kable(zoo_test_summary, 
+      format = table_out_format, 
+      caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. RMSE values represent the square root of the average squared difference between model predictions and observations for test data.  Intercept only results are for a null model with only year and year-by taxon random effect intercepts included.", 
+      booktabs = TRUE,
+      escape = FALSE)%>%
+  add_header_above(c(" " = 1, "Total RMSE of held out data ($individuals/m^2$)" = 3),escape = FALSE)%>%
+  kable_styling(full_width = FALSE) %>%
+  row_spec(2:3,italic = FALSE) %>%
+  row_spec(2:3, italic = FALSE)
+  
 ```
 
 Next, we look at how to fit inter-lake variability in dynamics for just *Daphnia mendotae*.
@@ -195,16 +210,20 @@ printCoefmat(summary(zoo_daph_mod3)$s.table)
 
 The AIC values indicate that both model 2 (`r round(AIC(zoo_daph_mod2), 2)`) and 3
 (`r round(AIC(zoo_daph_mod3), 2)`) are better fits than model 1 (`r round(AIC(zoo_daph_mod1), 2)`),
-but models 2 and 3 have similar fits. There does not seem to be a large amount of inter-lake variability (the effective degrees of freedom per lake are low in models 2 & 3). Model 3 indicates that only Lake Waubesa deviates substantially from the overall dynamics. Plots for all three models
-(Figure \ref{fig:daph_smooth}) show that Mendota and Monona lakes are very close to the average and to one another for both models (which is unsurprising, as they are very closely connected by a short river), but both Kegonsa and Waubesa show evidence of a more pronounced spring bloom and lower winter abundances.  While this is stronger in Lake Waubesa, it is still detectable with the simpler model 2 in Lake Kegonsa (Figure \ref{fig:daph_smooth}, orange line).
+but models 3 fits somewhat better than model 2. There does not seem to be a large amount of inter-lake variability (the effective degrees of freedom per lake are low in models 2 & 3).  Plots for all three models
+(Figure \ref{fig:daph_smooth}) show that Mendota, Monona, and Kegonsa lakes are very close to the average and to one another for both models, but Waubesa shows evidence of a more pronounced spring bloom and lower winter abundances. 
 
 ```{r zoo_daph_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE, fig.width=6, fig.height=4, fig.cap="\\label{fig:daph_smooth}Raw data (points) and fitted models (lines) for \\textit{D. mendota} data. Green: model 1 (no inter-lake variation in dynamics); orange: model 2 (interlake variation with similar smoothness); purple: model 3 (varying smooths among lakes). Shaded bands are drawn at $\\pm$ 2 standard errors around each model."}
 #Create synthetic data to use to compare predictions
 daph_plot_data <- expand.grid(day = 1:365, lake = factor(levels(zoo_train$lake)),year_f = 1980)
 
-daph_mod1_fit <- predict(zoo_daph_mod1, daph_plot_data, se.fit = TRUE)
-daph_mod2_fit <- predict(zoo_daph_mod2, daph_plot_data, se.fit = TRUE)
-daph_mod3_fit <- predict(zoo_daph_mod3, daph_plot_data, se.fit = TRUE)
+#extract predicted values and standard errors for both models. the exclude = "s(taxon,year_f)" 
+#term indicates that predictions should be made excluding the effect of the
+#taxon by year random effect (effectively setting making predictions averaging
+#over year-taxon effects).
+daph_mod1_fit <- predict(zoo_daph_mod1, daph_plot_data, se.fit = TRUE, exclude = "s(lake,year_f)")
+daph_mod2_fit <- predict(zoo_daph_mod2, daph_plot_data, se.fit = TRUE, exclude = "s(lake,year_f)")
+daph_mod3_fit <- predict(zoo_daph_mod3, daph_plot_data, se.fit = TRUE, exclude = "s(lake,year_f)")
 
 daph_plot_data$mod1_fit <- as.numeric(daph_mod1_fit$fit)
 daph_plot_data$mod2_fit <- as.numeric(daph_mod2_fit$fit)
@@ -243,8 +262,7 @@ Model 2 is able to predict as well or better out of sample as model 1 or 3 (Tabl
 ```{r zoo_daph_outofsample, echo=FALSE, message=FALSE,  cache=TRUE}
 # we need to compare how well this model fits with a null model. here we'll use an
 # intercept-only model
-zoo_daph_mod0 <- gam(density_adj~s(lake, bs="re") + 
-                                 s(lake, year_f,bs="re"),
+zoo_daph_mod0 <- gam(density_adj~s(lake, bs="re"),
                      data=daphnia_train,
                      knots=list(day =c(1, 365)),
                      family=Gamma(link ="log"),
