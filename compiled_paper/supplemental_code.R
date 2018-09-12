@@ -297,11 +297,7 @@ zoo_plot
 #Getting the out of sample predictions for both models:
 
 #This function calculates the sum of squared deviances for out-of-sample data
-get_deviance = function(model,predicted, observed){
-  res <- model$family$dev.resids(observed, predicted, wt=1)
-  return(sum(res))
-}
-
+get_RMSE <- function(fit, obs) sqrt(mean((fit-obs)^2))
 
 
 # we need to compare how well this model fits with a null model. here we'll use an
@@ -323,12 +319,12 @@ zoo_test_summary = zoo_test %>%
     mod5 = predict(zoo_comm_mod5, ., type="response"))%>%
   group_by(taxon)%>%
   summarise(
-    `Intercept only` = format(get_deviance(zoo_comm_mod0, mod0, density_adj), scientific = T, digits=2),
-    `Model 4` = format(get_deviance(zoo_comm_mod4, mod4, density_adj), scientific = T, digits=2),
-    `Model 5` = format(get_deviance(zoo_comm_mod5, mod5, density_adj), scientific = T, digits=2))
+    `Intercept only` = format(get_RMSE(mod0, density_adj), scientific = T, digits=2),
+    `Model 4` = format(get_RMSE(mod4, density_adj), scientific = T, digits=2),
+    `Model 5` = format(get_RMSE(mod5, density_adj), scientific = T, digits=2))
 
-kable(zoo_test_summary, format = table_out_format, caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. MSE values represent the average squared difference between model predictions and observations for test data.", booktabs = T)%>%
-  add_header_above(c(" " = 1, "Total deviance of held out data" = 3))%>%
+kable(zoo_test_summary, format = table_out_format, caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. RMSE values represent the average squared difference between model predictions and observations for test data.", booktabs = T)%>%
+  add_header_above(c(" " = 1, "Total RMSE of held out data (individuals/m^2)" = 3))%>%
   kable_styling(full_width = F)
 daphnia_train <- subset(zoo_train, taxon=="D. mendotae")
 daphnia_test <- subset(zoo_test, taxon=="D. mendotae")
@@ -424,12 +420,12 @@ daph_test_summary <- daphnia_test %>%
     mod2 = as.numeric(predict(zoo_daph_mod2,.,type="response")),
     mod3 = as.numeric(predict(zoo_daph_mod3,.,type="response")))%>%
   group_by(lake)%>%
-  summarise(`Intercept only` = format(get_deviance(zoo_daph_mod0, density_adj,mod0), scientific = T, digits=2),
-            `Model 1` = format(get_deviance(zoo_daph_mod1, density_adj,mod1), scientific = T, digits=2),
-            `Model 2` = format(get_deviance(zoo_daph_mod2, density_adj,mod2), scientific = T, digits=2),
-            `Model 3` = format(get_deviance(zoo_daph_mod3, density_adj,mod3), scientific = T, digits=2))
+  summarise(`Intercept only` = format(get_RMSE(mod0, density_adj), scientific = T, digits=2),
+            `Model 1` = format(get_RMSE(mod1, density_adj), scientific = T, digits=2),
+            `Model 2` = format(get_RMSE(mod2, density_adj), scientific = T, digits=2),
+            `Model 3` = format(get_RMSE(mod3, density_adj), scientific = T, digits=2))
 
-kable(daph_test_summary,format = table_out_format, caption="Out-of-sample predictive ability for model 1-3 applied to the \\textit{D. mendotae} dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).", booktabs = TRUE)%>%
+kable(daph_test_summary,format = table_out_format, caption="Out-of-sample predictive ability for model 1-3 applied to the \\textit{D. mendotae} dataset. RMSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a RMSE of one).", booktabs = TRUE)%>%
   add_header_above(c(" " = 1, "Total deviance of held out data" = 4))%>%
   kable_styling(full_width = FALSE)
 
