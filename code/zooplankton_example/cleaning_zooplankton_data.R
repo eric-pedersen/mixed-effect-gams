@@ -10,16 +10,24 @@ library(Hmisc)
 #Density here is a somewhat specialized data type, in that it is based off counts from 
 #subsamples, but then scaled to the full sample and rounded to the nearest thousand.
 #This makes it very difficult to treat it as either a count type or a continous
-#zero-inflated variable. I've chosen to deal with this by replacing any zero
-#value with the minumum observed density, then log-transforming and scaling within 
-#species and year. 
+#zero-inflated variable. Here it likely makes sense to treat it basically as a Tweedie
+#distribution, with some confusing caveats...
+
+
+abbr_first_word = function(x) {
+  split_names = str_split_fixed(x,pattern = " ", n = 2) #split names at a space, into two words
+  first_letter = paste(str_sub(split_names[,1],start = 1,end = 1),".",sep = "") #Turn the first word into a single letter
+  paste(first_letter,split_names[,2],sep =  " ") #Re-paste the words together
+}
 
 zooplankton_data = read.csv("data/madisonlakeszoopoldnet.csv",stringsAsFactors = F)%>%
   filter(!taxon  %in% c("DAPHNIA MENDOTAE JUVENILE", #excluding juvenile stages
                         "DAPHNIA PULICARIA JUVENILE",
                         "DAPHNIA RETROCURVA JUVENILE",
                         "DIAPHANOSOMA BIRGEI JUVENILE",
-                        "COPEPOD NAUPLII"))%>%
+                        "COPEPOD NAUPLII"),
+         density !=43 #filtering out the single observation below 1000; very likely an error (i.e. not scaled properly)
+         )%>%
   mutate(date = lubridate::as_date(sampledate), #adjusting labels
          day  = yday(date),
          taxon = tolower(taxon),
@@ -42,10 +50,13 @@ zooplankton_data = read.csv("data/madisonlakeszoopoldnet.csv",stringsAsFactors =
            fill = list(density=NA))%>%
   mutate(present = !is.na(density))%>%
   group_by(taxon)%>%
-  mutate(density = ifelse(is.na(density), min(density,na.rm = T),density))%>%
+  mutate(
+    density = ifelse(is.na(density), 0,density),
+    density_adj = density + 1000,
+    min_density = min(density[density>0]))%>%
   group_by(taxon,year,lake)%>%
   filter(any(present))%>%
-  mutate(density_scaled = scale(log10(density)))%>%
+  mutate(density_scaled = scale(log10(density+min_density)))%>%
   ungroup()%>%
   select(-present)
 

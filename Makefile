@@ -1,6 +1,9 @@
-all: main md fig tex 
-main: md fig tex
+all: main example_data md fig tex 
+main: example_data md fig tex 
 
+
+example_data: data/zooplankton_example.csv
+				R --vanilla --slave -e "source('code/zooplankton_example/cleaning_zooplankton_data.R')"
 
 md: paper_sections/01-intro.Rmd paper_sections/02-gams.Rmd paper_sections/03-hierarchical_gams.Rmd paper_sections/04-examples.Rmd paper_sections/05-computational_and_statistical_issues.Rmd 
 
