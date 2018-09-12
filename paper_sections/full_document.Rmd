@@ -54,17 +54,17 @@ on example data.
 
 ```{r child = '01-intro.Rmd'}
 ```
-
+\FloatBarrier
 ```{r child = '02-gams.Rmd'}
 ```
-
+\FloatBarrier
 ```{r child = '03-hierarchical_gams.Rmd'}
 ```
-
+\FloatBarrier
 ```{r child = '04-examples.Rmd'}
 ```
 
-
+\FloatBarrier
 ```{r child = '05-computational_and_statistical_issues.Rmd'}
 ```
 
@@ -78,10 +78,7 @@ model fitting and testing.
 Specifying these models and techniques for fitting them are active areas statistical research, so this paper should be viewed as a jumping-off point for these models, rather than an end-point; we refer the reader to the rich literature on GAMs [e.g. @wood_generalized_2017] and functional regression [@ramsay_functional_2005; @kaufman_bayesian_2010; @scheipl_functional_2014] for more on these ideas.
 
 
+\FloatBarrier
 
-```{r, results='asis',echo=FALSE, eval=(opts_knit$get('rmarkdown.pandoc.to') == 'latex')}
-#This is just to make sure that the figures occur before the bibliography.
-cat('\\FloatBarrier')
-```
 
 # Bibliography
