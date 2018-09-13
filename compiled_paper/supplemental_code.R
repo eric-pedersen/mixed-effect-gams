@@ -717,3 +717,5 @@ timing_plot = ggplot(aes(n_groups, timing, color=model, linetype= model),
   guides(color = guide_legend(nrow = 2, byrow = TRUE))+
   theme(legend.position = "top")
 timing_plot
+## set.seed(11)
+## sample(c('Miller','Ross','Simpson'))

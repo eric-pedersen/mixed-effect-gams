@@ -10,8 +10,8 @@ The bias-variance trade-off is a fundamental concept in statistics. When trying 
 The variance of an estimator corresponds to how much that estimator would fluctuate if applied to multiple different samples of the same size taken from the
 same population.
 These two properties tend to be traded off when fitting models.
-For instance, rather than estimating a population mean from data, we could simply use a fixed value regardless of the observed data.
-This estimate would have no variance (as it is always the same) but would have high bias unless the true population mean happened to equal zero [^mean_note]. 
+For instance, rather than estimating a population mean from data, we could simply use a predetermined fixed value regardless of the observed data[^mean_note].
+This estimate would have no variance (as it is always the same regardless of what the data look like) but would have high bias unless the true population mean happened to equal zero. 
 Penalization is useful because using a penalty term slightly increases model bias, but can substantially decrease variance [@efron_steins_1977].
 
 In GAMs, the bias-variance trade-off is managed by the terms of the penalty matrix, and equivalently random effect variances in HGLMs.
@@ -113,7 +113,7 @@ This is currently not implemented in  **mgcv**.
 It is possible to set up this type of varying penalty model in flexible Bayesian modelling software such as *Stan* (see below for a discussion of how to fit HGAMs using these tools), but how to this type of model has not been well studied.
 
 [^mean_note]: While this example may seem contrived, this is exactly what happens
-when we assume a given fixed effect is equal to zero (and thus exclude it from a model).
+when we assume a given regression coefficient is equal to zero (and thus exclude it from a model).
 
 ```{r single_smooth_bias_plot, echo=FALSE, fig.width=6, fig.height=6, message=FALSE, warning=FALSE, cache=TRUE, fig.cap="\\label{fig:var_pen} a) Illustration of bias that can arise from assuming equal smoothness for all group levels (model 4, red line) versus allowing for intergroup variation in smoothness (model 5, red line) when the true function (black line) shows substantial variation in smoothness between groups. b) Estimated wiggliness (as measured by the integral of the squared 2nd derivative) of the true function for each group level versus that for the functions estimated by model 4 (red) and model 5 (blue), indicating substantial undersmoothing for low-variability curves by model 4."}
 cowplot::plot_grid(overfit_vis_plot, deriv_plot, ncol=1, labels="auto",
