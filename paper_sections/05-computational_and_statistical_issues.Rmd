@@ -75,8 +75,8 @@ deriv_est_data = overfit_predict_data%>%
 
 deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv, y= obs_sqr_deriv,color= model))+
   geom_point()+
-  scale_y_log10("integral of squared second\nderivative for fitted curves")+
-  scale_x_log10("integral of squared second\nderivative for true curve")+
+  scale_y_log10("Estimated wiggliness fitted curves")+
+  scale_x_log10("Wiggliness of true curve")+
   scale_color_brewer(name=NULL,palette= "Set1")+
   geom_abline(color="black")+
   theme_bw()+
@@ -110,7 +110,7 @@ However, it may be the case that there are too few data points per group to esti
 
 The ideal case would be to assume that among-group penalties follow their own distribution (estimated from the data), to allow variation in smoothness while still getting the benefit of pooling information on smoothness between groups.
 This is currently not implemented in  **mgcv**.
-It is possible to set up this type of varying penalty model in flexible Bayesian modelling software such as *Stan* (see below for a discussion of how to fit HGAMs using these tools), but how to this type of model has not been well studied.
+It is possible to set up this type of varying penalty model in flexible Bayesian modelling software such as *Stan* (see below for a discussion of how to fit HGAMs using these tools), but how to fix this type of model has not been well studied. 
 
 [^mean_note]: While this example may seem contrived, this is exactly what happens
 when we assume a given fixed effect is equal to zero (and thus exclude it from a model).
@@ -290,7 +290,7 @@ kable(comp_resources_table,format ="latex", caption="Relative computational time
 
 When fitting models with large numbers of groups, it is often possible to speed up computation substantially by using one of the alternative fitting routines available through **mgcv**.
 
-The first option is the funcion `bam()`, this requires the least changes to existing code written using the `gam()` function. `bam()` is designed to improve  performance when fitting large data sets via two mechanisms. First, it saves on memory needed to compute a given model by using a random subset of the data to calculate the basis functions. It then blocks the data and updates model fit within each block [@wood_generalized_2015]. While this is primarily designed to reduce memory usage, it can also substantially reduce computation time. Second, when using `bam()`'s default fREML ("Fast REML") method, you can use the `discrete=TRUE` option: this discretizes each covariate, substantially reducing the amount of computation needed (@Wood2017-iy; see `?mgcv::bam` for more details).
+The first option is the funcion `bam()`, this requires the least changes to existing code written using the `gam()` function. `bam()` is designed to improve  performance when fitting large data sets via two mechanisms. First, it saves on memory needed to compute a given model by using a random subset of the data to calculate the basis functions. It then blocks the data and updates model fit within each block [@wood_generalized_2015]. While this is primarily designed to reduce memory usage, it can also substantially reduce computation time. Second, when using `bam()`'s default fREML ("Fast REML") method, you can use the `discrete=TRUE` option: this first bins continuous covariates into a smaller number of discrete values before estimating the model, substantially reducing the amount of computation needed (@Wood2017-iy; see `?mgcv::bam` for more details).
 
 `bam()` has a larger computational overhead than `gam()`, so for small numbers of groups, it can be slower than `gam()` (Figure\ \ref{fig:alt_timing}). As the number of groups increases, computational time for `bam()` increases more slowly than for `gam()`; in our simulation tests, when the number of groups is greater than 16, `bam()` can be upward of an order of magnitude faster (Figure \ref{fig:alt_timing}). Note that `bam()` can be somewhat less computationally stable when estimating these models (i.e., less likely to converge).
 
@@ -472,13 +472,13 @@ Bayesian covariance matrix already incorporates the uncertainty from having to
 estimate the covariance matrix into it [the standard confidence intervals used in
 **mgcv** are in fact Bayesian posterior credible intervals, which happen to have good frequentist properties; @wood_confidence_2006; @marra_coverage_2012]. Viewing our GAM as Bayesian is a somewhat unavoidable consequence of the equivalence of random effects and splines --- if we think that there is some true smooth that we wish to estimate, we must take a Bayesian view of our random effects (splines) as we do not think that the true smooth changes each time we collect data [@wood_generalized_2017, Section 5.8].
 
-This also means that HGAMs can also be included as components in a more complex
+This also means that HGAMs can be included as components in a more complex
 fully Bayesian model. The **mgcv** package includes a function `jagam()` that can
 take a specified model formula and automatically convert it into code for the JAGS
 (or BUGS) Bayesian statistical packages, which can be adapted by the user to
 their own needs.
 
-Similarly, the **brms** package [@burkner_brms:_2017], which can fit complex statistical models using the Bayesian software Stan [@carpenter_stan:_2017] allows for the inclusion of **mgcv**-style smooth terms as part of the model specification. The **brms** package does not currently support `te()` tensor products or factor-smooth interaction terms, but does support `t2()`-style tensor products, which means all of the models fitted in this paper can be fit by **brms**.
+Similarly, the **brms** package [@burkner_brms:_2017], which can fit complex statistical models using the Bayesian software **Stan** [@carpenter_stan:_2017] allows for the inclusion of **mgcv**-style smooth terms as part of the model specification. The **brms** package does not currently support `te()` tensor products or factor-smooth interaction terms, but does support `t2()`-style tensor products, which means all of the models fitted in this paper can be fit by **brms**.
 
 ## Beyond HGAMs: functional regression
 

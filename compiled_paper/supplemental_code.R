@@ -504,8 +504,8 @@ deriv_est_data = overfit_predict_data%>%
 
 deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv, y= obs_sqr_deriv,color= model))+
   geom_point()+
-  scale_y_log10("integral of squared second\nderivative for fitted curves")+
-  scale_x_log10("integral of squared second\nderivative for true curve")+
+  scale_y_log10("Estimated wiggliness fitted curves")+
+  scale_x_log10("Wiggliness of true curve")+
   scale_color_brewer(name=NULL,palette= "Set1")+
   geom_abline(color="black")+
   theme_bw()+
