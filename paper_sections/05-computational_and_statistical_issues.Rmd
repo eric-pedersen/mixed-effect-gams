@@ -478,7 +478,7 @@ take a specified model formula and automatically convert it into code for the JA
 (or BUGS) Bayesian statistical packages, which can be adapted by the user to
 their own needs.
 
-Similarly, the **brms** package [@burkner_brms:_2017], which can fit complex statistical models using the Bayesian software Stan [@carpenter_stan:_2017] allows for the inclusion of **mgcv**-style smooth terms as part of the model specification. The **brms** package does not currently support `te()` tensor products or factor-smooth interaction terms, but does support `t2()`-style tensor products, which means all of the models fitted in this paper can be fit by **brms**.
+Similarly, the **brms** package [@burkner_brms:_2017], which can fit complex statistical models using the Bayesian software **Stan** [@carpenter_stan:_2017] allows for the inclusion of **mgcv**-style smooth terms as part of the model specification. The **brms** package does not currently support `te()` tensor products or factor-smooth interaction terms, but does support `t2()`-style tensor products, which means all of the models fitted in this paper can be fit by **brms**.
 
 ## Beyond HGAMs: functional regression
 
