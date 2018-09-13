@@ -95,11 +95,9 @@ bird_vis_plot <- ggplot(dplyr::filter(bird_move, count > 0),
 
 plot_grid(CO2_vis_plot, bird_vis_plot, nrow=1, labels=c("a","b"),
           align = "hv", axis = "lrtb")
-
-
 CO2_mod1 <- gam(log(uptake) ~ s(log(conc), k=5, bs="tp") +
-                              s(Plant_uo, k=12, bs="re"),
-                data=CO2, method="REML", family = "gaussian")
+                  s(Plant_uo, k=12, bs="re"),
+                data=CO2, method="REML", family="gaussian")
 
 plot(CO2_mod1, pages=1, seWithMean=TRUE)
 
@@ -128,7 +126,7 @@ ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
 ## # basis and k to each marginal value, or pass them as vectors, one value for each
 ## # distinct marginal smooth (see ?mgcv::te for details)
 bird_mod1 <- gam(count ~ te(week, latitude, bs=c("cc", "tp"), k=c(10, 10)),
-                 data=bird_move, method="REML", family=poisson,
+                 data=bird_move, method="REML", family="poisson",
                  knots = list(week = c(0.5, 52.5)))
 #mgcv gam plot for the two-dimensional tensor product smoother for bird_mod1.
 #scheme=2 displays the color scheme (rather than mgcv's default, which only
@@ -143,7 +141,7 @@ ggplot(bird_move, aes(x=mod1, y=count)) +
   geom_abline() +
   labs(x="Predicted count", y= "Observed count")
 CO2_mod2 <- gam(log(uptake) ~ s(log(conc), k=5, m=2) + 
-                              s(log(conc), Plant_uo, k=5,  bs="fs", m=2),
+                  s(log(conc), Plant_uo, k=5,  bs="fs", m=2),
                 data=CO2, method="REML")
 plot(CO2_mod2, page=1, seWithMean=TRUE)
 CO2_mod2_pred <- predict(CO2_mod2, se.fit=TRUE)
@@ -159,9 +157,9 @@ ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
        y=expression(CO[2] ~ uptake ~ (mu*mol ~ m^{-2})))
 bird_mod2 <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
                             k=c(10, 10), m=c(2, 2)) +
-                         t2(week, latitude, species, bs=c("cc", "tp", "re"),
-                            k=c(10, 10, 6), m=c(2, 2, 2), full=TRUE),
-                 data=bird_move, method="REML", family=poisson)
+                   t2(week, latitude, species, bs=c("cc", "tp", "re"),
+                      k=c(10, 10, 6), m=c(2, 2, 2), full=TRUE),
+                 data=bird_move, method="REML", family="poisson")
 bird_move <- transform(bird_move, mod2 = predict(bird_mod2, type="response"))
 
 bird_mod2_indiv <- ggplot(data=bird_move, aes(x=week, y=latitude, fill=mod2,color=mod2)) +
@@ -183,12 +181,12 @@ bird_mod2_indiv_fit <- ggplot(data=bird_move, aes(x=mod2, y=count)) +
 plot_grid(bird_mod2_indiv, bird_mod2_indiv_fit, ncol=1, align="vh", axis = "lrtb",
           labels=c("a","b"), rel_heights= c(1,1))
 ## CO2_mod3 <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
-##                               s(log(conc), by=Plant_uo, k=5, m=1, bs="ts") +
-##                               s(Plant_uo, bs="re", k=12),
+##                   s(log(conc), by=Plant_uo, k=5, m=1, bs="ts") +
+##                   s(Plant_uo, bs="re", k=12),
 ##                 data=CO2, method="REML")
 CO2_mod3 <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
-                              s(log(conc), by= Plant_uo, k=5, m=1, bs="ts") +
-                              s(Plant_uo, bs="re", k=12),
+                  s(log(conc), by= Plant_uo, k=5, m=1, bs="ts") +
+                  s(Plant_uo, bs="re", k=12),
                 data=CO2, method="REML")
 
 op <- par(mfrow=c(2, 3), mar =c(4, 4, 1, 1))
@@ -199,37 +197,35 @@ plot(CO2_mod3, scale=0, select=5,  ylab="Plant Qc1",     seWithMean=TRUE)
 plot(CO2_mod3, scale=0, select=10, ylab="Plant Mn1",     seWithMean=TRUE)
 plot(CO2_mod3, scale=0, select=13, ylab="Plant Mc1",     seWithMean=TRUE)
 par(op)
-bird_mod3 <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
-                            k=c(10, 10), m=c(2, 2)) +
-                         te(week, latitude, by=species, bs= c("cc", "ts"),
-                            k=c(10, 10), m=c(1, 1)),
-                 data=bird_move, method="REML", family=poisson)
-CO2_mod4 <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5,  bs="fs", m=2),
+bird_mod3 <- gam(count ~ species +
+                   te(week, latitude, bs=c("cc", "tp"),
+                      k=c(10, 10), m=c(2, 2)) +
+                   te(week, latitude, by=species, bs= c("cc", "ts"),
+                      k=c(10, 10), m=c(1, 1)),
+                 data=bird_move, method="REML", family="poisson")
+CO2_mod4 <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5, bs="fs", m=2),
                 data=CO2, method="REML")
 
 bird_mod4 <- gam(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
-                            k=c(10, 10, 6), m = c(2,2,2)),
-                 data=bird_move, method="REML", family=poisson)
+                            k=c(10, 10, 6), m=c(2, 2, 2)),
+                 data=bird_move, method="REML", family="poisson")
 CO2_mod5 <- gam(log(uptake) ~ s(log(conc), by=Plant_uo, k=5, bs="tp", m=2) +
                               s(Plant_uo, bs="re", k=12),
                 data= CO2, method="REML")
 
 
-bird_mod5 <- gam(count ~ te(week, latitude, by=species, bs= c("cc", "ts"),
-                            k=c(10, 10), m=c(2,2)),
-                 data=bird_move, method="REML", family=poisson)
-
+bird_mod5 <- gam(count ~ species + 
+                   te(week, latitude, by=species, bs= c("cc", "ts"), 
+                      k=c(10, 10), m=c(2, 2)),
+                 data=bird_move, method="REML", family="poisson")
 AIC_table = AIC(CO2_mod1,CO2_mod2, CO2_mod3, CO2_mod4, CO2_mod5,
              bird_mod1, bird_mod2, bird_mod3, bird_mod4, bird_mod5)%>%
   rownames_to_column(var= "Model")%>%
   mutate_at(.vars = vars(df,AIC), .funs = funs(round,.args = list(digits=0)))
-
-
 kable(AIC_table, format =table_out_format, caption="AIC table comparing model fits for example datasets", booktabs = T)%>% 
   kable_styling(full_width = F)%>%
   group_rows("A. CO2 models", 1,5)%>%
   group_rows("B. bird_move models", 6,10)
-
 
 zooplankton <- read.csv("../data/zooplankton_example.csv")
 
@@ -255,28 +251,25 @@ zoo_mod5_fit <- predict(zoo_comm_mod5, zoo_plot_data, se.fit = T)
 zoo_plot_data$mod4_fit <- as.numeric(zoo_mod4_fit$fit)
 zoo_plot_data$mod5_fit <- as.numeric(zoo_mod5_fit$fit)
 
-zoo_plot_data$mod4_se <- as.numeric(zoo_mod4_fit$se.fit)
-zoo_plot_data$mod5_se <- as.numeric(zoo_mod5_fit$se.fit)
+zoo_plot_data <- gather(zoo_plot_data, model, fit, mod4_fit, mod5_fit)
 
-#Plot the model output, with means plus standard deviations for each model.
-zoo_plot = ggplot(zoo_plot_data, aes(x=day))+
-  facet_wrap(~taxon, nrow = 2)+
-  geom_point(data= zoo_train, aes(y=density_scaled),size=0.1)+
-  geom_line(aes(y=mod4_fit, color = "Model 4"))+
-  geom_line(aes(y=mod5_fit, color = "Model 5"))+
-  geom_ribbon(aes(ymin = mod4_fit - 2*mod4_se,
-                  ymax = mod4_fit + 2*mod4_se,
-                  fill="Model 4"),
-              alpha=0.25)+
-  geom_ribbon(aes(ymin = mod5_fit - 2*mod5_se,
-                  ymax = mod5_fit + 2*mod5_se,
-                  fill="Model 5"),
-              alpha=0.25)+
-  scale_y_continuous("Scaled log-transformed density")+
-  scale_x_continuous(expand = c(0,0))+
-  scale_color_manual("", breaks = c("Model 4", "Model 5"), values = c("black","red"))+
-  scale_fill_manual("", breaks = c("Model 4", "Model 5"), values = c("black","red"))+
-  theme(legend.position = "bottom")
+zoo_plot_data <- mutate(zoo_plot_data, se = c(as.numeric(zoo_mod4_fit$se.fit),
+                                                as.numeric(zoo_mod5_fit$se.fit)),
+                         upper = fit + (2 * se),
+                         lower = fit - (2 * se))
+
+zoo_plot <- ggplot(zoo_plot_data) +
+    geom_point(aes(y=density_scaled, x = day), size=0.1, data = zoo_train) +
+    geom_ribbon(aes(x = day, ymin = lower, ymax = upper, fill = model), 
+                alpha = 0.2) +
+    geom_path(aes(x = day, y = fit, colour = model)) +
+    theme(legend.position = "top") +
+    labs(y = "Scaled log-transformed density", x = "Day of Year") +
+    facet_wrap(~ taxon, nrow = 2) +
+    scale_fill_brewer(name = "", palette = "Dark2",
+                      labels = paste("Model", 4:5)) +
+    scale_colour_brewer(name = "",
+                        palette = "Dark2", labels = paste("Model", 4:5))
 
 zoo_plot
 get_MSE = function(obs, pred) mean((obs-pred)^2)
@@ -291,6 +284,8 @@ zoo_test_summary = zoo_test %>%
   summarise(`model 4 MSE` = round(get_MSE(density_scaled,mod4),2),
             `model 5 MSE` = round(get_MSE(density_scaled,mod5),2))
 
+names(zoo_test_summary) <- c("Taxon", "Model 4 MSE", "Model 5 MSE")
+
 kable(zoo_test_summary, format = table_out_format, caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. MSE values represent the average squared difference between model predictions and observations for test data.", booktabs = TRUE)%>%
   kable_styling(full_width = FALSE)
 daphnia_train <- subset(zoo_train, taxon=="D. mendotae")
@@ -299,58 +294,50 @@ daphnia_test <- subset(zoo_test, taxon=="D. mendotae")
 zoo_daph_mod1 <-
   gam(density_scaled ~ s(day, bs="cc", k=10),
       data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
-
 printCoefmat(summary(zoo_daph_mod1)$s.table)
 zoo_daph_mod2 <-
   gam(density_scaled ~ s(day, bs="cc", k=10) +
         s(day, lake, k=10, bs="fs", xt=list(bs="cc")),
       data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
-
 printCoefmat(summary(zoo_daph_mod2)$s.table)
 zoo_daph_mod3 <-
   gam(density_scaled ~ lake + s(day, bs="cc", k=10) + 
-        s(day, by=lake, k=10, bs="cc"),
+        s(day, by=lake, k=10, bs="cc", m=1),
       data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
-
 printCoefmat(summary(zoo_daph_mod3)$s.table)
 #Create synthetic data to use to compare predictions
-daph_plot_data = expand.grid(day = 1:365, lake = factor(levels(zoo_train$lake)))
+daph_plot_data <- expand.grid(day = 1:365, lake = factor(levels(zoo_train$lake)))
 
+daph_mod1_fit <- predict(zoo_daph_mod1, daph_plot_data, se.fit = TRUE)
+daph_mod2_fit <- predict(zoo_daph_mod2, daph_plot_data, se.fit = TRUE)
+daph_mod3_fit <- predict(zoo_daph_mod3, daph_plot_data, se.fit = TRUE)
 
-daph_mod1_fit = predict(zoo_daph_mod1, daph_plot_data, se.fit = T)
-daph_mod2_fit = predict(zoo_daph_mod2, daph_plot_data, se.fit = T)
-daph_mod3_fit = predict(zoo_daph_mod3, daph_plot_data, se.fit = T)
+daph_plot_data$mod1_fit <- as.numeric(daph_mod1_fit$fit)
+daph_plot_data$mod2_fit <- as.numeric(daph_mod2_fit$fit)
+daph_plot_data$mod3_fit <- as.numeric(daph_mod3_fit$fit)
 
+daph_plot_data <- gather(daph_plot_data, model, fit, mod1_fit, mod2_fit, mod3_fit)
 
-daph_plot_data$mod1_fit = as.numeric(daph_mod1_fit$fit)
-daph_plot_data$mod2_fit = as.numeric(daph_mod2_fit$fit)
-daph_plot_data$mod3_fit = as.numeric(daph_mod3_fit$fit)
+daph_plot_data <- mutate(daph_plot_data, se = c(as.numeric(daph_mod1_fit$se.fit),
+                                                as.numeric(daph_mod2_fit$se.fit),
+                                                as.numeric(daph_mod3_fit$se.fit)),
+                         upper = fit + (2 * se),
+                         lower = fit - (2 * se))
 
-daph_plot_data$mod1_se = as.numeric(daph_mod1_fit$se.fit)
-daph_plot_data$mod2_se = as.numeric(daph_mod2_fit$se.fit)
-daph_plot_data$mod3_se = as.numeric(daph_mod3_fit$se.fit)
+daph_plot <- ggplot(daph_plot_data) +
+    geom_point(aes(y=density_scaled, x = day), size=0.1, data = daphnia_train) +
+    geom_ribbon(aes(x = day, ymin = lower, ymax = upper, fill = model), 
+                alpha = 0.2) +
+    geom_path(aes(x = day, y = fit, colour = model)) +
+    theme(legend.position = "top") +
+    labs(y = "Scaled log-transformed density", x = "Day of Year") +
+    facet_wrap(~ lake, nrow = 2) +
+    scale_fill_brewer(name = "", palette = "Dark2",
+                      labels = paste("Model", 1:3)) +
+    scale_colour_brewer(name = "",
+                        palette = "Dark2", labels = paste("Model", 1:3))
 
-daph_plot = ggplot(daph_plot_data, aes(x=day))+
-  facet_wrap(~lake, nrow = 2)+
-  geom_point(data= daphnia_train, aes(y=density_scaled),size=0.1)+
-  geom_line(aes(y=mod1_fit, linetype = "Model 1", size = "Model 1"))+
-  geom_line(aes(y=mod2_fit,color = "Model 2"))+
-  geom_line(aes(y=mod3_fit,color = "Model 3"))+
-  geom_ribbon(aes(ymin = mod2_fit - 2*mod2_se,
-                  ymax = mod2_fit + 2*mod2_se,fill = "Model 2"),
-              alpha=0.25)+
-  geom_ribbon(aes(ymin = mod3_fit - 2*mod3_se,
-                  ymax = mod3_fit + 2*mod3_se,fill = "Model 3"),
-              alpha=0.25)+
-  scale_y_continuous("Scaled log-transformed density")+
-  scale_x_continuous(expand = c(0,0))+
-  scale_color_manual("", breaks = c("Model 2", "Model 3"), values = c("black","red"))+
-  scale_fill_manual("", breaks = c("Model 2", "Model 3"), values = c("black","red"))+
-  scale_linetype_manual("", breaks = c("Model 1"), values = 2)+
-  scale_size_manual("", breaks = c("Model 1"), values = 2)+
-  theme(legend.position = "bottom")
-
-print(daph_plot)
+daph_plot
 #Getting the out of sample predictions for both models:
 daphnia_test$mod1 = as.numeric(predict(zoo_daph_mod1,daphnia_test))
 daphnia_test$mod2 = as.numeric(predict(zoo_daph_mod2,daphnia_test))
@@ -363,8 +350,8 @@ daph_test_summary = daphnia_test %>%
             `model 2 MSE` = round(get_MSE(density_scaled,mod2),2),
             `model 3 MSE` = round(get_MSE(density_scaled,mod3),2))
 
-kable(daph_test_summary,format = table_out_format, caption="Out-of-sample predictive ability for model 1-3 applied to the \\textit{D. mendotae} dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).", booktabs = T)%>%
-  kable_styling(full_width = F)
+kable(daph_test_summary,format = table_out_format, caption="Out-of-sample predictive ability for model 1-3 applied to the \\textit{D. mendotae} dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).", booktabs = TRUE)%>%
+  kable_styling(full_width = FALSE)
 
 set.seed(1)
 
@@ -372,7 +359,6 @@ calc_2nd_deriv = function(x,y){
   deriv_val = (lag(y) + lead(y) - 2*y)/(x-lag(x))^2
   deriv_val
 }
-
 
 freq_vals = c(1/4,1/2,1,2,4)
 dat = crossing(x = seq(0,2*pi,length=150),freq = freq_vals)%>%
@@ -382,9 +368,6 @@ dat = crossing(x = seq(0,2*pi,length=150),freq = freq_vals)%>%
 
 mod1 = bam(y~s(x,k=30,grp, bs="fs"), data=dat)
 mod2 = bam(y~s(x,k=30,by=grp)+s(grp,bs="re"), data=dat)
-
-
-
 
 overfit_predict_data = crossing(x = seq(0,2*pi,length=500), freq = freq_vals)%>%
   mutate(grp = paste("frequency = ",freq,sep= ""),
@@ -415,15 +398,14 @@ deriv_est_data = overfit_predict_data%>%
                         levels = c("model 4 fit",
                                    "model 5 fit")))
 
-
 deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv, y= obs_sqr_deriv,color= model))+
   geom_point()+
-  scale_y_log10("integral of squared second\nderivative for fitted curves")+
-  scale_x_log10("integral of squared second\nderivative for true curve")+
+  scale_y_log10("Estimated wiggliness fitted curves")+
+  scale_x_log10("Wiggliness of true curve")+
   scale_color_brewer(name=NULL,palette= "Set1")+
   geom_abline(color="black")+
   theme_bw()+
-  theme(legend.position = "bottom")
+  theme(legend.position = "top")
 
 fit_colors = c("black",RColorBrewer::brewer.pal(3, "Set1")[1:2])
 
@@ -432,13 +414,9 @@ overfit_vis_plot = ggplot(data=overfit_predict_data_long,aes(x=x,y= value,color=
   scale_color_manual(values=fit_colors)+
   facet_grid(.~grp)+
   theme_bw()+
-  theme(legend.position = "bottom",panel.grid = element_blank())
-
-print(cowplot::plot_grid(overfit_vis_plot,
-                         deriv_plot,
-                         ncol = 1,
-                         labels = "auto",
-                         label_y = c(1,1.2)))
+  theme(legend.position = "top")
+cowplot::plot_grid(overfit_vis_plot, deriv_plot, ncol=1, labels="auto",
+                   align="hv", axis="lrtb")
 #Note: this code takes quite a long time to run! It's fitting all 10 models.
 #Run once if possible, then rely on the cached code. There's a reason it's split off from the rest of the chunks of code.
 source("../code/functions.R")
@@ -570,19 +548,87 @@ kable(comp_resources_table,format ="latex", caption="Relative computational time
   group_rows("A. CO2 data", 1,5)%>%
   group_rows("B. bird movement data", 6,10)
 
-## library(brms)
-## 
-## CO2_mod2_brms <- brm(
-##   bf(log(uptake) ~
-##        s(log(conc), k=5, m=2) +
-##        t2(log(conc), Plant_uo, k=c(5,12),
-##                                  bs=c("tp","re"), m=2, full =TRUE)),
-##   data = CO2,
-##   family = gaussian(),
-##   chains = 2,
-##   control = list(adapt_delta = 0.95)
-## )
-## plot(marginal_effects(CO2_mod2_brms), points=TRUE, ask=FALSE, plot=TRUE)
-## stancode(CO2_mod2_brms)
+set.seed = 1 # ensures that each new model parameter set is an extension of the old one
+
+n_x = 20
+x = seq(-2,2, length=n_x)
+n_steps = 7
+
+fit_timing_data = data_frame(n_groups = 2^(1:n_steps),
+                             gam=rep(0,length=n_steps),
+                             `bam (discrete = FALSE)`= 0,
+                             `bam (discrete = TRUE)` = 0,
+                             gamm = 0, gamm4 = 0)
+
+fac_all = paste("g", 1:max(fit_timing_data$n_groups),sep = "")
+
+model_coefs_all = data_frame(fac=fac_all)%>%
+  mutate(int = rnorm(n(), 0,0.1),
+         x2  = rnorm(n(),0,0.2),
+         logit_slope = rnorm(n(),0, 0.2))
+
+for(i in 1:n_steps){
+
+  n_g =  fit_timing_data$n_groups[i]
+  
+  fac_current = fac_all[1:n_g]
+  fac_current = factor(fac_current, levels=  unique(fac_current))
+
+  model_coefs = model_coefs_all%>%
+    filter(fac %in% fac_current)%>%
+    mutate(fac = factor(fac, levels= unique(fac)))
+  
+  set.seed = 1 #ensures that each new data set is an extension of the old one
+  
+  model_data = crossing(fac=fac_current, x=x)%>%
+    left_join(model_coefs)%>%
+    mutate(base_func  = dnorm(x)*10,
+           indiv_func = int + x^2*x2 + 2*(exp(x*logit_slope)/(1+exp(x*logit_slope))-0.5),
+           y = base_func + indiv_func + rnorm(n()))
+  
+  fit_timing_data$gam[i] = system.time(gam(y~s(x,k=10, bs="cp") + s(x,fac, k=10, bs="fs", xt=list(bs="cp"), m=2),
+                             data= model_data, method="REML"))[3]
+  
+  fit_timing_data$`bam (discrete = FALSE)`[i] = system.time(bam(y~s(x,k=10, bs="cp") + s(x,fac, k=10, bs="fs", xt=list(bs="cp"),m=2),
+                             data= model_data, discrete = FALSE))[3]
+  
+  fit_timing_data$`bam (discrete = TRUE)`[i] = system.time(bam(y~s(x,k=10, bs="cp") + s(x,fac, k=10, bs="fs", xt=list(bs="cp"),m=2),
+                                                                data= model_data,discrete=TRUE))[3]
+  
+  
+  fit_timing_data$gamm[i] = system.time(gamm(y~s(x,k=10, bs="cp") + s(x,fac, k=10, bs="fs", xt=list(bs="cp"),m=2),
+                               data= model_data))[3]
+  
+  
+  fit_timing_data$gamm4[i] = system.time(gamm4(y~s(x,k=10, bs="cp") + s(x,fac, k=10, bs="fs", xt=list(bs="cp"),m=2),
+                                 data= model_data))[3]
+}
+
+
+fit_timing_long = fit_timing_data %>% 
+  gather(model, timing, gam,`bam (discrete = FALSE)`, 
+         `bam (discrete = TRUE)`, gamm, gamm4)%>%
+  mutate(model =factor(model, levels = c("gam",
+                                         "bam (discrete = FALSE)",
+                                         "bam (discrete = TRUE)",
+                                         "gamm", 
+                                         "gamm4")))
+
+
+timing_plot = ggplot(aes(n_groups, timing, color=model, linetype= model), 
+                     data=fit_timing_long)+
+  geom_line()+
+  geom_point()+
+  scale_color_manual(values = c("black", "#1b9e77","#1b9e77", "#d95f02", "#7570b3"))+
+  scale_linetype_manual(values =c(1,1,2,1,1))+
+  scale_y_log10("run time (seconds)", breaks = c(0.1,1,10,100), labels = c("0.1", "1","10", "100"))+
+  scale_x_log10("number of groups", breaks = c(2,8,32,128))+
+  
+  theme_bw()+
+  guides(color = guide_legend(nrow = 2, byrow = TRUE))+
+  theme(legend.position = "top")
+timing_plot
+## set.seed(11)
+## sample(c('Miller','Ross','Simpson'))
 #This is just to make sure that the figures occur before the bibliography.
 cat('\\FloatBarrier')
