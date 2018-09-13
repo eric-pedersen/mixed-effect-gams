@@ -227,8 +227,12 @@ kable(AIC_table, format =table_out_format, caption="AIC table comparing model fi
   group_rows("A. CO2 models", 1,5)%>%
   group_rows("B. bird_move models", 6,10)
 
+<<<<<<< HEAD
 zooplankton <- read.csv("../data/zooplankton_example.csv")%>%
   mutate(year_f = factor(year))
+=======
+zooplankton <- read.csv("../data/zooplankton_example.csv")
+>>>>>>> master
 
 #This is what the data looks like:
 str(zooplankton)
@@ -273,6 +277,7 @@ zoo_plot_data$mod4_fit <- as.numeric(zoo_mod4_fit$fit)
 zoo_plot_data$mod5_fit <- as.numeric(zoo_mod5_fit$fit)
 
 zoo_plot_data <- gather(zoo_plot_data, model, fit, mod4_fit, mod5_fit)
+<<<<<<< HEAD
 zoo_plot_data <- mutate(zoo_plot_data, se= c(as.numeric(zoo_mod4_fit$se.fit), as.numeric(zoo_mod5_fit$se.fit)),
                          upper = exp(fit + (2 * se)),
                          lower = exp(fit - (2 * se)),
@@ -294,6 +299,26 @@ zoo_plot <- ggplot(zoo_plot_data) +
     scale_colour_brewer(name = "",
                         palette = "Dark2", labels = paste("Model", 4:5))+
   theme(legend.position = "top")
+=======
+
+zoo_plot_data <- mutate(zoo_plot_data, se = c(as.numeric(zoo_mod4_fit$se.fit),
+                                                as.numeric(zoo_mod5_fit$se.fit)),
+                         upper = fit + (2 * se),
+                         lower = fit - (2 * se))
+
+zoo_plot <- ggplot(zoo_plot_data) +
+    geom_point(aes(y=density_scaled, x = day), size=0.1, data = zoo_train) +
+    geom_ribbon(aes(x = day, ymin = lower, ymax = upper, fill = model), 
+                alpha = 0.2) +
+    geom_path(aes(x = day, y = fit, colour = model)) +
+    theme(legend.position = "top") +
+    labs(y = "Scaled log-transformed density", x = "Day of Year") +
+    facet_wrap(~ taxon, nrow = 2) +
+    scale_fill_brewer(name = "", palette = "Dark2",
+                      labels = paste("Model", 4:5)) +
+    scale_colour_brewer(name = "",
+                        palette = "Dark2", labels = paste("Model", 4:5))
+>>>>>>> master
 
 zoo_plot
 
@@ -320,6 +345,7 @@ zoo_test_summary = zoo_test %>%
     mod4 = predict(zoo_comm_mod4, ., type="response"),
     mod5 = predict(zoo_comm_mod5, ., type="response"))%>%
   group_by(taxon)%>%
+<<<<<<< HEAD
   summarise(
     `Intercept only` = format(get_RMSE(mod0, density_adj), scientific = T, digits=3),
     `Model 4` = format(get_RMSE(mod4, density_adj), scientific = T, digits=3),
@@ -382,6 +408,38 @@ daph_plot_data <- expand.grid(day = 1:365, lake = factor(levels(zoo_train$lake))
 daph_mod1_fit <- predict(zoo_daph_mod1, daph_plot_data, se.fit = TRUE, exclude = "s(lake,year_f)")
 daph_mod2_fit <- predict(zoo_daph_mod2, daph_plot_data, se.fit = TRUE, exclude = "s(lake,year_f)")
 daph_mod3_fit <- predict(zoo_daph_mod3, daph_plot_data, se.fit = TRUE, exclude = "s(lake,year_f)")
+=======
+  summarise(`model 4 MSE` = round(get_MSE(density_scaled,mod4),2),
+            `model 5 MSE` = round(get_MSE(density_scaled,mod5),2))
+
+names(zoo_test_summary) <- c("Taxon", "Model 4 MSE", "Model 5 MSE")
+
+kable(zoo_test_summary, format = table_out_format, caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. MSE values represent the average squared difference between model predictions and observations for test data.", booktabs = TRUE)%>%
+  kable_styling(full_width = FALSE)
+daphnia_train <- subset(zoo_train, taxon=="D. mendotae")
+daphnia_test <- subset(zoo_test, taxon=="D. mendotae")
+
+zoo_daph_mod1 <-
+  gam(density_scaled ~ s(day, bs="cc", k=10),
+      data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
+printCoefmat(summary(zoo_daph_mod1)$s.table)
+zoo_daph_mod2 <-
+  gam(density_scaled ~ s(day, bs="cc", k=10) +
+        s(day, lake, k=10, bs="fs", xt=list(bs="cc")),
+      data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
+printCoefmat(summary(zoo_daph_mod2)$s.table)
+zoo_daph_mod3 <-
+  gam(density_scaled ~ lake + s(day, bs="cc", k=10) + 
+        s(day, by=lake, k=10, bs="cc", m=1),
+      data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
+printCoefmat(summary(zoo_daph_mod3)$s.table)
+#Create synthetic data to use to compare predictions
+daph_plot_data <- expand.grid(day = 1:365, lake = factor(levels(zoo_train$lake)))
+
+daph_mod1_fit <- predict(zoo_daph_mod1, daph_plot_data, se.fit = TRUE)
+daph_mod2_fit <- predict(zoo_daph_mod2, daph_plot_data, se.fit = TRUE)
+daph_mod3_fit <- predict(zoo_daph_mod3, daph_plot_data, se.fit = TRUE)
+>>>>>>> master
 
 daph_plot_data$mod1_fit <- as.numeric(daph_mod1_fit$fit)
 daph_plot_data$mod2_fit <- as.numeric(daph_mod2_fit$fit)
@@ -392,6 +450,7 @@ daph_plot_data <- gather(daph_plot_data, model, fit, mod1_fit, mod2_fit, mod3_fi
 daph_plot_data <- mutate(daph_plot_data, se = c(as.numeric(daph_mod1_fit$se.fit),
                                                 as.numeric(daph_mod2_fit$se.fit),
                                                 as.numeric(daph_mod3_fit$se.fit)),
+<<<<<<< HEAD
                          upper = exp(fit + (2 * se)),
                          lower = exp(fit - (2 * se)),
                          fit   = exp(fit))
@@ -406,11 +465,25 @@ daph_plot <- ggplot(daph_plot_data, aes(x=day))+
 
   labs(y = "Population density\n(individuals/m^2)", x = "Day of Year") +
   scale_x_continuous(expand = c(0,0))+
+=======
+                         upper = fit + (2 * se),
+                         lower = fit - (2 * se))
+
+daph_plot <- ggplot(daph_plot_data) +
+    geom_point(aes(y=density_scaled, x = day), size=0.1, data = daphnia_train) +
+    geom_ribbon(aes(x = day, ymin = lower, ymax = upper, fill = model), 
+                alpha = 0.2) +
+    geom_path(aes(x = day, y = fit, colour = model)) +
+    theme(legend.position = "top") +
+    labs(y = "Scaled log-transformed density", x = "Day of Year") +
+    facet_wrap(~ lake, nrow = 2) +
+>>>>>>> master
     scale_fill_brewer(name = "", palette = "Dark2",
                       labels = paste("Model", 1:3)) +
     scale_colour_brewer(name = "",
                         palette = "Dark2", labels = paste("Model", 1:3))
 
+<<<<<<< HEAD
 
 daph_plot
 # we need to compare how well this model fits with a null model. here we'll use an
@@ -423,6 +496,13 @@ zoo_daph_mod0 <- gam(density_adj~s(lake, bs="re"),
                      drop.unused.levels = FALSE)
 
 
+=======
+daph_plot
+#Getting the out of sample predictions for both models:
+daphnia_test$mod1 = as.numeric(predict(zoo_daph_mod1,daphnia_test))
+daphnia_test$mod2 = as.numeric(predict(zoo_daph_mod2,daphnia_test))
+daphnia_test$mod3 = as.numeric(predict(zoo_daph_mod3,daphnia_test))
+>>>>>>> master
 
 # We'll look at the correlation between fitted and observed values for all species:
 
@@ -438,8 +518,12 @@ daph_test_summary <- daphnia_test %>%
             `Model 2` = format(get_RMSE(mod2, density_adj), scientific = T, digits=2),
             `Model 3` = format(get_RMSE(mod3, density_adj), scientific = T, digits=2))
 
+<<<<<<< HEAD
 kable(daph_test_summary,format = table_out_format, caption="Out-of-sample predictive ability for model 1-3 applied to the \\textit{D. mendotae} dataset. RMSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a RMSE of one).", booktabs = TRUE)%>%
   add_header_above(c(" " = 1, "Total deviance of held out data" = 4))%>%
+=======
+kable(daph_test_summary,format = table_out_format, caption="Out-of-sample predictive ability for model 1-3 applied to the \\textit{D. mendotae} dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).", booktabs = TRUE)%>%
+>>>>>>> master
   kable_styling(full_width = FALSE)
 
 set.seed(1)
@@ -489,8 +573,8 @@ deriv_est_data = overfit_predict_data%>%
 
 deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv, y= obs_sqr_deriv,color= model))+
   geom_point()+
-  scale_y_log10("integral of squared second\nderivative for fitted curves")+
-  scale_x_log10("integral of squared second\nderivative for true curve")+
+  scale_y_log10("Estimated wiggliness fitted curves")+
+  scale_x_log10("Wiggliness of true curve")+
   scale_color_brewer(name=NULL,palette= "Set1")+
   geom_abline(color="black")+
   theme_bw()+
@@ -719,3 +803,8 @@ timing_plot = ggplot(aes(n_groups, timing, color=model, linetype= model),
 timing_plot
 ## set.seed(11)
 ## sample(c('Miller','Ross','Simpson'))
+<<<<<<< HEAD
+=======
+#This is just to make sure that the figures occur before the bibliography.
+cat('\\FloatBarrier')
+>>>>>>> master
