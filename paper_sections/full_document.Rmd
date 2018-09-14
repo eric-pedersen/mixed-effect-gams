@@ -1,10 +1,5 @@
 ---
 title: "Hierarchical Generalized Additive Models: an introduction with mgcv"
-author:
-- Eric J. Pedersen
-- David L. Miller
-- Gavin L. Simpson
-- Noam Ross
 header-includes:
   - \usepackage{lineno}
     \usepackage{placeins}
@@ -14,6 +9,8 @@ output:
   pdf_document:
     fig_caption: yes
     keep_tex: yes
+    includes:
+            in_header: author_info.sty
 documentclass: "article"
 classoption: "12pt"
 geometry: left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm,headheight=12pt,letterpaper
