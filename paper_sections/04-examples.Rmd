@@ -26,14 +26,14 @@ zoo_train <- subset(zooplankton, year%%2==0)
 zoo_test <- subset(zooplankton, year%%2==1) 
 ```
 
-First, we demonstrate how to model community-level variability in seasonality, by regressing scaled density on day of year, with species-specific curves. As we are not interested here in average seasonal dynamics, we will focus on models 4 and 5 (if we wanted to estimate the seasonal dynamics for rarer species, adding a global smooth term might be useful, so we could could borrow information from the more common species). As the data are seasonal,  we use cyclic smoothers as the basis for seasonal dynamics.  Therefore we need to specify start and end points for our cycles using the `knots` argument to `gam`, as well as specify that this is smoother type to the factor-smooth interaction term using the `xt` argument:
+First, we demonstrate how to model community-level variability in seasonality, by regressing scaled density on day of year, with species-specific curves. As we are not interested here in average seasonal dynamics, we will focus on models 4 and 5 (if we wanted to estimate the seasonal dynamics for rarer species, adding a global smooth term might be useful, so we could could borrow information from the more common species). As the data are seasonal,  we use cyclic smoothers as the basis for seasonal dynamics.  Therefore we need to specify start and end points for our cycles using the `knots` argument to `gam`, as well as specify that this is smoother type to the factor-smoother interaction term using the `xt` argument:
 
 ### Model 4:
 
 ```{r zoo_comm_mod4, echo=TRUE, message=FALSE,  cache=TRUE, fig.width=8, fig.height=5}
 zoo_comm_mod4 <-
   gam(density_scaled ~ s(day, taxon, bs="fs", k=10, xt=list(bs="cc")),
-      data=zoo_train, knots=list(day=c(1, 365)), method="ML")
+      data=zoo_train, knots=list(day=c(0, 365)), method="ML")
 ```
 
 Note that we use marginal likelihood (`method = "ML"`) as our smoothing selection method as we want to compare models that differ in their fixed effects.
@@ -43,7 +43,7 @@ Note that we use marginal likelihood (`method = "ML"`) as our smoothing selectio
 ```{r zoo_comm_mod5, echo=TRUE, message=FALSE,  cache=TRUE, fig.width=8, fig.height=5}
 zoo_comm_mod5 <-
   gam(density_scaled ~ taxon + s(day, by=taxon, k=10, bs="cc"),
-      data=zoo_train, knots=list(day=c(1, 365)), method="ML")
+      data=zoo_train, knots=list(day=c(0, 365)), method="ML")
 ```
 
 Both models have very similar fits, with a mean squared error of `r round(var(residuals(zoo_comm_mod4)),2)` for model 4 and `r round(var(residuals(zoo_comm_mod5)),2)`
@@ -106,7 +106,7 @@ kable(zoo_test_summary, format = table_out_format, caption="Out-of-sample predic
 ```
 
 Next, we look at how to fit inter-lake variability in dynamics for just *Daphnia mendotae*.
-Here, we will compare models 1, 2, and 3 to determine if a single global function is appropriate for all four lakes, or if we can more effectively model variation between lakes with a shared smooth and lake-specific smooths.
+Here, we will compare models 1, 2, and 3 to determine if a single global function is appropriate for all four lakes, or if we can more effectively model variation between lakes with a shared smoother and lake-specific smoothers.
 
 ### Model 1:
 
@@ -116,7 +116,7 @@ daphnia_test <- subset(zoo_test, taxon=="D. mendotae")
 
 zoo_daph_mod1 <-
   gam(density_scaled ~ s(day, bs="cc", k=10),
-      data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
+      data=daphnia_train, knots=list(day=c(0, 365)), method="ML")
 printCoefmat(summary(zoo_daph_mod1)$s.table)
 ```
 
@@ -125,7 +125,7 @@ printCoefmat(summary(zoo_daph_mod1)$s.table)
 zoo_daph_mod2 <-
   gam(density_scaled ~ s(day, bs="cc", k=10) +
         s(day, lake, k=10, bs="fs", xt=list(bs="cc")),
-      data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
+      data=daphnia_train, knots=list(day=c(0, 365)), method="ML")
 printCoefmat(summary(zoo_daph_mod2)$s.table)
 ```
 
@@ -135,7 +135,7 @@ printCoefmat(summary(zoo_daph_mod2)$s.table)
 zoo_daph_mod3 <-
   gam(density_scaled ~ lake + s(day, bs="cc", k=10) + 
         s(day, by=lake, k=10, bs="cc", m=1),
-      data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
+      data=daphnia_train, knots=list(day=c(0, 365)), method="ML")
 printCoefmat(summary(zoo_daph_mod3)$s.table)
 ```
 
@@ -144,7 +144,7 @@ The AIC values indicate that both model 2 (`r round(AIC(zoo_daph_mod2), 2)`) and
 but models 2 and 3 have similar fits. There does not seem to be a large amount of inter-lake variability (the effective degrees of freedom per lake are low in models 2 & 3). Model 3 indicates that only Lake Waubesa deviates substantially from the overall dynamics. Plots for all three models
 (Figure \ref{fig:daph_smooth}) show that Mendota and Monona lakes are very close to the average and to one another for both models (which is unsurprising, as they are very closely connected by a short river), but both Kegonsa and Waubesa show evidence of a more pronounced spring bloom and lower winter abundances.  While this is stronger in Lake Waubesa, it is still detectable with the simpler model 2 in Lake Kegonsa (Figure \ref{fig:daph_smooth}, orange line).
 
-```{r zoo_daph_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE, fig.width=6, fig.height=4, fig.cap="\\label{fig:daph_smooth}Raw data (points) and fitted models (lines) for \\textit{D. mendota} data. Green: model 1 (no inter-lake variation in dynamics); orange: model 2 (interlake variation with similar smoothness); purple: model 3 (varying smooths among lakes). Shaded bands are drawn at $\\pm$ 2 standard errors around each model."}
+```{r zoo_daph_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE, fig.width=6, fig.height=4, fig.cap="\\label{fig:daph_smooth}Raw data (points) and fitted models (lines) for \\textit{D. mendota} data. Green: model 1 (no inter-lake variation in dynamics); orange: model 2 (interlake variation with similar smoothness); purple: model 3 (varying smoothness among lakes). Shaded bands are drawn at $\\pm$ 2 standard errors around each model."}
 #Create synthetic data to use to compare predictions
 daph_plot_data <- expand.grid(day = 1:365, lake = factor(levels(zoo_train$lake)))
 
