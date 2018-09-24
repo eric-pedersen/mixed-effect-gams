@@ -5,6 +5,7 @@ library(stringr)
 library(Hmisc)
 
 
+
 #data from: https://portal.lternet.edu/nis/mapbrowse?packageid=knb-lter-ntl.262.2
 
 #Density here is a somewhat specialized data type, in that it is based off counts from 
@@ -13,6 +14,12 @@ library(Hmisc)
 #zero-inflated variable. Here it likely makes sense to treat it basically as a Tweedie
 #distribution, with some confusing caveats...
 
+
+abbr_first_word = function(x) {
+  split_names = str_split_fixed(x,pattern = " ", n = 2) #split names at a space, into two words
+  first_letter = paste(str_sub(split_names[,1],start = 1,end = 1),".",sep = "") #Turn the first word into a single letter
+  paste(first_letter,split_names[,2],sep =  " ") #Re-paste the words together
+}
 
 abbr_first_word = function(x) {
   split_names = str_split_fixed(x,pattern = " ", n = 2) #split names at a space, into two words

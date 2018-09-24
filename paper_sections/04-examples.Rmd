@@ -44,7 +44,7 @@ zoo_comm_mod4 <- gam(density_adj ~ s(day, taxon,
                                    s(taxon, bs="re") +
                                    s(taxon, year_f, bs="re"),
                      data=zoo_train,
-                     knots = list(day =c(1, 365)),
+                     knots = list(day =c(0, 365)),
                      family = Gamma(link ="log"), 
                      method = "ML",
                      drop.unused.levels = FALSE)
@@ -60,7 +60,7 @@ zoo_comm_mod5 <- gam(density_adj ~ s(day, by=taxon,
                                    s(taxon, bs="re") +
                                    s(taxon, year_f, bs="re"),
                      data=zoo_train,
-                     knots = list(day =c(1, 365)),
+                     knots = list(day =c(0, 365)),
                      family = Gamma(link ="log"), 
                      method = "ML",
                      drop.unused.levels = FALSE)
@@ -124,7 +124,7 @@ get_RMSE <- function(fit, obs) sqrt(mean((fit-obs)^2))
 # intercept-only model
 zoo_comm_mod0 <- gam(density_adj ~ s(taxon,bs="re"),
                      data=zoo_train,
-                     knots = list(day =c(1, 365)),
+                     knots = list(day =c(0, 365)),
                      family = Gamma(link ="log"), 
                      method = "ML",
                      drop.unused.levels = FALSE)
@@ -156,7 +156,7 @@ kable(zoo_test_summary,
 ```
 
 Next, we look at how to fit inter-lake variability in dynamics for just *Daphnia mendotae*.
-Here, we will compare models 1, 2, and 3 to determine if a single global function is appropriate for all four lakes, or if we can more effectively model variation between lakes with a shared smooth and lake-specific smooths.
+Here, we will compare models 1, 2, and 3 to determine if a single global function is appropriate for all four lakes, or if we can more effectively model variation between lakes with a shared smoother and lake-specific smoothers.
 
 ### Model 1:
 
@@ -168,7 +168,7 @@ zoo_daph_mod1 <- gam(density_adj~s(day, bs="cc",k=10)+
                        s(lake, bs="re") + 
                        s(lake, year_f,bs="re"),
                      data=daphnia_train,
-                     knots=list(day =c(1, 365)),
+                     knots=list(day =c(0, 365)),
                      family=Gamma(link ="log"),
                      method="ML",
                      drop.unused.levels = FALSE)
@@ -178,17 +178,10 @@ printCoefmat(summary(zoo_daph_mod1)$s.table)
 
 ### Model 2:
 ```{r zoo_daph_mod2, echo=TRUE, message=FALSE,  cache=TRUE}
-zoo_daph_mod2 <- gam(density_adj~s(day, bs="cc", k=10) +
-                             s(day, lake, k=10, bs="fs",
-                               xt=list(bs="cc"))+
-                             s(lake, bs="re") + 
-                             s(lake, year_f,bs="re"),
-                     data=daphnia_train,
-                     knots=list(day =c(1, 365)),
-                     family=Gamma(link ="log"),
-                     method="ML",
-                     drop.unused.levels = FALSE)
-
+zoo_daph_mod2 <-
+  gam(density_scaled ~ s(day, bs="cc", k=10) +
+        s(day, lake, k=10, bs="fs", xt=list(bs="cc")),
+      data=daphnia_train, knots=list(day=c(0, 365)), method="ML")
 printCoefmat(summary(zoo_daph_mod2)$s.table)
 ```
 
@@ -200,7 +193,7 @@ zoo_daph_mod3 <- gam(density_adj~s(day, bs="cc", k=10) +
                              s(lake, bs="re") + 
                              s(lake, year_f,bs="re"),
                      data=daphnia_train,
-                     knots=list(day =c(1, 365)),
+                     knots=list(day =c(0, 365)),
                      family=Gamma(link ="log"),
                      method="ML",
                      drop.unused.levels = FALSE)
@@ -213,7 +206,7 @@ The AIC values indicate that both model 2 (`r round(AIC(zoo_daph_mod2), 2)`) and
 but models 3 fits somewhat better than model 2. There does not seem to be a large amount of inter-lake variability (the effective degrees of freedom per lake are low in models 2 & 3).  Plots for all three models
 (Figure \ref{fig:daph_smooth}) show that Mendota, Monona, and Kegonsa lakes are very close to the average and to one another for both models, but Waubesa shows evidence of a more pronounced spring bloom and lower winter abundances. 
 
-```{r zoo_daph_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE, fig.width=6, fig.height=4, fig.cap="\\label{fig:daph_smooth}Raw data (points) and fitted models (lines) for \\textit{D. mendota} data. Green: model 1 (no inter-lake variation in dynamics); orange: model 2 (interlake variation with similar smoothness); purple: model 3 (varying smooths among lakes). Shaded bands are drawn at $\\pm$ 2 standard errors around each model."}
+```{r zoo_daph_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE, fig.width=6, fig.height=4, fig.cap="\\label{fig:daph_smooth}Raw data (points) and fitted models (lines) for \\textit{D. mendota} data. Green: model 1 (no inter-lake variation in dynamics); orange: model 2 (interlake variation with similar smoothness); purple: model 3 (varying smoothness among lakes). Shaded bands are drawn at $\\pm$ 2 standard errors around each model."}
 #Create synthetic data to use to compare predictions
 daph_plot_data <- expand.grid(day = 1:365, lake = factor(levels(zoo_train$lake)),year_f = 1980)
 
@@ -264,7 +257,7 @@ Model 2 is able to predict as well or better out of sample as model 1 or 3 (Tabl
 # intercept-only model
 zoo_daph_mod0 <- gam(density_adj~s(lake, bs="re"),
                      data=daphnia_train,
-                     knots=list(day =c(1, 365)),
+                     knots=list(day =c(0, 365)),
                      family=Gamma(link ="log"),
                      method="ML",
                      drop.unused.levels = FALSE)
