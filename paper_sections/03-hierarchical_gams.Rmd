@@ -4,16 +4,16 @@
 
 In this section, we will describe how to model inter-group variability using smooth curves and how to fit these models using **mgcv**. Model structure is key in this framework, so we start with three model choices:
 
-1. Should each group have its own smoother, or will a global smoother suffice?
+1. Should each group have its own smoother, or will a common smoother suffice?
 2. Do all of the group-specific smoothers have the same wiggliness, or should each group have its own smoothing parameter?
-3. Will the smoothers for each group have a similar shape to one another --- a shared average curve?
+3. Will the smoothers for each group have a similar shape to one another --- a shared global smoother?
 
 These three choices result in five possible models (figure \ref{fig:models}):
 
 1. A single common smoother for all observations.
-2. A single common smoother plus group-level smoothers that have the same wiggliness.
-3. A single common smoother plus group-level smoothers with differing wiggliness.
-4. Group-specific smoothers without an average trend, but with all smoothers having the same wiggliness.
+2. A global smoother plus group-level smoothers that have the same wiggliness.
+3. A global smoother plus group-level smoothers with differing wiggliness.
+4. Group-specific smoothers without a global smoother, but with all smoothers having the same wiggliness.
 5. Group-specific smoothers with different wiggliness.
 
 ![\label{fig:models}Alternate types of functional variation f(x) that can be fitted with HGAMs. The dashed line indicates the average function value for all groups, and each solid line indicates the functional value at a given predictor value for an  individual group level. The null model (of no functional relationship between the covariate and outcome, top right), is not explicitly assigned a model number.](../figures/alternate_models.png)
@@ -380,5 +380,5 @@ kable(AIC_table, format =table_out_format, caption="AIC table comparing model fi
   group_rows("B. bird_move models", 6,10)
 ```
 
-It is important to recognize that AIC, like any function of the data, is a random variable and should be expected to have some sampling error [@forster_aic_2011]. In cases when the goal is to select the model that has the best predictive ability, we recommend holding some fraction of the data out prior to the analysis and comparing how well different models fit that data or using $k$-fold cross validation as a more accurate guide to how well a given model may predict out of sample. We also strongly recommend that not selecting models based purely on AIC. Instead, model selection should be based on expert subject knowledge about the system, computational time, and most importantly, the inferential goals of the study. For instance, while table \ref{tab:AIC_table}A indicates that models 4 and 5 (which do not have a global function) fit the `CO2` data slightly better than models with a global function; however, it is the shape of the mean function that we are actually interested in here, as models 4 and 5 cannot be used to predict the concentration-uptake relationship for other plants. The same consideration holds when choosing between model 2 and 3: while model 3 fits the `CO2` data better than model 2 (as measured by AIC), model 2 can be used to simulate functional variation for unobserved group levels, whereas this is not possible within the framework of model 3. The next section works through two examples to show how to choose between different models, and section V discusses these and other model fitting issues in more depth.
+It is important to recognize that AIC, like any function of the data, is a random variable and should be expected to have some sampling error [@forster_aic_2011]. In cases when the goal is to select the model that has the best predictive ability, we recommend holding some fraction of the data out prior to the analysis and comparing how well different models fit that data or using $k$-fold cross validation as a more accurate guide to how well a given model may predict out of sample. We also strongly recommend not selecting models based purely on AIC. Instead, model selection should be based on expert subject knowledge about the system, computational time, and most importantly, the inferential goals of the study. For instance, while table \ref{tab:AIC_table}A indicates that models 4 and 5 (which do not have a global function) fit the `CO2` data slightly better than models with a global function; however, it is the shape of the mean function that we are actually interested in here, as models 4 and 5 cannot be used to predict the concentration-uptake relationship for other plants. The same consideration holds when choosing between model 2 and 3: while model 3 fits the `CO2` data better than model 2 (as measured by AIC), model 2 can be used to simulate functional variation for unobserved group levels, whereas this is not possible within the framework of model 3. The next section works through two examples to show how to choose between different models, and section V discusses these and other model fitting issues in more depth.
 

@@ -72,7 +72,7 @@ Specifying these models and techniques for fitting them are active areas statist
 
 # Acknowledgements
 
-The authors would like to thank Carly Ziter, Tiago Marques, Jake Walsh, Geoff Evans, and Paul Regular for their thoughtful feedback on earlier versions of this manuscript, and the Ecological Society of America for hosting the **mgcv** workshops that this work started from. The research was supported by the National Science and Engineering Research Council of Canada (NSERC), Fisheries and Oceans Canada and  **add other support here**. 
+The authors would like to thank Carly Ziter, Tiago Marques, Jake Walsh, Geoff Evans, Paul Regular, and Laura Wheeland for their thoughtful feedback on earlier versions of this manuscript, and the Ecological Society of America for hosting the **mgcv** workshops that this work started from. The research was supported by the National Science and Engineering Research Council of Canada (NSERC), Fisheries and Oceans Canada and  **add other support here**. 
 
 All authors contributed to developing the intial idea for this paper, and to writing and editing the manuscript. Author order after the first author was chosen using the code:
 
