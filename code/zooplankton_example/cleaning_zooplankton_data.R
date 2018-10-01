@@ -59,7 +59,7 @@ zooplankton_data = read.csv("data/madisonlakeszoopoldnet.csv",stringsAsFactors =
   group_by(taxon)%>%
   mutate(
     density = ifelse(is.na(density), 0,density),
-    density_adj = density + 1000,
+    density_adj = (density + 1000)/10000,
     min_density = min(density[density>0]))%>%
   group_by(taxon,year,lake)%>%
   filter(any(present))%>%
