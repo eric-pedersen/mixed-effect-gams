@@ -83,6 +83,7 @@ multismooth_plot= ggplot(data=plotting_data, aes(x=x, y=total_function))+
   scale_y_continuous("f(x)")+
   scale_x_continuous(breaks=c(0,0.5, 1), labels=c("0","0.5","1"))+
   geom_label(data=models,aes(label=model_num),x=0.5,y=2)+
+  theme_bw()+
   theme(legend.position="none",strip.background = element_blank(),
         text=element_text(size=14),
         panel.grid = element_blank())
