@@ -16,5 +16,5 @@ main: paper_sections/full_document.Rmd
 				R --vanilla --slave -e "rmarkdown::render('paper_sections/full_document.Rmd',output_file = 'full_document.pdf')"
 				R --vanilla --slave -e "knitr::purl('paper_sections/full_document.Rmd',documentation =0, output = 'compiled_paper/supplemental_code.R')"
 				mv paper_sections/full_document.pdf compiled_paper/full_document.pdf 
-				rm paper_sections/full_document.tex 
+				mv paper_sections/full_document.tex compiled_paper/full_document.tex 
 
