@@ -5,7 +5,7 @@
 
 library(dplyr)
 library(tidyr)
-set_seed = 12
+set.seed(12)
 n_sp = 6
 species_data = data_frame(species = factor(paste("sp", 1:n_sp, sep="")),
                           phase_shift = sort(rnorm(n_sp,0,5)),
