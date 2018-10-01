@@ -21,6 +21,8 @@ csl: peerj.csl
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, cache=TRUE)
 library(mgcv)
+library(MASS)
+library(stringr)
 library(gamm4)
 library(tidyr)
 library(ggplot2)
