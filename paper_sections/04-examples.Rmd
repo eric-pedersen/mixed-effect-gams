@@ -27,8 +27,20 @@ levels(zooplankton$lake)
 
 # We'll now break it into testing and training data. The training data will be
 # used to fit the model, and the testing data will be used to evaluate model fit.
-zoo_train <- subset(zooplankton, year%%2==0)
-zoo_test <- subset(zooplankton, year%%2==1) 
+
+#the first training and testing data set will be used to compare dynamics of
+#plankton communities in Lake Mendota
+zoo_train <- subset(zooplankton, year%%2==0 & lake=="Mendota")
+zoo_test  <- subset(zooplankton, year%%2==1 & lake=="Mendota") 
+
+#The second training and testing set will compare Daphnia mendotae dynamics among
+#four lakes
+daphnia_train <- subset(zooplankton, year%%2==0 & taxon=="D. mendotae")
+daphnia_test  <- subset(zooplankton, year%%2==1 & taxon=="D. mendotae")
+
+#This function calculates the root-mean-squared-error for out-of-sample data
+get_RMSE <- function(fit, obs) sqrt(mean((fit-obs)^2))
+
 ```
 
 First, we demonstrate how to model community-level variability in seasonality, by regressing scaled density on day of year, with species-specific curves. As we are not interested here in average seasonal dynamics, we will focus on models 4 and 5 (if we wanted to estimate the seasonal dynamics for rarer species, adding a global smooth term might be useful, so we could could borrow information from the more common species). As the data are seasonal,  we use cyclic smoothers as the basis for seasonal dynamics.  Therefore we need to specify start and end points for our cycles using the `knots` argument to `gam`, as well as specify that this is smoother type to the factor-smooth interaction term using the `xt` argument (the `xt` argument is how any extra information that a smoother might need is supplied; see `?mgcv::s` for more information). Note that we also include a random effect smoother for both `taxon` and `taxon:year_f`, where `year_f` is just `year` transformed into a factor variable, to deal with the fact that average zooplankton densities can show large year-to-year variation. The argument `drop.unused.levels=FALSE` is also included so the `gam` function does not drop the year factor levels corresponding to those in the held-out test data set. 
@@ -161,8 +173,6 @@ Here, we will compare models 1, 2, and 3 to determine if a single global functio
 ### Model 1:
 
 ```{r zoo_daph_mod1, echo=TRUE, message=FALSE, cache=TRUE}
-daphnia_train <- subset(zoo_train, taxon=="D. mendotae")
-daphnia_test <- subset(zoo_test, taxon=="D. mendotae")
 
 zoo_daph_mod1 <- gam(density_adj~s(day, bs="cc",k=10)+
                        s(lake, bs="re") + 
