@@ -8,6 +8,7 @@ library(ggplot2)
 library(viridis)
 library(cowplot)
 library(kableExtra)
+library(docxtools)
 library(knitr)
 library(tibble)
 library(dplyr)
@@ -228,10 +229,10 @@ ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
 ## # Note for specifying tensor products: you can either specify bs (basis) and
 ## # k (number of basis functions) as single values, which would assign the same
 ## # basis and k to each marginal value, or pass them as vectors, one value for each
-## # distinct marginal smooth (see ?mgcv::te for details)
+## # distinct marginal smoother (see ?mgcv::te for details)
 bird_mod1 <- gam(count ~ te(week, latitude, bs=c("cc", "tp"), k=c(10, 10)),
                  data=bird_move, method="REML", family="poisson",
-                 knots = list(week = c(0.5, 52.5)))
+                 knots = list(week = c(0, 52)))
 #mgcv gam plot for the two-dimensional tensor product smoother for bird_mod1.
 #scheme=2 displays the color scheme (rather than mgcv's default, which only
 #shows contour lines)
@@ -263,7 +264,8 @@ bird_mod2 <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
                             k=c(10, 10), m=c(2, 2)) +
                    t2(week, latitude, species, bs=c("cc", "tp", "re"),
                       k=c(10, 10, 6), m=c(2, 2, 2), full=TRUE),
-                 data=bird_move, method="REML", family="poisson")
+                 data=bird_move, method="REML", family="poisson", 
+                 knots = list(week = c(0, 52)))
 bird_move <- transform(bird_move, mod2 = predict(bird_mod2, type="response"))
 
 bird_mod2_indiv <- ggplot(data=bird_move, aes(x=week, y=latitude, fill=mod2,color=mod2)) +
@@ -294,7 +296,7 @@ CO2_mod3 <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                 data=CO2, method="REML")
 
 op <- par(mfrow=c(2, 3), mar =c(4, 4, 1, 1))
-plot(CO2_mod3, scale=0, select=1,  ylab="Global smooth", seWithMean=TRUE)
+plot(CO2_mod3, scale=0, select=1,  ylab="Global smoother", seWithMean=TRUE)
 plot(CO2_mod3, scale=0, select=14, ylab="Intercept",     main=NA)
 plot(CO2_mod3, scale=0, select=3,  ylab="Plant Qn1",     seWithMean=TRUE)
 plot(CO2_mod3, scale=0, select=5,  ylab="Plant Qc1",     seWithMean=TRUE)
@@ -306,13 +308,15 @@ bird_mod3 <- gam(count ~ species +
                       k=c(10, 10), m=c(2, 2)) +
                    te(week, latitude, by=species, bs= c("cc", "ts"),
                       k=c(10, 10), m=c(1, 1)),
-                 data=bird_move, method="REML", family="poisson")
+                 data=bird_move, method="REML", family="poisson",
+                 knots = list(week = c(0, 52)))
 CO2_mod4 <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5, bs="fs", m=2),
                 data=CO2, method="REML")
 
 bird_mod4 <- gam(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
                             k=c(10, 10, 6), m=c(2, 2, 2)),
-                 data=bird_move, method="REML", family="poisson")
+                 data=bird_move, method="REML", family="poisson",
+                 knots = list(week = c(0, 52)))
 CO2_mod5 <- gam(log(uptake) ~ s(log(conc), by=Plant_uo, k=5, bs="tp", m=2) +
                               s(Plant_uo, bs="re", k=12),
                 data= CO2, method="REML")
@@ -321,100 +325,183 @@ CO2_mod5 <- gam(log(uptake) ~ s(log(conc), by=Plant_uo, k=5, bs="tp", m=2) +
 bird_mod5 <- gam(count ~ species + 
                    te(week, latitude, by=species, bs= c("cc", "ts"), 
                       k=c(10, 10), m=c(2, 2)),
-                 data=bird_move, method="REML", family="poisson")
+                 data=bird_move, method="REML", family="poisson",
+                 knots = list(week = c(0, 52)))
 AIC_table = AIC(CO2_mod1,CO2_mod2, CO2_mod3, CO2_mod4, CO2_mod5,
              bird_mod1, bird_mod2, bird_mod3, bird_mod4, bird_mod5)%>%
   rownames_to_column(var= "Model")%>%
-  mutate_at(.vars = vars(df,AIC), .funs = funs(round,.args = list(digits=0)))
+  mutate(data_source = rep(c("CO2","bird_data"), each =5))%>%
+  group_by(data_source)%>%
+  mutate(deltaAIC = AIC - min(AIC))%>%
+  ungroup()%>%
+  dplyr::select(-data_source)%>%
+  mutate_at(.vars = vars(df,AIC, deltaAIC), .funs = funs(round,.args = list(digits=0)))
 kable(AIC_table, format =table_out_format, caption="AIC table comparing model fits for example datasets", booktabs = T)%>% 
   kable_styling(full_width = F)%>%
   group_rows("A. CO2 models", 1,5)%>%
   group_rows("B. bird_move models", 6,10)
 
-zooplankton <- read.csv("../data/zooplankton_example.csv")
+zooplankton <- read.csv("../data/zooplankton_example.csv")%>%
+  mutate(year_f = factor(year))
 
 #This is what the data looks like:
 str(zooplankton)
 levels(zooplankton$taxon)
 levels(zooplankton$lake)
-zoo_train <- subset(zooplankton, year%%2==0)
-zoo_test <- subset(zooplankton, year%%2==1) 
-zoo_comm_mod4 <-
-  gam(density_scaled ~ s(day, taxon, bs="fs", k=10, xt=list(bs="cc")),
-      data=zoo_train, knots=list(day=c(1, 365)), method="ML")
-zoo_comm_mod5 <-
-  gam(density_scaled ~ taxon + s(day, by=taxon, k=10, bs="cc"),
-      data=zoo_train, knots=list(day=c(1, 365)), method="ML")
-#Create synthetic data to use to compare predictions
-zoo_plot_data <- expand.grid(day = 1:365, taxon = factor(levels(zoo_train$taxon)))
 
-#extract predicted values and standard errors for both models
-zoo_mod4_fit <- predict(zoo_comm_mod4, zoo_plot_data, se.fit = T)
-zoo_mod5_fit <- predict(zoo_comm_mod5, zoo_plot_data, se.fit = T)
+# We'll now break it into testing and training data. The training data will be
+# used to fit the model, and the testing data will be used to evaluate model fit.
+
+#the first training and testing data set will be used to compare dynamics of
+#plankton communities in Lake Mendota
+zoo_train <- subset(zooplankton, year%%2==0 & lake=="Mendota")
+zoo_test  <- subset(zooplankton, year%%2==1 & lake=="Mendota") 
+
+#The second training and testing set will compare Daphnia mendotae dynamics among
+#four lakes
+daphnia_train <- subset(zooplankton, year%%2==0 & taxon=="D. mendotae")
+daphnia_test  <- subset(zooplankton, year%%2==1 & taxon=="D. mendotae")
+
+#This function calculates the root-mean-squared-error for out-of-sample data
+get_RMSE <- function(fit, obs) sqrt(mean((fit-obs)^2))
+
+zoo_comm_mod4 <- gam(density_adj ~ s(day, taxon,
+                                     bs="fs",
+                                     k=10,
+                                     xt=list(bs="cc"))+
+                                   s(taxon, year_f, bs="re"),
+                     data=zoo_train,
+                     knots = list(day =c(0, 365)),
+                     family = Gamma(link ="log"), 
+                     method = "REML",
+                     drop.unused.levels = FALSE)
+# Note that  s(taxon, bs="re") has to be explicitly included here, as the 
+# day  by taxon smoother does not include an intercept
+zoo_comm_mod5 <- gam(density_adj ~ s(day, by=taxon,
+                                     k=10, bs="cc") + 
+                                   s(taxon, bs="re") +
+                                   s(taxon, year_f, bs="re"),
+                     data=zoo_train,
+                     knots = list(day =c(0, 365)),
+                     family = Gamma(link ="log"), 
+                     method = "REML",
+                     drop.unused.levels = FALSE)
+## gam.check(zoo_comm_mod4)
+## gam.check(zoo_comm_mod5)
+round(k.check(zoo_comm_mod5),2)
+par(mfrow= c(1,2))
+qq.gam(zoo_comm_mod4)
+plot(log(fitted(zoo_comm_mod5)), residuals.gam(zoo_comm_mod5,type = "deviance"), xlab = "linear predictor",
+     ylab = "residuals")
+#Create synthetic data to use to compare predictions
+zoo_plot_data <- expand.grid(day = 1:365, taxon = factor(levels(zoo_train$taxon)), year_f = 1980)
+
+#extract predicted values and standard errors for both models. the exclude = "s(taxon,year_f)" 
+#term indicates that predictions should be made excluding the effect of the
+#taxon by year random effect (effectively setting making predictions averaging
+#over year-taxon effects).
+zoo_mod4_fit <- predict(zoo_comm_mod4, zoo_plot_data, se.fit = T, exclude = "s(taxon,year_f)")
+zoo_mod5_fit <- predict(zoo_comm_mod5, zoo_plot_data, se.fit = T, exclude = "s(taxon,year_f)")
 
 zoo_plot_data$mod4_fit <- as.numeric(zoo_mod4_fit$fit)
 zoo_plot_data$mod5_fit <- as.numeric(zoo_mod5_fit$fit)
 
 zoo_plot_data <- gather(zoo_plot_data, model, fit, mod4_fit, mod5_fit)
+zoo_plot_data <- mutate(zoo_plot_data, se= c(as.numeric(zoo_mod4_fit$se.fit), as.numeric(zoo_mod5_fit$se.fit)),
+                         upper = exp(fit + (2 * se)),
+                         lower = exp(fit - (2 * se)),
+                         fit   = exp(fit))
 
-zoo_plot_data <- mutate(zoo_plot_data, se = c(as.numeric(zoo_mod4_fit$se.fit),
-                                                as.numeric(zoo_mod5_fit$se.fit)),
-                         upper = fit + (2 * se),
-                         lower = fit - (2 * se))
-
+#Plot the model output, with means plus standard deviations for each model.
 zoo_plot <- ggplot(zoo_plot_data) +
-    geom_point(aes(y=density_scaled, x = day), size=0.1, data = zoo_train) +
-    geom_ribbon(aes(x = day, ymin = lower, ymax = upper, fill = model), 
-                alpha = 0.2) +
-    geom_path(aes(x = day, y = fit, colour = model)) +
-    theme(legend.position = "top") +
-    labs(y = "Scaled log-transformed density", x = "Day of Year") +
-    facet_wrap(~ taxon, nrow = 2) +
+  facet_wrap(~taxon, nrow = 4,scales = "free_y")+
+  geom_point(data= zoo_train, aes(x = day, y = density_adj),size=0.1)+
+  geom_line(aes(x = day, y = fit, color = model))+
+  geom_ribbon(aes(x=day,
+                  ymin = lower,
+                  ymax = upper,
+                  fill = model),
+              alpha=0.2)+
+  labs(y = expression(atop(Population~density,("10 000"~individuals~m^{-2}))), x = "Day of Year") +
     scale_fill_brewer(name = "", palette = "Dark2",
                       labels = paste("Model", 4:5)) +
     scale_colour_brewer(name = "",
-                        palette = "Dark2", labels = paste("Model", 4:5))
+                        palette = "Dark2", labels = paste("Model", 4:5))+
+  theme(legend.position = "top")
 
 zoo_plot
-get_MSE = function(obs, pred) mean((obs-pred)^2)
+
 #Getting the out of sample predictions for both models:
-zoo_test$mod4 = as.numeric(predict(zoo_comm_mod4,zoo_test))
-zoo_test$mod5 = as.numeric(predict(zoo_comm_mod5,zoo_test))
+
+# we need to compare how well this model fits with a null model. here we'll use an
+# intercept-only model
+zoo_comm_mod0 <- gam(density_adj ~ s(taxon,bs="re"),
+                     data=zoo_train,
+                     knots = list(day =c(0, 365)),
+                     family = Gamma(link ="log"), 
+                     method = "REML",
+                     drop.unused.levels = FALSE)
 
 #Correlations between fitted and observed values for all species:
 #\n is in variable titles to add a line break in the printed table.
 zoo_test_summary = zoo_test %>%
+  mutate(
+    mod0 = predict(zoo_comm_mod0, ., type="response"),
+    mod4 = predict(zoo_comm_mod4, ., type="response"),
+    mod5 = predict(zoo_comm_mod5, ., type="response"))%>%
   group_by(taxon)%>%
-  summarise(`model 4 MSE` = round(get_MSE(density_scaled,mod4),2),
-            `model 5 MSE` = round(get_MSE(density_scaled,mod5),2))
+  summarise(
+    `Intercept only` = format(get_RMSE(mod0, density_adj), scientific = FALSE, digits=3),
+    `Model 4` = format(get_RMSE(mod4, density_adj), scientific = FALSE, digits=3),
+    `Model 5` = format(get_RMSE(mod5, density_adj), scientific = FALSE, digits=3))%>%
+  mutate(taxon = cell_spec(taxon, italic = c(T,F,F,T,T,T,T,T))) #need to specify this to ensure that species names are italized in the table
 
-names(zoo_test_summary) <- c("Taxon", "Model 4 MSE", "Model 5 MSE")
-
-kable(zoo_test_summary, format = table_out_format, caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. MSE values represent the average squared difference between model predictions and observations for test data.", booktabs = TRUE)%>%
-  kable_styling(full_width = FALSE)
-daphnia_train <- subset(zoo_train, taxon=="D. mendotae")
-daphnia_test <- subset(zoo_test, taxon=="D. mendotae")
-
-zoo_daph_mod1 <-
-  gam(density_scaled ~ s(day, bs="cc", k=10),
-      data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
-printCoefmat(summary(zoo_daph_mod1)$s.table)
+kable(zoo_test_summary, 
+      format = table_out_format, 
+      caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. RMSE values represent the square root of the average squared difference between model predictions and observations for test data.  Intercept only results are for a null model with only year and year-by taxon random effect intercepts included.", 
+      booktabs = TRUE,
+      escape = FALSE)%>%
+  add_header_above(c(" " = 1, "\\\\Large{${\\\\text{Total RMSE of held out data}}\\\\atop{(\\\\text{10 000 individuals}\\\\cdot m^{-2})}$}" = 3),escape = FALSE)%>%
+  kable_styling(full_width = FALSE) %>%
+  row_spec(2:3,italic = FALSE) %>%
+  row_spec(2:3, italic = FALSE)
+  
+zoo_daph_mod1 <- gam(density_adj ~ s(day, bs="cc", k=10)+
+                       s(lake, bs="re") + 
+                       s(lake, year_f,bs="re"),
+                     data=daphnia_train,
+                     knots=list(day =c(0, 365)),
+                     family=Gamma(link ="log"),
+                     method="REML",
+                     drop.unused.levels = FALSE)
 zoo_daph_mod2 <-
-  gam(density_scaled ~ s(day, bs="cc", k=10) +
-        s(day, lake, k=10, bs="fs", xt=list(bs="cc")),
-      data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
-printCoefmat(summary(zoo_daph_mod2)$s.table)
-zoo_daph_mod3 <-
-  gam(density_scaled ~ lake + s(day, bs="cc", k=10) + 
-        s(day, by=lake, k=10, bs="cc", m=1),
-      data=daphnia_train, knots=list(day=c(1, 365)), method="ML")
-printCoefmat(summary(zoo_daph_mod3)$s.table)
+  gam(density_adj ~ s(day, bs="cc", k=10) + 
+        s(day, lake, k=10, bs="fs", xt=list(bs="cc")) + 
+        s(lake, year_f,bs="re"),
+      data=daphnia_train, 
+      knots=list(day=c(0, 365)), 
+      family=Gamma(link ="log"),
+      drop.unused.levels = FALSE,
+      method="REML")
+zoo_daph_mod3 <- gam(density_adj~s(day, bs="cc", k=10) +
+                             s(day, by=lake, k=10, bs="cc")+
+                             s(lake, bs="re") + 
+                             s(lake, year_f,bs="re"),
+                     data=daphnia_train,
+                     knots=list(day =c(0, 365)),
+                     family=Gamma(link ="log"),
+                     method="REML",
+                     drop.unused.levels = FALSE)
 #Create synthetic data to use to compare predictions
-daph_plot_data <- expand.grid(day = 1:365, lake = factor(levels(zoo_train$lake)))
+daph_plot_data <- expand.grid(day = 1:365, lake = factor(levels(zoo_train$lake)),year_f = 1980)
 
-daph_mod1_fit <- predict(zoo_daph_mod1, daph_plot_data, se.fit = TRUE)
-daph_mod2_fit <- predict(zoo_daph_mod2, daph_plot_data, se.fit = TRUE)
-daph_mod3_fit <- predict(zoo_daph_mod3, daph_plot_data, se.fit = TRUE)
+#extract predicted values and standard errors for both models. the exclude = "s(taxon,year_f)" 
+#term indicates that predictions should be made excluding the effect of the
+#taxon by year random effect (effectively setting making predictions averaging
+#over year-taxon effects).
+daph_mod1_fit <- predict(zoo_daph_mod1, daph_plot_data, se.fit = TRUE, exclude = "s(lake,year_f)")
+daph_mod2_fit <- predict(zoo_daph_mod2, daph_plot_data, se.fit = TRUE, exclude = "s(lake,year_f)")
+daph_mod3_fit <- predict(zoo_daph_mod3, daph_plot_data, se.fit = TRUE, exclude = "s(lake,year_f)")
 
 daph_plot_data$mod1_fit <- as.numeric(daph_mod1_fit$fit)
 daph_plot_data$mod2_fit <- as.numeric(daph_mod2_fit$fit)
@@ -425,36 +512,55 @@ daph_plot_data <- gather(daph_plot_data, model, fit, mod1_fit, mod2_fit, mod3_fi
 daph_plot_data <- mutate(daph_plot_data, se = c(as.numeric(daph_mod1_fit$se.fit),
                                                 as.numeric(daph_mod2_fit$se.fit),
                                                 as.numeric(daph_mod3_fit$se.fit)),
-                         upper = fit + (2 * se),
-                         lower = fit - (2 * se))
+                         upper = exp(fit + (2 * se)),
+                         lower = exp(fit - (2 * se)),
+                         fit   = exp(fit))
 
-daph_plot <- ggplot(daph_plot_data) +
-    geom_point(aes(y=density_scaled, x = day), size=0.1, data = daphnia_train) +
-    geom_ribbon(aes(x = day, ymin = lower, ymax = upper, fill = model), 
+
+daph_plot <- ggplot(daph_plot_data, aes(x=day))+
+  facet_wrap(~lake, nrow = 2)+
+  geom_point(data= daphnia_train, aes(x = day, y = density_adj),size=0.1)+
+  geom_ribbon(aes(x = day, ymin = lower, ymax = upper, fill = model), 
                 alpha = 0.2) +
-    geom_path(aes(x = day, y = fit, colour = model)) +
-    theme(legend.position = "top") +
-    labs(y = "Scaled log-transformed density", x = "Day of Year") +
-    facet_wrap(~ lake, nrow = 2) +
+  geom_line(aes(x = day, y = fit, colour = model)) +
+
+  labs(y = expression(atop(Population~density,("10 000"~individuals~m^{-2}))), x = "Day of Year") +
+  scale_x_continuous(expand = c(0,0))+
     scale_fill_brewer(name = "", palette = "Dark2",
                       labels = paste("Model", 1:3)) +
     scale_colour_brewer(name = "",
                         palette = "Dark2", labels = paste("Model", 1:3))
 
+
 daph_plot
-#Getting the out of sample predictions for both models:
-daphnia_test$mod1 = as.numeric(predict(zoo_daph_mod1,daphnia_test))
-daphnia_test$mod2 = as.numeric(predict(zoo_daph_mod2,daphnia_test))
-daphnia_test$mod3 = as.numeric(predict(zoo_daph_mod3,daphnia_test))
+# we need to compare how well this model fits with a null model. here we'll use an
+# intercept-only model
+zoo_daph_mod0 <- gam(density_adj~s(lake, bs="re"),
+                     data=daphnia_train,
+                     knots=list(day =c(0, 365)),
+                     family=Gamma(link ="log"),
+                     method="REML",
+                     drop.unused.levels = FALSE)
+
+
 
 # We'll look at the correlation between fitted and observed values for all species:
-daph_test_summary = daphnia_test %>%
-  group_by(lake)%>%
-  summarise(`model 1 MSE` = round(get_MSE(density_scaled,mod1),2),
-            `model 2 MSE` = round(get_MSE(density_scaled,mod2),2),
-            `model 3 MSE` = round(get_MSE(density_scaled,mod3),2))
 
-kable(daph_test_summary,format = table_out_format, caption="Out-of-sample predictive ability for model 1-3 applied to the \\textit{D. mendotae} dataset. MSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a MSE of one).", booktabs = TRUE)%>%
+daph_test_summary <- daphnia_test %>%
+  mutate(#get out-of-sample predicted fits
+    mod0 = as.numeric(predict(zoo_daph_mod0,.,type="response")),
+    mod1 = as.numeric(predict(zoo_daph_mod1,.,type="response")),
+    mod2 = as.numeric(predict(zoo_daph_mod2,.,type="response")),
+    mod3 = as.numeric(predict(zoo_daph_mod3,.,type="response")))%>%
+  group_by(lake)%>%
+  summarise(`Intercept only` = format(get_RMSE(mod0, density_adj), scientific = FALSE, digits=2),
+            `Model 1` = format(get_RMSE(mod1, density_adj), scientific = FALSE, digits=2),
+            `Model 2` = format(get_RMSE(mod2, density_adj), scientific = FALSE, digits=2),
+            `Model 3` = format(get_RMSE(mod3, density_adj), scientific = FALSE, digits=2))%>%
+  rename(Lake = lake)
+
+kable(daph_test_summary,format = table_out_format, caption="Out-of-sample predictive ability for model 1-3 applied to the \\textit{D. mendotae} dataset. RMSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a RMSE of one).", booktabs = TRUE)%>%
+  add_header_above(c(" " = 1, "\\\\Large{${\\\\text{Total RMSE of held out data}}\\\\atop{(\\\\text{10 000 individuals}\\\\cdot m^{-2})}$}" = 4),escape = FALSE)%>%
   kable_styling(full_width = FALSE)
 
 set.seed(1)
@@ -504,11 +610,10 @@ deriv_est_data = overfit_predict_data%>%
 
 deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv, y= obs_sqr_deriv,color= model))+
   geom_point()+
-  scale_y_log10("Estimated wiggliness fitted curves")+
+  scale_y_log10("Estimated wiggliness\nof fitted curves")+
   scale_x_log10("Wiggliness of true curve")+
   scale_color_brewer(name=NULL,palette= "Set1")+
   geom_abline(color="black")+
-  theme_bw()+
   theme(legend.position = "top")
 
 fit_colors = c("black",RColorBrewer::brewer.pal(3, "Set1")[1:2])
@@ -517,7 +622,6 @@ overfit_vis_plot = ggplot(data=overfit_predict_data_long,aes(x=x,y= value,color=
   geom_line()+
   scale_color_manual(values=fit_colors)+
   facet_grid(.~grp)+
-  theme_bw()+
   theme(legend.position = "top")
 cowplot::plot_grid(overfit_vis_plot, deriv_plot, ncol=1, labels="auto",
                    align="hv", axis="lrtb")
@@ -643,10 +747,10 @@ comp_resources_table =comp_resources %>%
   mutate(`relative time` = `relative time`/`relative time`[1],#scales processing time relative to model 1
          `relative time` = ifelse(`relative time`<10, signif(`relative time`,1), signif(`relative time`, 2)) #rounds to illustrate differences in timing.
          )%>%
-  ungroup()%>%
-  select(-data_source)
+  ungroup() %>%
+  dplyr::select( - data_source)
 
-kable(comp_resources_table,format ="latex", caption="Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model 1 takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smooths is the total number of unique penalty values estimated by the model.", booktabs = T)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+kable(comp_resources_table,format ="latex", caption="Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model 1 takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smoothers is the total number of unique penalty values estimated by the model.", booktabs = T)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
   kable_styling(full_width = F)%>%
   add_header_above(c(" " = 1," "=1, "# of terms"=2))%>%
   group_rows("A. CO2 data", 1,5)%>%
@@ -727,12 +831,8 @@ timing_plot = ggplot(aes(n_groups, timing, color=model, linetype= model),
   scale_linetype_manual(values =c(1,1,2,1,1))+
   scale_y_log10("run time (seconds)", breaks = c(0.1,1,10,100), labels = c("0.1", "1","10", "100"))+
   scale_x_log10("number of groups", breaks = c(2,8,32,128))+
-  
-  theme_bw()+
   guides(color = guide_legend(nrow = 2, byrow = TRUE))+
   theme(legend.position = "top")
 timing_plot
 ## set.seed(11)
 ## sample(c('Miller','Ross','Simpson'))
-#This is just to make sure that the figures occur before the bibliography.
-cat('\\FloatBarrier')

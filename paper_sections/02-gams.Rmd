@@ -70,6 +70,12 @@ p3 <- ggplot(p.inf, aes(x = x, y = fit)) +
 plot_grid(p1, p2, p3, align = "hv", axis = "lrtb", ncol = 3, labels = "auto")
 ```
 
+Random effects are also "smooths" in this framework. In this case, the penalty matrix is the inverse of the covariance matrix of the basis function coefficients [@kimeldorf_correspondence_1970; @wood_generalized_2017]. To include a simple single-level random effect to account for variation in group means (intercepts) there will be one basis function for each level of the grouping variable, that takes a value of 1 for any observation in that group and 0 for any observation not in the group. The penalty matrix for these terms is a $n_g$ by $n_g$ identity matrix, where $n_g$ is the number of groups. This means that each group-level coefficient will be penalized in proportion to its squared deviation from zero. This is equivalent to how random effects are estimated in standard mixed effect models. The penalty term is then proportional to the inverse of the variance of the fixed effect estimated by standard hierarchical model software [@verbyla_analysis_2002].
+
+This connection between random effects and splines extends beyond the varying-intercept case. Any single-penalty basis-function representation of a smooth can be transformed so that it can be represented as a combination of a random effect with an associated variance, and possibly one or more fixed effects. See @verbyla_analysis_2002 or @wood_straightforward_2012 for a more detailed discussion on the connections between these approaches.
+
+
+
 ### Basis types and penalty matrices
 
 Different types of smoothers are useful for different needs, and have different associated penalty matrices for their basis function coefficients.  In the examples in this paper, we will use three types of smoothers: thin plate regression splines, cyclic cubic smoothers, and random effects. 
@@ -78,9 +84,6 @@ Thin plate regression splines [TPRS; @wood_thin_2003], are a general purpose spl
 
 Cyclic cubic smoothers are another smoother that penalizes the squared second derivative of the smooth across the function. In these, though, start and end of the smoother are constrained to match in value and first derivative. These are useful for fitting models with cyclic components such as seasonal effects. We will use these smoothers to demonstrate how to fit HGAMs to cyclic data.
 
-Random effects are also smoothers in this framework. In this case, the penalty matrix is the inverse of the covariance matrix of the basis function coefficients [@kimeldorf_correspondence_1970; @wood_generalized_2017]. To include a simple single-level random effect to account for variation in group means (intercepts) there will be one basis function for each level of the grouping variable, that takes a value of 1 for any observation in that group and 0 for any observation not in the group. The penalty matrix for these terms is a $n_g$ by $n_g$ identity matrix, where $n_g$ is the number of groups. This means that each group-level coefficient will be penalized in proportion to its squared deviation from zero. This is equivalent to how random effects are estimated in standard mixed effect models. The penalty term is then proportional to the inverse of the variance of the fixed effect estimated by standard hierarchical model software [@verbyla_analysis_2002].
-
-This connection between random effects and splines extends beyond the varying-intercept case. Any single-penalty basis-function representation of a smoother can be transformed so that it can be represented as a combination of a random effect with an associated variance, and possibly one or more fixed effects. See @verbyla_analysis_2002 or @wood_straightforward_2012 for a more detailed discussion on the connections between these approaches.
 
 ### Smoothing penalties vs. shrinkage penalties
 

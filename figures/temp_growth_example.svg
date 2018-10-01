@@ -15,7 +15,7 @@
    version="1.1"
    inkscape:version="0.92.2 (5c3e80d, 2017-08-06)"
    sodipodi:docname="temp_growth_example.svg"
-   inkscape:export-filename="C:\Users\Pedersen\Documents\SpiderOak Hive\research - mobile\mixed-effect-gams\figures\temp_growth_example.png"
+   inkscape:export-filename="C:\Users\PedersonE\Documents\SpiderOak Hive\research - mobile\mixed-effect-gams\figures\temp_growth_example.png"
    inkscape:export-xdpi="400"
    inkscape:export-ydpi="400">
   <defs
@@ -61,20 +61,27 @@
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="0.98994949"
-     inkscape:cx="-87.575291"
+     inkscape:cx="170.57536"
      inkscape:cy="145.12933"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="2160"
-     inkscape:window-height="1346"
-     inkscape:window-x="-11"
-     inkscape:window-y="-11"
+     inkscape:window-width="1920"
+     inkscape:window-height="1058"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
      inkscape:window-maximized="1"
      fit-margin-top="0"
      fit-margin-left="0"
      fit-margin-right="0"
-     fit-margin-bottom="0" />
+     fit-margin-bottom="0"
+     showguides="false">
+    <sodipodi:guide
+       position="-250.51783,208.09142"
+       orientation="0,1"
+       id="guide838"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -122,7 +129,7 @@
          id="tspan2998"
          x="-606.48224"
          y="117.19944"
-         style="font-size:22px;line-height:1.25;font-family:sans-serif">Maximum size</tspan><tspan
+         style="font-size:22px;line-height:1.25;font-family:sans-serif">Abundance</tspan><tspan
          sodipodi:role="line"
          x="-606.48224"
          y="144.69943"

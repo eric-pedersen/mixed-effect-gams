@@ -82,14 +82,15 @@ multismooth_plot= ggplot(data=plotting_data, aes(x=x, y=total_function))+
   geom_line(size=1, aes(y=global_function),linetype=2)+
   scale_y_continuous("f(x)")+
   scale_x_continuous(breaks=c(0,0.5, 1), labels=c("0","0.5","1"))+
-  theme_bw()+
   geom_label(data=models,aes(label=model_num),x=0.5,y=2)+
+  theme_bw()+
   theme(legend.position="none",strip.background = element_blank(),
-        text=element_text(size=14))
+        text=element_text(size=14),
+        panel.grid = element_blank())
   
 
 
 print(multismooth_plot)
 
-ggsave("figures/fig.2 - alternate models of functional variability.png", multismooth_plot,
+ggsave("figures/alternate_models.png", multismooth_plot,
        width=6, height= 8, units = "in",dpi = 300)
