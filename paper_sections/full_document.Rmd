@@ -84,7 +84,7 @@ Specifying these models and techniques for fitting them are active areas statist
 
 # Acknowledgements
 
-The authors would like to thank Carly Ziter, Tiago Marques, Jake Walsh, Geoff Evans, Paul Regular, and Laura Wheeland for their thoughtful feedback on earlier versions of this manuscript, and the Ecological Society of America for hosting the **mgcv** workshops that this work started from. The research was supported by the National Science and Engineering Research Council of Canada (NSERC), Fisheries and Oceans Canada and  **add other support here**. 
+The authors would like to thank Carly Ziter, Tiago Marques, Jake Walsh, Geoff Evans, Paul Regular, and Laura Wheeland for their thoughtful feedback on earlier versions of this manuscript, and the Ecological Society of America for hosting the **mgcv** workshops that this work started from. The research was supported by the National Science and Engineering Research Council of Canada (NSERC), Fisheries and Oceans Canada and  **add other support here**. DLM was partly funded by OPNAV N45 and the SURTASS LFA Settlement Agreement, managed by the U.S. Navy's Living Marine Resources program under Contract No. N39430-17-C-1982.
 
 All authors contributed to developing the intial idea for this paper, and to writing and editing the manuscript. Author order after the first author was chosen using the code:
 
