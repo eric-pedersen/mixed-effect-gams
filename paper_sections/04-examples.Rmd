@@ -206,8 +206,6 @@ zoo_daph_mod1 <- gam(density_adj ~ s(day, bs="cc", k=10)+
                      family=Gamma(link ="log"),
                      method="REML",
                      drop.unused.levels = FALSE)
-
-printCoefmat(summary(zoo_daph_mod1)$s.table)
 ```
 
 ### Model 2:
@@ -221,7 +219,6 @@ zoo_daph_mod2 <-
       family=Gamma(link ="log"),
       drop.unused.levels = FALSE,
       method="REML")
-printCoefmat(summary(zoo_daph_mod2)$s.table)
 ```
 
 ### Model 3:
@@ -236,8 +233,6 @@ zoo_daph_mod3 <- gam(density_adj~s(day, bs="cc", k=10) +
                      family=Gamma(link ="log"),
                      method="REML",
                      drop.unused.levels = FALSE)
-
-printCoefmat(summary(zoo_daph_mod3)$s.table)
 ```
 
 We will exclude the `gam.check` diagnostic plots and results, as they do not indicate any issues with model fit.
