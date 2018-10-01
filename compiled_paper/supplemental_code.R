@@ -388,7 +388,9 @@ zoo_comm_mod5 <- gam(density_adj ~ s(day, by=taxon,
                      drop.unused.levels = FALSE)
 ## gam.check(zoo_comm_mod4)
 ## gam.check(zoo_comm_mod5)
+#individual components of gam.check: the results for k.check
 round(k.check(zoo_comm_mod5),2)
+#individual components of gam.check: residual plots
 par(mfrow= c(1,2))
 qq.gam(zoo_comm_mod4)
 plot(log(fitted(zoo_comm_mod5)), residuals.gam(zoo_comm_mod5,type = "deviance"), xlab = "linear predictor",

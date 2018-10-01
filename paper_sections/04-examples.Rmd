@@ -95,6 +95,7 @@ The `k.check` test shows that the default maximum degrees of freedom for the smo
 
 
 ```{r zoo_comm_check_k, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup"}
+#individual components of gam.check: the results for k.check
 round(k.check(zoo_comm_mod5),2)
 ```
 
@@ -102,6 +103,7 @@ In this table, each row corresponds to a single smooth term, `k'` corresponds to
 
 
 ```{r zoo_comm_diag, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=6, fig.height=3, fig.cap = "\\label{fig:zoo_comm_diag_plot} Diagnostic plots for model 5. Top row: QQ plots plus the 1-1 line. Bottom row: deviance residuals versus fitted values (on the link scale)."}
+#individual components of gam.check: residual plots
 par(mfrow= c(1,2))
 qq.gam(zoo_comm_mod4)
 plot(log(fitted(zoo_comm_mod5)), residuals.gam(zoo_comm_mod5,type = "deviance"), xlab = "linear predictor",
