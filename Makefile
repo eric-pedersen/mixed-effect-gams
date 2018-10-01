@@ -9,6 +9,7 @@ md: paper_sections/01-intro.Rmd paper_sections/02-gams.Rmd paper_sections/03-hie
 
 fig: figures/temp_growth_example.pdf figures/alternate_models.png code/plotting_smooth_curves.R 
 				R --vanilla --slave -e "source('code/plotting_smooth_curves.R')"
+				R --vanilla --slave -e "source('code/alternate_models.R')"
 
 tex: paper_sections/bibliography.bib paper_sections/peerj.csl paper_sections/author_info.sty
 
