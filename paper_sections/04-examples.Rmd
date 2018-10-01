@@ -53,20 +53,20 @@ zoo_comm_mod4 <- gam(density_adj ~ s(day, taxon,
                                      bs="fs",
                                      k=10,
                                      xt=list(bs="cc"))+
-                                   s(taxon, bs="re") +
                                    s(taxon, year_f, bs="re"),
                      data=zoo_train,
                      knots = list(day =c(0, 365)),
                      family = Gamma(link ="log"), 
-                     method = "ML",
+                     method = "REML",
                      drop.unused.levels = FALSE)
 ```
 
-Note that we use marginal likelihood (`method = "ML"`) as our smoothing selection method as we want to compare models that differ in their fixed effects.
 
 ### Model 5:
 
 ```{r zoo_comm_mod5, echo=TRUE, message=FALSE,  cache=TRUE, fig.width=8, fig.height=5}
+# Note that  s(taxon, bs="re") has to be explicitly included here, as the 
+# day  by taxon smoother does not include an intercept
 zoo_comm_mod5 <- gam(density_adj ~ s(day, by=taxon,
                                      k=10, bs="cc") + 
                                    s(taxon, bs="re") +
@@ -74,7 +74,7 @@ zoo_comm_mod5 <- gam(density_adj ~ s(day, by=taxon,
                      data=zoo_train,
                      knots = list(day =c(0, 365)),
                      family = Gamma(link ="log"), 
-                     method = "ML",
+                     method = "REML",
                      drop.unused.levels = FALSE)
 ```
 
@@ -138,7 +138,7 @@ zoo_comm_mod0 <- gam(density_adj ~ s(taxon,bs="re"),
                      data=zoo_train,
                      knots = list(day =c(0, 365)),
                      family = Gamma(link ="log"), 
-                     method = "ML",
+                     method = "REML",
                      drop.unused.levels = FALSE)
 
 #Correlations between fitted and observed values for all species:
@@ -173,14 +173,13 @@ Here, we will compare models 1, 2, and 3 to determine if a single global functio
 ### Model 1:
 
 ```{r zoo_daph_mod1, echo=TRUE, message=FALSE, cache=TRUE}
-
-zoo_daph_mod1 <- gam(density_adj~s(day, bs="cc",k=10)+
+zoo_daph_mod1 <- gam(density_adj ~ s(day, bs="cc", k=10)+
                        s(lake, bs="re") + 
                        s(lake, year_f,bs="re"),
                      data=daphnia_train,
                      knots=list(day =c(0, 365)),
                      family=Gamma(link ="log"),
-                     method="ML",
+                     method="REML",
                      drop.unused.levels = FALSE)
 
 printCoefmat(summary(zoo_daph_mod1)$s.table)
@@ -189,9 +188,14 @@ printCoefmat(summary(zoo_daph_mod1)$s.table)
 ### Model 2:
 ```{r zoo_daph_mod2, echo=TRUE, message=FALSE,  cache=TRUE}
 zoo_daph_mod2 <-
-  gam(density_scaled ~ s(day, bs="cc", k=10) +
-        s(day, lake, k=10, bs="fs", xt=list(bs="cc")),
-      data=daphnia_train, knots=list(day=c(0, 365)), method="ML")
+  gam(density_adj ~ s(day, bs="cc", k=10) + 
+        s(day, lake, k=10, bs="fs", xt=list(bs="cc")) + 
+        s(lake, year_f,bs="re"),
+      data=daphnia_train, 
+      knots=list(day=c(0, 365)), 
+      family=Gamma(link ="log"),
+      drop.unused.levels = FALSE,
+      method="REML")
 printCoefmat(summary(zoo_daph_mod2)$s.table)
 ```
 
@@ -205,7 +209,7 @@ zoo_daph_mod3 <- gam(density_adj~s(day, bs="cc", k=10) +
                      data=daphnia_train,
                      knots=list(day =c(0, 365)),
                      family=Gamma(link ="log"),
-                     method="ML",
+                     method="REML",
                      drop.unused.levels = FALSE)
 
 printCoefmat(summary(zoo_daph_mod3)$s.table)
@@ -269,7 +273,7 @@ zoo_daph_mod0 <- gam(density_adj~s(lake, bs="re"),
                      data=daphnia_train,
                      knots=list(day =c(0, 365)),
                      family=Gamma(link ="log"),
-                     method="ML",
+                     method="REML",
                      drop.unused.levels = FALSE)
 
 
