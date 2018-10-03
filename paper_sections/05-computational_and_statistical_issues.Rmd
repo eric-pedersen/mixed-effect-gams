@@ -108,7 +108,7 @@ However, it may be the case that there are too few data points per group to esti
 
 The ideal case would be to assume that among-group penalties follow their own distribution (estimated from the data), to allow variation in smoothness while still getting the benefit of pooling information on smoothness between groups.
 This is currently not implemented in  **mgcv**.
-It is possible to set up this type of varying penalty model in flexible Bayesian modelling software such as *Stan* (see below for a discussion of how to fit HGAMs using these tools), but how to fix this type of model has not been well studied. 
+It is possible to set up this type of varying penalty model in flexible Bayesian modelling software such as *Stan* (see below for a discussion of how to fit HGAMs using these tools), but how to fit this type of model has not been well studied. 
 
 [^mean_note]: While this example may seem contrived, this is exactly what happens
 when we assume a given regression coefficient is equal to zero (and thus exclude it from a model).
