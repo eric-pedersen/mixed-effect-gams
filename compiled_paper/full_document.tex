@@ -188,8 +188,7 @@ parameter estimate and the global effect). In a GAM, this occurs in the
 enforcement of a smoothness criterion on the variability of a functional
 relationship, pulling parameters towards some function that is assumed
 to be totally smooth (such as a straight line) by penalizing squared
-deviations from that totally smooth function (more on this in section
-II).
+deviations from that totally smooth function.
 
 Given this connection, a natural extension to the standard GAM framework
 is to allow smooth functional relationships between predictor and
@@ -244,8 +243,8 @@ example analyses using this approach, to demonstrate the modelling
 process and how HGAMs can be incorporated into the ecologist's
 quantitative toolbox. Finally, in part V, we discuss some of the
 computational and statistical issues involved in fitting HGAMs in
-\textbf{mgcv}. We have also included all the code needed to make the
-figures for this document in supplemental code (online), and on the
+\textbf{mgcv}. We have also included all the code needed to reproduce
+the results in this manuscript in supplemental code (online), and on the
 GitHub repository associated with this paper
 \href{http://www.github.com/noamross/mixed-effect-gams}{github.com/noamross/mixed-effects-gams}.
 
@@ -290,22 +289,21 @@ appropriate complexity of each smoother. For each smoother, one or more
 basis functions, is pre- and post-multiplied by the parameter vector
 \(\boldsymbol{\beta}\) to calculate the penalty
 \((\boldsymbol{\beta}^T \mathbf{S} \boldsymbol{\beta})\). A penalty term
-is then added to the model likelihood, controlling the trade-off via a
-\emph{smoothing parameter} (\(\lambda\)). The penalized likelihood used
-to fit the model is thus: \[
+is then added to the model likelihood \(L\), controlling the trade-off
+via a \emph{smoothing parameter} (\(\lambda\)). The penalized likelihood
+used to fit the model is thus: \[
 L - \boldsymbol{\lambda} \boldsymbol{\beta}^T \mathbf{S} \boldsymbol{\beta}
 \]
 
 Figure \ref{fig:smoothing_effect} shows an example of how different
-choices of the smoothing parameter (\(\\lambda\)) effect the shape of
-the resulting smoother. Data (points) were generated from the blue
-function and noise added to them. In the left plot \(\\lambda\) was
-estimated using Restricted Maximum Likelihood (REML) to give a good fit
-to the data, in the middle plot \(\\lambda\) was set to zero, so the
-penalty has no effect and the function interpolates the data, the right
-plot shows when \(\\lambda\) is set to a very large value, so the
-penalty removes all terms that have any wiggliness, giving a straight
-line.
+choices of the smoothing parameter (\(\lambda\)) effect the shape of the
+resulting smoother. Data (points) were generated from the blue function
+and noise added to them. In the left plot \(\lambda\) was estimated
+using Restricted Maximum Likelihood (REML) to give a good fit to the
+data, in the middle plot \(\lambda\) was set to zero, so the penalty has
+no effect and the function interpolates the data, the right plot shows
+when \(\lambda\) is set to a very large value, so the penalty removes
+all terms that have any wiggliness, giving a straight line.
 
 To measure the complexity of a penalized smooth terms we use the
 \emph{effective degrees of freedom} (EDF), which at a maximum is the
@@ -1079,11 +1077,11 @@ Model & df & AIC & deltaAIC\\
 \hspace{1em}CO2\_mod5 & 56 & -220 & 0\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. bird\_move models}}\\
-\hspace{1em}bird\_mod1 & 47 & 3433 & 1899\\
-\hspace{1em}bird\_mod2 & 140 & 1534 & 0\\
-\hspace{1em}bird\_mod3 & 248 & 1681 & 147\\
-\hspace{1em}bird\_mod4 & 143 & 1543 & 9\\
-\hspace{1em}bird\_mod5 & 201 & 1602 & 68\\
+\hspace{1em}bird\_mod1 & 51 & 3374 & 1820\\
+\hspace{1em}bird\_mod2 & 140 & 1554 & 0\\
+\hspace{1em}bird\_mod3 & 208 & 1680 & 126\\
+\hspace{1em}bird\_mod4 & 130 & 1555 & 1\\
+\hspace{1em}bird\_mod5 & 197 & 1635 & 81\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1237,9 +1235,9 @@ model 4 are virtually indistinguishable to the naked eye). These plots
 (Figure \ref{fig:zoo_comm_diag_plot}) indicate that the Gamma
 distribution seems to fit the observed data well except at low values,
 where the deviance residuals are larger than predicted by the
-theoretical quantiles (Figure \ref{fig:zoo_comm_diag_plot} top). There
+theoretical quantiles (Figure \ref{fig:zoo_comm_diag_plot} left). There
 also does not seem to be a pattern in the residual versus fitted values
-(Figure \ref{fig:zoo_comm_diag_plot} bottom), except for a line of
+(Figure \ref{fig:zoo_comm_diag_plot} right), except for a line of
 residuals at the lowest values, which correspond to all of those
 observations where a given taxon was absent from the sample. The
 \texttt{k.check} test shows that the default maximum degrees of freedom
@@ -1249,13 +1247,13 @@ residuals) is not significant:
 
 \begin{verbatim}
 ##                                 k'   edf k-index p-value
-## s(day):taxonC. sphaericus        8  4.78    0.89    0.48
-## s(day):taxonCalanoid copepods    8  6.66    0.89    0.42
-## s(day):taxonCyclopoid copepods   8  5.31    0.89    0.44
+## s(day):taxonC. sphaericus        8  4.78    0.89    0.43
+## s(day):taxonCalanoid copepods    8  6.66    0.89    0.47
+## s(day):taxonCyclopoid copepods   8  5.31    0.89    0.45
 ## s(day):taxonD. mendotae          8  6.95    0.89    0.48
-## s(day):taxonD. thomasi           8  6.57    0.89    0.45
-## s(day):taxonK. cochlearis        8  5.92    0.89    0.45
-## s(day):taxonL. siciloides        8  0.52    0.89    0.45
+## s(day):taxonD. thomasi           8  6.57    0.89    0.46
+## s(day):taxonK. cochlearis        8  5.92    0.89    0.49
+## s(day):taxonL. siciloides        8  0.52    0.89    0.48
 ## s(day):taxonM. edax              8  4.69    0.89    0.46
 ## s(taxon)                         8  6.26      NA      NA
 ## s(taxon,year_f)                152 51.73      NA      NA
@@ -1526,7 +1524,7 @@ smoothness between groups. This is currently not implemented in
 \textbf{mgcv}. It is possible to set up this type of varying penalty
 model in flexible Bayesian modelling software such as \emph{Stan} (see
 below for a discussion of how to fit HGAMs using these tools), but how
-to fix this type of model has not been well studied.
+to fit this type of model has not been well studied.
 
 \begin{figure}
 \centering
@@ -1635,17 +1633,17 @@ model & relative time & coefficients & penalties\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{A. CO2 data}}\\
 \hspace{1em}1 & 1 & 17 & 2\\
-\hspace{1em}2 & 7 & 65 & 3\\
-\hspace{1em}3 & 14 & 65 & 14\\
-\hspace{1em}4 & 4 & 61 & 3\\
-\hspace{1em}5 & 14 & 61 & 13\\
+\hspace{1em}2 & 6 & 65 & 3\\
+\hspace{1em}3 & 13 & 65 & 14\\
+\hspace{1em}4 & 5 & 61 & 3\\
+\hspace{1em}5 & 16 & 61 & 13\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. bird movement data}}\\
 \hspace{1em}1 & 1 & 90 & 2\\
-\hspace{1em}2 & 120 & 540 & 5\\
-\hspace{1em}3 & 140 & 624 & 14\\
-\hspace{1em}4 & 110 & 541 & 3\\
-\hspace{1em}5 & 67 & 535 & 12\\
+\hspace{1em}2 & 190 & 540 & 5\\
+\hspace{1em}3 & 410 & 624 & 14\\
+\hspace{1em}4 & 140 & 541 & 3\\
+\hspace{1em}5 & 77 & 535 & 12\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1927,11 +1925,12 @@ The authors would like to thank Carly Ziter, Tiago Marques, Jake Walsh,
 Geoff Evans, Paul Regular, and Laura Wheeland for their thoughtful
 feedback on earlier versions of this manuscript, and the Ecological
 Society of America for hosting the \textbf{mgcv} workshops that this
-work started from. The research was supported by the National Science
-and Engineering Research Council of Canada (NSERC), Fisheries and Oceans
-Canada and \textbf{add other support here}. DLM was partly funded by
-OPNAV N45 and the SURTASS LFA Settlement Agreement, managed by the U.S.
-Navy's Living Marine Resources program under Contract No.
+work started from. EJP was funded by National Science and Engineering
+Research Council of Canada (NSERC) and Fisheries and Oceans Canada. GLS
+is funded by a Natural Science and Engineering Research Council of
+Canada (NSERC) Discovery Grant (RGPIN-2014-04032). DLM was partly funded
+by OPNAV N45 and the SURTASS LFA Settlement Agreement, managed by the
+U.S. Navy's Living Marine Resources program under Contract No.
 N39430-17-C-1982.
 
 All authors contributed to developing the intial idea for this paper,
