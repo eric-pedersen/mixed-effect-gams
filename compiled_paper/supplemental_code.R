@@ -629,7 +629,6 @@ cowplot::plot_grid(overfit_vis_plot, deriv_plot, ncol=1, labels="auto",
                    align="hv", axis="lrtb")
 #Note: this code takes quite a long time to run! It's fitting all 10 models.
 #Run once if possible, then rely on the cached code. There's a reason it's split off from the rest of the chunks of code.
-source("../code/functions.R")
 
 get_n_pen  = function(model) {
   family = model$family[[1]]
@@ -645,8 +644,6 @@ get_n_coef = function(model) length(coef(model))
 
 get_n_iter = function(model) model$outer.info$iter
 get_n_out_iter = function(model) model$iter
-
-bird_move = read.csv("../data/bird_move.csv")
 
 comp_resources = crossing(model_number = c("1","2","3","4","5"),
                        data_source = factor(c("CO2","bird_move"),

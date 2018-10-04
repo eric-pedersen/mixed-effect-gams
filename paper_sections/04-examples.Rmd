@@ -88,8 +88,8 @@ gam.check(zoo_comm_mod5)
 ```
 
 For the sake of brevity, and as fitted versus response plots are generally less useful for non-normally distributed data, we have plotted QQ plots and fitted-versus residual plots for model 5 (the results for model 4 are virtually indistinguishable to the naked eye). 
-These plots (Figure \ref{fig:zoo_comm_diag_plot}) indicate that the Gamma distribution seems to fit the observed data well except at low values, where the deviance residuals are larger than predicted by the theoretical quantiles (Figure \ref{fig:zoo_comm_diag_plot} top). 
-There also does not seem to be a pattern in the residual versus fitted values (Figure \ref{fig:zoo_comm_diag_plot} bottom), except for a line of residuals at the lowest values, which correspond to all of those observations where a given taxon was absent from the sample.
+These plots (Figure \ref{fig:zoo_comm_diag_plot}) indicate that the Gamma distribution seems to fit the observed data well except at low values, where the deviance residuals are larger than predicted by the theoretical quantiles (Figure \ref{fig:zoo_comm_diag_plot} left). 
+There also does not seem to be a pattern in the residual versus fitted values (Figure \ref{fig:zoo_comm_diag_plot} right), except for a line of residuals at the lowest values, which correspond to all of those observations where a given taxon was absent from the sample.
 The `k.check` test shows that the default maximum degrees of freedom for the smoothers used in model 5 are sufficient for all species, as the p-value for the observed k-index (which measures pattern in the residuals) is not significant: 
 
 
