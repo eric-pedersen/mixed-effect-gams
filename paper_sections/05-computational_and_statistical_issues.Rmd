@@ -1,6 +1,9 @@
 
 # V: Computational and statistical issues when fitting HGAMs
 
+```{r part_5_premble, include=FALSE}
+#### Code for V: Computational and statistical issues when fitting HGAMs ####
+```
 Which of the five model formulations should you choose for a given data set? There are two major trade-offs to consider. The first is the bias-variance trade-off: more complex models can account for more fluctuations in the data, but also tend to give more variable predictions, and can overfit.  The second trade-off is model complexity versus computational cost: more complex models can include more potential sources of variation and give more information about a given data set, but will generally take more time and computational resources to fit and debug. We discuss both of these trade-offs in this section. We also discuss
 how to extend the HGAM framework to fit more complex models.
 
@@ -28,22 +31,31 @@ least variable group levels, over-smoothed (biased) estimates for the most
 wiggly terms, or a mixture of these two, depending on the fitting criteria.
 
 ```{r single_smooth_bias, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+#This code will generate the bias-variance tradeoff plot
 set.seed(1)
 
+#Calculate the numerical approximation of the 2nd derivative for a a function given x and y values 
+#Assumes a constant step size (delta) for x along its path.
 calc_2nd_deriv = function(x,y){
   deriv_val = (lag(y) + lead(y) - 2*y)/(x-lag(x))^2
   deriv_val
 }
 
+#Generate true regression functions that differ in their frequencies. 
+#Higher frequencies correspond to more variable functions. 
 freq_vals = c(1/4,1/2,1,2,4)
 dat = crossing(x = seq(0,2*pi,length=150),freq = freq_vals)%>%
   mutate(y = sin(freq*x) +rnorm(n(), 0, 0.2),
          grp = paste("frequency = ",freq,sep= ""),
          grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")))
 
+#Fit a type-4 function (shared smoothness) for the test data
 mod1 = bam(y~s(x,k=30,grp, bs="fs"), data=dat)
+
+#Fit a type-5 function (differing smoothness) for the test data
 mod2 = bam(y~s(x,k=30,by=grp)+s(grp,bs="re"), data=dat)
 
+#Extract fitted values for each model for all the test data
 overfit_predict_data = crossing(x = seq(0,2*pi,length=500), freq = freq_vals)%>%
   mutate(grp = paste("frequency = ",freq,sep= ""),
          grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")),
@@ -51,6 +63,7 @@ overfit_predict_data = crossing(x = seq(0,2*pi,length=500), freq = freq_vals)%>%
   mutate(fit1 = as.numeric(predict(mod1,newdata = .,type = "response")),
          fit2 = as.numeric(predict(mod2,newdata = .,type="response")))
 
+#turn this into long-format data for plotting, and to make it easier to calculate derivatives
 overfit_predict_data_long = overfit_predict_data %>%
   gather(model, value, y, fit1, fit2)%>%
   mutate(model = recode(model, y = "true value",fit1 = "model 4 fit",
@@ -58,6 +71,8 @@ overfit_predict_data_long = overfit_predict_data %>%
          model = factor(model, levels=  c("true value","model 4 fit",
                                           "model 5 fit")))
 
+#estimate 2nd derivatives of each curve, then for each curve calculate the sum of
+#squared 2nd derivatives of the true curve and the predictions for both models.
 deriv_est_data = overfit_predict_data%>%
   group_by(grp)%>%
   arrange(grp, x)%>%
@@ -73,6 +88,7 @@ deriv_est_data = overfit_predict_data%>%
                         levels = c("model 4 fit",
                                    "model 5 fit")))
 
+#The derivative plots
 deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv, y= obs_sqr_deriv,color= model))+
   geom_point()+
   scale_y_log10("Estimated wiggliness\nof fitted curves")+
@@ -114,6 +130,7 @@ It is possible to set up this type of varying penalty model in flexible Bayesian
 when we assume a given regression coefficient is equal to zero (and thus exclude it from a model).
 
 ```{r single_smooth_bias_plot, echo=FALSE, fig.width=7, fig.height=6, message=FALSE, warning=FALSE, cache=TRUE, fig.cap="\\label{fig:var_pen} a) Illustration of bias that can arise from assuming equal smoothness for all group levels (model 4, red line) versus allowing for intergroup variation in smoothness (model 5, red line) when the true function (black line) shows substantial variation in smoothness between groups. b) Estimated wiggliness (as measured by the integral of the squared 2nd derivative) of the true function for each group level versus that for the functions estimated by model 4 (red) and model 5 (blue), indicating substantial undersmoothing for low-variability curves by model 4.", dependson= -1}
+#Plot the overfit graphs together.
 cowplot::plot_grid(overfit_vis_plot, deriv_plot, ncol=1, labels="auto",
                    align="hv", axis="lrtb")
 ```
@@ -150,6 +167,8 @@ This means that models 2 and 4 will generally be substantially faster than 3 and
 #Note: this code takes quite a long time to run! It's fitting all 10 models.
 #Run once if possible, then rely on the cached code. There's a reason it's split off from the rest of the chunks of code.
 
+#This function extracts the number of penalties used in a model. For Gamma and Gaussian
+#families, you need to remove the penalty (i.e. variance) associated with the scale term
 get_n_pen  = function(model) {
   family = model$family[[1]]
   if(family %in% c("Gamma","gaussian")){
@@ -160,20 +179,22 @@ get_n_pen  = function(model) {
   return(out_val)
 }
 
+#Extract the number of coefficients from a fitted GAM
 get_n_coef = function(model) length(coef(model))
 
+#Get the number of inner and outer iterations needed to fit the final model
 get_n_iter = function(model) model$outer.info$iter
 get_n_out_iter = function(model) model$iter
 
+#combine results into a single table
 comp_resources = crossing(model_number = c("1","2","3","4","5"),
                        data_source = factor(c("CO2","bird_move"),
                                      levels = c("CO2","bird_move")),
                        time = 0, n_smooths = 0,
                        n_coef = 0)
 
-CO2$Plant_uo = factor(CO2$Plant, levels = levels(CO2$Plant), ordered = F)
 
-
+#Fit each model to the example data sets, and calculate run time for them
 comp_resources[1,"time"] = system.time(CO2_mod1 <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+s(Plant_uo, k =12,  bs="re"),
                                                     data= CO2,method="REML",
                                                     control = list(keepData=TRUE)))[3]
@@ -242,11 +263,12 @@ comp_resources[10,"time"] = system.time(
                    control = list(keepData=TRUE))
 )[3]
 
-
+#combine all fitted models into a list
 comp_resources$model = list(CO2_mod1, bird_mod1, CO2_mod2, bird_mod2,
                             CO2_mod3, bird_mod3,CO2_mod4, bird_mod4,
                             CO2_mod5, bird_mod5)
 
+#Extract all of the information on computer time and resources needed for each model
 comp_resources = comp_resources %>%
   group_by(model_number, data_source)%>%
   mutate(n_smooths = get_n_pen(model[[1]]),
@@ -272,7 +294,9 @@ comp_resources_table =comp_resources %>%
          )%>%
   ungroup() %>%
   dplyr::select( - data_source)
+```
 
+```{r comp_time_kable, echo=FALSE, fig.width=4, fig.height=6, message=FALSE, warning=FALSE, cache=TRUE,purl=FALSE}
 kable(comp_resources_table,format ="latex", caption="Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model 1 takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smoothers is the total number of unique penalty values estimated by the model.", booktabs = T)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
   kable_styling(full_width = F)%>%
   add_header_above(c(" " = 1," "=1, "# of terms"=2))%>%
@@ -325,12 +349,17 @@ here. The help file `?mgcv::mgcv.parallel` explains how to use parallel
 computations for `gam()` and `bam()` in detail.
 
 ```{r alt_model_timing_plot, echo=FALSE, fig.width=6, fig.height=4, message=FALSE, warning=FALSE, cache=TRUE, purl=TRUE, fig.cap = "\\label{fig:alt_timing}Elapsed time to estimate the same model using each of the four approaches. Each data set was generated with 20 observations per group using a unimodal global function and random group-specific functions consisting of an intercept, a quadratic term, and logistic trend for each group. Observation error was normally distributed. Models were fit using model 2: \\texttt{y~s(x, k=10, bs=\"cp\") + s(x,fac, k=10, bs=\"fs\", xt=list(bs=\"cp\"), m=1)}. All models were run on a single core."}
+
+#This code calculates the timing it takes to fit the same model (with varying amounts of data) for 
+#gam, bam, gamm, and gamm4. 
+
 set.seed = 1 # ensures that each new model parameter set is an extension of the old one
 
 n_x = 20
 x = seq(-2,2, length=n_x)
 n_steps = 7
 
+#setting up blank data frame to put results in.
 fit_timing_data = data_frame(n_groups = 2^(1:n_steps),
                              gam=rep(0,length=n_steps),
                              `bam (discrete = FALSE)`= 0,
@@ -344,6 +373,7 @@ model_coefs_all = data_frame(fac=fac_all)%>%
          x2  = rnorm(n(),0,0.2),
          logit_slope = rnorm(n(),0, 0.2))
 
+#for each number of observations, fit all the models and calculate run times for them
 for(i in 1:n_steps){
 
   n_g =  fit_timing_data$n_groups[i]
@@ -381,7 +411,7 @@ for(i in 1:n_steps){
                                  data= model_data))[3]
 }
 
-
+#Combine all of the timing data into long format, ready for plotting
 fit_timing_long = fit_timing_data %>% 
   gather(model, timing, gam,`bam (discrete = FALSE)`, 
          `bam (discrete = TRUE)`, gamm, gamm4)%>%

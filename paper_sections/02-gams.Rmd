@@ -1,6 +1,10 @@
 
 #II: A review of Generalized Additive Models
 
+```{r part_2_premble, include=FALSE}
+#### Code for II: A review of Generalized Additive Models ####
+```
+
 The generalized linear model [GLM; @McCullagh:1989ti] relates the mean of a response ($y$) to a linear combination of explanatory variables. The response is assumed to be conditionally distributed according to some exponential family distribution (e.g., binomial, Poisson or Gamma distributions for trial, count or strictly positive real response, respectively). The generalized additive model [GAM; @Hastie:1990vg; @Ruppert:2003uc; @wood_generalized_2017] allows the relationships between the explanatory variables (henceforth covariates) and the response to be described by smooth curves (usually *splines* [@deBoor:1978wq], but potentially other structures). In general we have models of the form:
 $$
 \mathbb{E}\left( Y \right) = g^{-1}\left( \beta_0 + \sum_{j=1}^J f_j(x_j) \right)\,,
@@ -44,6 +48,7 @@ b.0 <- gam(y~s(x, k=100), data=dat, sp=0)
 # lambda=infinity
 b.inf <- gam(y~s(x, k=100), data=dat, sp=1e10)
 
+# merging predictions from the models together to make plotting easier
 pdat <- with(dat, data.frame(x = seq(min(x), max(x), length = 200)))
 p <- cbind(pdat, fit = predict(b, newdata = pdat))
 p.0 <- cbind(pdat, fit = predict(b.0, newdata = pdat))
@@ -55,6 +60,7 @@ dat.l <- geom_point(data = dat, aes(x = x, y = y), colour = "darkgrey")
 true.l <- geom_line(data = true, aes(x = x, y = y), colour = "blue")
 coord.l <- coord_cartesian(ylim = ylims)
 
+#plotting models
 p1 <- ggplot(p, aes(x = x, y = fit)) +
   dat.l + true.l +
   geom_line(colour = "darkred") + lab.l + coord.l
@@ -98,6 +104,11 @@ Penalties can have two effects on how well a model fits: they can penalize how w
 k = 6
 plotting_data = data.frame(x = seq(0,1,length=100))
 
+#This creates the basis functions for a thin-plate spline
+#The absorb.cons=FALSE setting makes sure that smoothCon does not remove basis 
+#functions that have a non-zero sum (in this case, the intercept). Absorbing 
+#constraints would result in having less than k basis functions, which is why fitted 
+#terms in mgcv often have less than k maximum EDF. 
 tp_basis = smoothCon(s(x,bs="tp",k=k), data=plotting_data,
                      knots=NULL,absorb.cons=FALSE)[[1]]
 

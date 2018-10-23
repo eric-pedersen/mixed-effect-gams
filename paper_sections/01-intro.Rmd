@@ -1,6 +1,9 @@
 
 #I: Introduction
 
+```{r part_1_premble, include=FALSE}
+#### Code for part I: Introduction ####
+```
 Two of the most popular and powerful modelling techniques currently in use by ecologists are generalized additive models [GAMs; @wood_generalized_2017] for modelling flexible regression functions, and generalized linear mixed models ["hierarchical generalized linear models" (HGLMs) or simply "hierarchical models"; @Bolker:2009cs; @gelman2013bayesian] for modelling between-group variability in regression relationships.
 
 At first glance, GAMs and HGLMs are very different tools used to solve different problems. GAMs are used to estimate smooth functional relationships between predictor variables and the response. HGLMs, on the other hand, are used to estimate linear relationships between predictor variables and response, but impose a structure where predictors are organized into groups (often referred to as "blocks") and the relationships between predictor and response may differ between those groups. Either the slope or intercept, or both, may be subject to grouping. A typical example of HGLM use might be to include site-specific effects in a model of population counts, or to model individual level heterogeneity in a study with repeated observations of multiple individuals.

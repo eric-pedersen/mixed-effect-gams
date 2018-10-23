@@ -1,5 +1,8 @@
 # IV: Examples
 
+```{r part_4_premble, include=FALSE}
+#### Code for IV: Examples ####
+```
 We now demonstrate two worked examples on one data set to highlight how to use HGAMs in practice, and to illustrate how to fit, test, and
 visualize each model. We will demonstrate how to use these models to fit community
 data, to show when using a global trend may or may not be justified, and to
@@ -182,6 +185,9 @@ zoo_test_summary = zoo_test %>%
     `Model 5` = format(get_RMSE(mod5, density_adj), scientific = FALSE, digits=3))%>%
   mutate(taxon = cell_spec(taxon, italic = c(T,F,F,T,T,T,T,T))) #need to specify this to ensure that species names are italized in the table
 
+```
+```{r zoo_comm_outofsample_kable, echo=FALSE, message=FALSE,  cache=TRUE,purl=FALSE}
+
 kable(zoo_test_summary, 
       format = table_out_format, 
       caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. RMSE values represent the square root of the average squared difference between model predictions and observations for test data.  Intercept only results are for a null model with only year and year-by taxon random effect intercepts included.", 
@@ -315,7 +321,9 @@ daph_test_summary <- daphnia_test %>%
             `Model 2` = format(get_RMSE(mod2, density_adj), scientific = FALSE, digits=2),
             `Model 3` = format(get_RMSE(mod3, density_adj), scientific = FALSE, digits=2))%>%
   rename(Lake = lake)
+```
 
+```{r zoo_daph_outofsample_kable, echo=FALSE, message=FALSE,  cache=TRUE, purl = FALSE}
 kable(daph_test_summary,format = table_out_format, caption="Out-of-sample predictive ability for model 1-3 applied to the \\textit{D. mendotae} dataset. RMSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a RMSE of one).", booktabs = TRUE)%>%
   add_header_above(c(" " = 1, "\\\\Large{${\\\\text{Total RMSE of held out data}}\\\\atop{(\\\\text{10 000 individuals}\\\\cdot m^{-2})}$}" = 4),escape = FALSE)%>%
   kable_styling(full_width = FALSE)
