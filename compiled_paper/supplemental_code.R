@@ -1,4 +1,5 @@
-knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, cache=TRUE)
+####Setup ####
+#all the packages needed for this tutorial are listed here
 library(mgcv)
 library(MASS)
 library(stringr)
@@ -17,16 +18,9 @@ library(dplyr)
 theme_set(theme_bw())
 theme_update(panel.grid = element_blank())
 
-table_out_format <- ifelse("pdf_document" %in% rmarkdown::all_output_formats("full_document.Rmd"),
-                    "latex",
-                     ifelse("html_document" %in% rmarkdown::all_output_formats("full_document.Rmd"),
-                            "html",
-                            NA_character_)
-                      )
+#### Code for part I: Introduction ####
 
-
-
-
+#### Code for II: A review of Generalized Additive Models ####
 # example of varying lambda
 
 set.seed(12)
@@ -47,6 +41,7 @@ b.0 <- gam(y~s(x, k=100), data=dat, sp=0)
 # lambda=infinity
 b.inf <- gam(y~s(x, k=100), data=dat, sp=1e10)
 
+# merging predictions from the models together to make plotting easier
 pdat <- with(dat, data.frame(x = seq(min(x), max(x), length = 200)))
 p <- cbind(pdat, fit = predict(b, newdata = pdat))
 p.0 <- cbind(pdat, fit = predict(b.0, newdata = pdat))
@@ -58,6 +53,7 @@ dat.l <- geom_point(data = dat, aes(x = x, y = y), colour = "darkgrey")
 true.l <- geom_line(data = true, aes(x = x, y = y), colour = "blue")
 coord.l <- coord_cartesian(ylim = ylims)
 
+#plotting models
 p1 <- ggplot(p, aes(x = x, y = fit)) +
   dat.l + true.l +
   geom_line(colour = "darkred") + lab.l + coord.l
@@ -76,6 +72,11 @@ plot_grid(p1, p2, p3, align = "hv", axis = "lrtb", ncol = 3, labels = "auto")
 k = 6
 plotting_data = data.frame(x = seq(0,1,length=100))
 
+#This creates the basis functions for a thin-plate spline
+#The absorb.cons=FALSE setting makes sure that smoothCon does not remove basis 
+#functions that have a non-zero sum (in this case, the intercept). Absorbing 
+#constraints would result in having less than k basis functions, which is why fitted 
+#terms in mgcv often have less than k maximum EDF. 
 tp_basis = smoothCon(s(x,bs="tp",k=k), data=plotting_data,
                      knots=NULL,absorb.cons=FALSE)[[1]]
 
@@ -174,6 +175,7 @@ full_plot = plot_grid(top_row_plot,basis_sample_plot,
 
 full_plot
 
+#### Code for III: What are hierarchical GAMs? ####
 
 #The default CO2 plant variable is ordered;
 #This recodes it to an unordered factor (see main text for why).
@@ -238,6 +240,7 @@ bird_mod1 <- gam(count ~ te(week, latitude, bs=c("cc", "tp"), k=c(10, 10)),
 #shows contour lines)
 plot(bird_mod1, pages=1, scheme=2, rug=FALSE)
 box()
+#add the predicted values from the model to bird_move
 bird_move <- transform(bird_move, mod1 = predict(bird_mod1, type="response"))
 
 ggplot(bird_move, aes(x=mod1, y=count)) +
@@ -327,6 +330,7 @@ bird_mod5 <- gam(count ~ species +
                       k=c(10, 10), m=c(2, 2)),
                  data=bird_move, method="REML", family="poisson",
                  knots = list(week = c(0, 52)))
+#This is the raw 
 AIC_table = AIC(CO2_mod1,CO2_mod2, CO2_mod3, CO2_mod4, CO2_mod5,
              bird_mod1, bird_mod2, bird_mod3, bird_mod4, bird_mod5)%>%
   rownames_to_column(var= "Model")%>%
@@ -336,11 +340,8 @@ AIC_table = AIC(CO2_mod1,CO2_mod2, CO2_mod3, CO2_mod4, CO2_mod5,
   ungroup()%>%
   dplyr::select(-data_source)%>%
   mutate_at(.vars = vars(df,AIC, deltaAIC), .funs = funs(round,.args = list(digits=0)))
-kable(AIC_table, format =table_out_format, caption="AIC table comparing model fits for example datasets", booktabs = T)%>% 
-  kable_styling(full_width = F)%>%
-  group_rows("A. CO2 models", 1,5)%>%
-  group_rows("B. bird_move models", 6,10)
 
+#### Code for IV: Examples ####
 zooplankton <- read.csv("../data/zooplankton_example.csv")%>%
   mutate(year_f = factor(year))
 
@@ -458,16 +459,6 @@ zoo_test_summary = zoo_test %>%
     `Model 5` = format(get_RMSE(mod5, density_adj), scientific = FALSE, digits=3))%>%
   mutate(taxon = cell_spec(taxon, italic = c(T,F,F,T,T,T,T,T))) #need to specify this to ensure that species names are italized in the table
 
-kable(zoo_test_summary, 
-      format = table_out_format, 
-      caption="Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. RMSE values represent the square root of the average squared difference between model predictions and observations for test data.  Intercept only results are for a null model with only year and year-by taxon random effect intercepts included.", 
-      booktabs = TRUE,
-      escape = FALSE)%>%
-  add_header_above(c(" " = 1, "\\\\Large{${\\\\text{Total RMSE of held out data}}\\\\atop{(\\\\text{10 000 individuals}\\\\cdot m^{-2})}$}" = 3),escape = FALSE)%>%
-  kable_styling(full_width = FALSE) %>%
-  row_spec(2:3,italic = FALSE) %>%
-  row_spec(2:3, italic = FALSE)
-  
 zoo_daph_mod1 <- gam(density_adj ~ s(day, bs="cc", k=10)+
                        s(lake, bs="re") + 
                        s(lake, year_f,bs="re"),
@@ -561,26 +552,32 @@ daph_test_summary <- daphnia_test %>%
             `Model 3` = format(get_RMSE(mod3, density_adj), scientific = FALSE, digits=2))%>%
   rename(Lake = lake)
 
-kable(daph_test_summary,format = table_out_format, caption="Out-of-sample predictive ability for model 1-3 applied to the \\textit{D. mendotae} dataset. RMSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a RMSE of one).", booktabs = TRUE)%>%
-  add_header_above(c(" " = 1, "\\\\Large{${\\\\text{Total RMSE of held out data}}\\\\atop{(\\\\text{10 000 individuals}\\\\cdot m^{-2})}$}" = 4),escape = FALSE)%>%
-  kable_styling(full_width = FALSE)
-
+#### Code for V: Computational and statistical issues when fitting HGAMs ####
+#This code will generate the bias-variance tradeoff plot
 set.seed(1)
 
+#Calculate the numerical approximation of the 2nd derivative for a a function given x and y values 
+#Assumes a constant step size (delta) for x along its path.
 calc_2nd_deriv = function(x,y){
   deriv_val = (lag(y) + lead(y) - 2*y)/(x-lag(x))^2
   deriv_val
 }
 
+#Generate true regression functions that differ in their frequencies. 
+#Higher frequencies correspond to more variable functions. 
 freq_vals = c(1/4,1/2,1,2,4)
 dat = crossing(x = seq(0,2*pi,length=150),freq = freq_vals)%>%
   mutate(y = sin(freq*x) +rnorm(n(), 0, 0.2),
          grp = paste("frequency = ",freq,sep= ""),
          grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")))
 
+#Fit a type-4 function (shared smoothness) for the test data
 mod1 = bam(y~s(x,k=30,grp, bs="fs"), data=dat)
+
+#Fit a type-5 function (differing smoothness) for the test data
 mod2 = bam(y~s(x,k=30,by=grp)+s(grp,bs="re"), data=dat)
 
+#Extract fitted values for each model for all the test data
 overfit_predict_data = crossing(x = seq(0,2*pi,length=500), freq = freq_vals)%>%
   mutate(grp = paste("frequency = ",freq,sep= ""),
          grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")),
@@ -588,6 +585,7 @@ overfit_predict_data = crossing(x = seq(0,2*pi,length=500), freq = freq_vals)%>%
   mutate(fit1 = as.numeric(predict(mod1,newdata = .,type = "response")),
          fit2 = as.numeric(predict(mod2,newdata = .,type="response")))
 
+#turn this into long-format data for plotting, and to make it easier to calculate derivatives
 overfit_predict_data_long = overfit_predict_data %>%
   gather(model, value, y, fit1, fit2)%>%
   mutate(model = recode(model, y = "true value",fit1 = "model 4 fit",
@@ -595,6 +593,8 @@ overfit_predict_data_long = overfit_predict_data %>%
          model = factor(model, levels=  c("true value","model 4 fit",
                                           "model 5 fit")))
 
+#estimate 2nd derivatives of each curve, then for each curve calculate the sum of
+#squared 2nd derivatives of the true curve and the predictions for both models.
 deriv_est_data = overfit_predict_data%>%
   group_by(grp)%>%
   arrange(grp, x)%>%
@@ -610,6 +610,7 @@ deriv_est_data = overfit_predict_data%>%
                         levels = c("model 4 fit",
                                    "model 5 fit")))
 
+#The derivative plots
 deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv, y= obs_sqr_deriv,color= model))+
   geom_point()+
   scale_y_log10("Estimated wiggliness\nof fitted curves")+
@@ -625,11 +626,14 @@ overfit_vis_plot = ggplot(data=overfit_predict_data_long,aes(x=x,y= value,color=
   scale_color_manual(values=fit_colors)+
   facet_grid(.~grp)+
   theme(legend.position = "top")
+#Plot the overfit graphs together.
 cowplot::plot_grid(overfit_vis_plot, deriv_plot, ncol=1, labels="auto",
                    align="hv", axis="lrtb")
 #Note: this code takes quite a long time to run! It's fitting all 10 models.
 #Run once if possible, then rely on the cached code. There's a reason it's split off from the rest of the chunks of code.
 
+#This function extracts the number of penalties used in a model. For Gamma and Gaussian
+#families, you need to remove the penalty (i.e. variance) associated with the scale term
 get_n_pen  = function(model) {
   family = model$family[[1]]
   if(family %in% c("Gamma","gaussian")){
@@ -640,20 +644,22 @@ get_n_pen  = function(model) {
   return(out_val)
 }
 
+#Extract the number of coefficients from a fitted GAM
 get_n_coef = function(model) length(coef(model))
 
+#Get the number of inner and outer iterations needed to fit the final model
 get_n_iter = function(model) model$outer.info$iter
 get_n_out_iter = function(model) model$iter
 
+#combine results into a single table
 comp_resources = crossing(model_number = c("1","2","3","4","5"),
                        data_source = factor(c("CO2","bird_move"),
                                      levels = c("CO2","bird_move")),
                        time = 0, n_smooths = 0,
                        n_coef = 0)
 
-CO2$Plant_uo = factor(CO2$Plant, levels = levels(CO2$Plant), ordered = F)
 
-
+#Fit each model to the example data sets, and calculate run time for them
 comp_resources[1,"time"] = system.time(CO2_mod1 <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+s(Plant_uo, k =12,  bs="re"),
                                                     data= CO2,method="REML",
                                                     control = list(keepData=TRUE)))[3]
@@ -722,11 +728,12 @@ comp_resources[10,"time"] = system.time(
                    control = list(keepData=TRUE))
 )[3]
 
-
+#combine all fitted models into a list
 comp_resources$model = list(CO2_mod1, bird_mod1, CO2_mod2, bird_mod2,
                             CO2_mod3, bird_mod3,CO2_mod4, bird_mod4,
                             CO2_mod5, bird_mod5)
 
+#Extract all of the information on computer time and resources needed for each model
 comp_resources = comp_resources %>%
   group_by(model_number, data_source)%>%
   mutate(n_smooths = get_n_pen(model[[1]]),
@@ -749,11 +756,8 @@ comp_resources_table =comp_resources %>%
   ungroup() %>%
   dplyr::select( - data_source)
 
-kable(comp_resources_table,format ="latex", caption="Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model 1 takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smoothers is the total number of unique penalty values estimated by the model.", booktabs = T)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
-  kable_styling(full_width = F)%>%
-  add_header_above(c(" " = 1," "=1, "# of terms"=2))%>%
-  group_rows("A. CO2 data", 1,5)%>%
-  group_rows("B. bird movement data", 6,10)
+#This code calculates the timing it takes to fit the same model (with varying amounts of data) for 
+#gam, bam, gamm, and gamm4. 
 
 set.seed = 1 # ensures that each new model parameter set is an extension of the old one
 
@@ -761,6 +765,7 @@ n_x = 20
 x = seq(-2,2, length=n_x)
 n_steps = 7
 
+#setting up blank data frame to put results in.
 fit_timing_data = data_frame(n_groups = 2^(1:n_steps),
                              gam=rep(0,length=n_steps),
                              `bam (discrete = FALSE)`= 0,
@@ -774,6 +779,7 @@ model_coefs_all = data_frame(fac=fac_all)%>%
          x2  = rnorm(n(),0,0.2),
          logit_slope = rnorm(n(),0, 0.2))
 
+#for each number of observations, fit all the models and calculate run times for them
 for(i in 1:n_steps){
 
   n_g =  fit_timing_data$n_groups[i]
@@ -811,7 +817,7 @@ for(i in 1:n_steps){
                                  data= model_data))[3]
 }
 
-
+#Combine all of the timing data into long format, ready for plotting
 fit_timing_long = fit_timing_data %>% 
   gather(model, timing, gam,`bam (discrete = FALSE)`, 
          `bam (discrete = TRUE)`, gamm, gamm4)%>%
@@ -833,5 +839,3 @@ timing_plot = ggplot(aes(n_groups, timing, color=model, linetype= model),
   guides(color = guide_legend(nrow = 2, byrow = TRUE))+
   theme(legend.position = "top")
 timing_plot
-## set.seed(11)
-## sample(c('Miller','Ross','Simpson'))

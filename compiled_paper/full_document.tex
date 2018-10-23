@@ -115,8 +115,8 @@
 \author[6]{Noam Ross}
 \affil[1]{Northwest Atlantic Fisheries Center, Fisheries and Oceans Canada, St. John's, NL, Canada}
 \affil[2]{Department of Biology, Memorial University, St. John's, NL, Canada}
-\affil[3]{Centre for Research into Ecological and Environmental Modelling, University of St Andrews, St. Andrews, UK}
-\affil[4]{School of Mathematics and Statistics, University of St Andrews, St. Andrews, UK}
+\affil[3]{Centre for Research into Ecological and Environmental Modelling, University of St Andrews, St Andrews, UK}
+\affil[4]{School of Mathematics and Statistics, University of St Andrews, St Andrews, UK}
 \affil[5]{Institute of Environmental Change and Society, University of Regina, Regina, SK, Canada}
 \affil[6]{Ecohealth Alliance, New York, NY, USA}
 \affil[*]{Corresponding author. Email: eric.j.pedersen@gmail.com}
@@ -320,7 +320,7 @@ enough to keep computation time low (see section V for more on this). In
 determine if \(k\) has been set too low.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{full_document_files/figure-latex/lambda-1} \caption{\label{fig:smoothing_effect}Effect of different choices of smoothing parameter ($\lambda$) on the shape of the resulting smoother. Left:  $\lambda$ estimated using REML; middle: $\lambda$ set to zero (no smoothing); Right: $\lambda$ is set to a very large value.}\label{fig:lambda}
+\includegraphics[width=\linewidth]{../figures/lambda-1} \caption{\label{fig:smoothing_effect}Effect of different choices of smoothing parameter ($\lambda$) on the shape of the resulting smoother. Left:  $\lambda$ estimated using REML; middle: $\lambda$ set to zero (no smoothing); Right: $\lambda$ is set to a very large value.}\label{fig:lambda}
 \end{figure}
 
 Random effects are also ``smooths'' in this framework. In this case, the
@@ -400,7 +400,7 @@ useful later in section III, where we use random effect smoothers as one
 of the components of a HGAM.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{full_document_files/figure-latex/basis_function_examples-1} \caption{\label{fig:basis_example}a) Examples of the basis functions associated with a six basis function thin plate spline (m=2), calculated for data, $x$, spread evenly between $x=0$ and $x=1$. Each line represents a single basis function. b) The smoothing  penalty matrix for the thin plate smoother. Red entries indicate positive values and blue indicate negative values.  For example, functions F3 and F4 would have the greatest proportionate effect on the total penalty (as they have the largest values on the diagonal), whereas function F5 and F6 would not contribute to the wiggliness penalty at all (all the values in the 5th and 6th row and column of the penalty matrix are zero). This means these functions are in the null space of this basis, and are treated as completely smooth. c) An example of how the basis functions add up to create a single smooth function. Thin coloured lines represent each basis function multiplied by a coefficient, and the solid black line is the sum of those basis functions.}\label{fig:basis_function_examples}
+\includegraphics[width=\linewidth]{../figures/basis_function_examples-1} \caption{\label{fig:basis_example}a) Examples of the basis functions associated with a six basis function thin plate spline (m=2), calculated for data, $x$, spread evenly between $x=0$ and $x=1$. Each line represents a single basis function. b) The smoothing  penalty matrix for the thin plate smoother. Red entries indicate positive values and blue indicate negative values.  For example, functions F3 and F4 would have the greatest proportionate effect on the total penalty (as they have the largest values on the diagonal), whereas function F5 and F6 would not contribute to the wiggliness penalty at all (all the values in the 5th and 6th row and column of the penalty matrix are zero). This means these functions are in the null space of this basis, and are treated as completely smooth. c) An example of how the basis functions add up to create a single smooth function. Thin coloured lines represent each basis function multiplied by a coefficient, and the solid black line is the sum of those basis functions.}\label{fig:basis_function_examples}
 \end{figure}
 
 \subsection{Interactions between smooth
@@ -602,7 +602,7 @@ true model used to generate this data was model 2: a single global
 function plus species-specific deviations around that global function.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{full_document_files/figure-latex/vis_data-1} \caption{\label{fig:vis_data}Example data sets used throughout section III. a) Grass $\text{CO}\textsubscript{2}$ uptake versus $\text{CO}\textsubscript{2}$ concentration for 12 individual plants. Color and line linetype included to distinguish individual plant trends. b) Simulated data set of bird migration, with point size corresponding to weekly counts of 6 species along a latitudinal gradient (zeros excluded for clarity). }\label{fig:vis_data}
+\includegraphics[width=\linewidth]{../figures/vis_data-1} \caption{\label{fig:vis_data}Example data sets used throughout section III. a) Grass $\text{CO}\textsubscript{2}$ uptake versus $\text{CO}\textsubscript{2}$ concentration for 12 individual plants. Color and line linetype included to distinguish individual plant trends. b) Simulated data set of bird migration, with point size corresponding to weekly counts of 6 species along a latitudinal gradient (zeros excluded for clarity). }\label{fig:vis_data}
 \end{figure}
 
 Throughout the examples we use Restricted Maximum Likelihood (REML) to
@@ -663,7 +663,7 @@ connection apparent.
 
 \begin{figure}
 \centering
-\includegraphics{full_document_files/figure-latex/co2_mod1-1.pdf}
+\includegraphics{../figures/co2_mod1-1.pdf}
 \caption{\label{fig:co2_mod1}\textbf{mgcv} plotting output for model 1
 applied to the CO2 dataset. Left shows the smoother of \(\log_e\)
 concentration and right plot shows a quantile-quantile plot of the
@@ -687,7 +687,7 @@ shown in Figure \ref{fig:co2_mod1_predict} (see supplemental code for
 more details on how to generate these predictions).
 
 \begin{figure}
-\includegraphics[width=\linewidth]{full_document_files/figure-latex/co2_mod1_ggplot-1} \caption{\label{fig:co2_mod1_predict} Predicted uptake function ($\pm$ 2 s.e.) for each plant, based on model 1 (a single global function for uptake plus a individual-level random effect intercept). Model predictions are for log-uptake, but are transformed here to show the fitted function on the original scale of the data.}\label{fig:co2_mod1_ggplot}
+\includegraphics[width=\linewidth]{../figures/co2_mod1_ggplot-1} \caption{\label{fig:co2_mod1_predict} Predicted uptake function ($\pm$ 2 s.e.) for each plant, based on model 1 (a single global function for uptake plus a individual-level random effect intercept). Model predictions are for log-uptake, but are transformed here to show the fitted function on the original scale of the data.}\label{fig:co2_mod1_ggplot}
 \end{figure}
 
 Examining these plots, we see that while functional responses among
@@ -731,7 +731,7 @@ splines had basis complexity (\texttt{k}) of 10.
 
 \begin{figure}
 \centering
-\includegraphics{full_document_files/figure-latex/bird_mod1_plot-1.pdf}
+\includegraphics{../figures/bird_mod1_plot-1.pdf}
 \caption{\label{fig:bird_mod1} Plot illustrating the average
 log-abundance of all bird species at each latitude for each week, with
 yellow colours indicating more individuals and red colours fewer.}
@@ -759,7 +759,7 @@ in migration timing. The rest of this section will focus on how to model
 this type of variation.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{full_document_files/figure-latex/bird-fitted-mod1-1} \caption{\label{fig:bird-fitted-mod1}Observed counts by species versus predicted counts from \texttt{bird\_mod1} (1-1 line added as reference). If our model fitted well we would expect that all species should show similiar patterns of dispersion around the 1-1 line (and as we are assuming the data is Poisson, the variance around the mean should equal the mean). Instead we see that variance around the predicted value is much higher for species 1 and 6.}\label{fig:bird-fitted-mod1}
+\includegraphics[width=\linewidth]{../figures/bird-fitted-mod1-1} \caption{\label{fig:bird-fitted-mod1}Observed counts by species versus predicted counts from \texttt{bird\_mod1} (1-1 line added as reference). If our model fitted well we would expect that all species should show similiar patterns of dispersion around the 1-1 line (and as we are assuming the data is Poisson, the variance around the mean should equal the mean). Instead we see that variance around the predicted value is much higher for species 1 and 6.}\label{fig:bird-fitted-mod1}
 \end{figure}
 
 \subsubsection{A single common smoother plus group-level smoothers that
@@ -807,7 +807,7 @@ smoother for concentration for the given plant. In R we then have:
 \end{Shaded}
 
 \begin{figure}
-\includegraphics[width=\linewidth]{full_document_files/figure-latex/co2_mod2_plot-1} \caption{\label{fig:co2_mod2}Global function (left) and group-specific deviations from the global function (right) for \texttt{CO2\_mod2}}\label{fig:co2_mod2_plot}
+\includegraphics[width=\linewidth]{../figures/co2_mod2_plot-1} \caption{\label{fig:co2_mod2}Global function (left) and group-specific deviations from the global function (right) for \texttt{CO2\_mod2}}\label{fig:co2_mod2_plot}
 \end{figure}
 
 Figure \ref{fig:co2_mod2} shows the fitted smoothers for
@@ -821,7 +821,7 @@ individual plants. We see that, unlike in the single global smoother
 case above, none of the curves deviate from the data systematically.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{full_document_files/figure-latex/co2_mod2_ggplot-1} \caption{\label{fig:co2_mod2_pred}Predicted uptake values (lines) versus observed uptake for each plant, based on model 2.}\label{fig:co2_mod2_ggplot}
+\includegraphics[width=\linewidth]{../figures/co2_mod2_ggplot-1} \caption{\label{fig:co2_mod2_pred}Predicted uptake values (lines) versus observed uptake for each plant, based on model 2.}\label{fig:co2_mod2_ggplot}
 \end{figure}
 
 The factor-smoother interaction-based approach mentioned above does not
@@ -851,7 +851,7 @@ We illustrate this approach below on the bird migration data.
 \end{Shaded}
 
 \begin{figure}
-\includegraphics[width=\linewidth]{full_document_files/figure-latex/bird_mod2_ggplot-1} \caption{\label{fig:bird_mod2}a) Predicted migration paths for each species based on \texttt{bird\_mod2}, with lighter colors corresponding to higher predicted counts. b) Observed counts versus predictions from \texttt{bird\_mod2}.}\label{fig:bird_mod2_ggplot}
+\includegraphics[width=\linewidth]{../figures/bird_mod2_ggplot-1} \caption{\label{fig:bird_mod2}a) Predicted migration paths for each species based on \texttt{bird\_mod2}, with lighter colors corresponding to higher predicted counts. b) Observed counts versus predictions from \texttt{bird\_mod2}.}\label{fig:bird_mod2_ggplot}
 \end{figure}
 
 Model 2 is able to effectively capture the observed patterns of
@@ -930,7 +930,7 @@ We modify the \texttt{CO2} model to follow this approach like so:
 
 \begin{figure}
 \centering
-\includegraphics{full_document_files/figure-latex/mod3_CO2-1.pdf}
+\includegraphics{../figures/mod3_CO2-1.pdf}
 \caption{\label{fig:co2_mod3}Functional relationships for the CO2 data
 estimated for model 3. Top left: the global smoother; Top middle:
 species-specific random effect intercepts. The remaining plots are a
@@ -1062,7 +1062,7 @@ simulated the data from a model with this structure!)
 
 \begin{table}
 
-\caption{\label{tab:AIC_table}AIC table comparing model fits for example datasets}
+\caption{\label{tab:AIC_table_kable}AIC table comparing model fits for example datasets}
 \centering
 \begin{tabular}[t]{lrrr}
 \toprule
@@ -1077,10 +1077,10 @@ Model & df & AIC & deltaAIC\\
 \hspace{1em}CO2\_mod5 & 56 & -220 & 0\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. bird\_move models}}\\
-\hspace{1em}bird\_mod1 & 51 & 3374 & 1820\\
-\hspace{1em}bird\_mod2 & 140 & 1554 & 0\\
-\hspace{1em}bird\_mod3 & 208 & 1680 & 126\\
-\hspace{1em}bird\_mod4 & 130 & 1555 & 1\\
+\hspace{1em}bird\_mod1 & 51 & 3374 & 1819\\
+\hspace{1em}bird\_mod2 & 141 & 1560 & 6\\
+\hspace{1em}bird\_mod3 & 208 & 1680 & 125\\
+\hspace{1em}bird\_mod4 & 130 & 1555 & 0\\
 \hspace{1em}bird\_mod5 & 197 & 1635 & 81\\
 \bottomrule
 \end{tabular}
@@ -1274,7 +1274,7 @@ already set at its maximum.
 
 \begin{figure}
 \centering
-\includegraphics{full_document_files/figure-latex/zoo_comm_diag-1.pdf}
+\includegraphics{../figures/zoo_comm_diag-1.pdf}
 \caption{\label{fig:zoo_comm_diag_plot} Diagnostic plots for model 5.
 Top row: QQ plots plus the 1-1 line. Bottom row: deviance residuals
 versus fitted values (on the link scale).}
@@ -1295,7 +1295,7 @@ simple model with only a species-specific intercept (Table
 
 \begin{figure}
 \centering
-\includegraphics{full_document_files/figure-latex/zoo_comm_plot-1.pdf}
+\includegraphics{../figures/zoo_comm_plot-1.pdf}
 \caption{\label{fig:zoo_comp}Species-specific seasonal dynamics for the
 eight zooplankon species tracked in Lake Mendota. Black points indicate
 individual plankton observations (after log-transformation and centering
@@ -1306,7 +1306,7 @@ around the mean.}
 
 \begin{table}
 
-\caption{\label{tab:zoo_comm_outofsample}Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. RMSE values represent the square root of the average squared difference between model predictions and observations for test data.  Intercept only results are for a null model with only year and year-by taxon random effect intercepts included.}
+\caption{\label{tab:zoo_comm_outofsample_kable}Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. RMSE values represent the square root of the average squared difference between model predictions and observations for test data.  Intercept only results are for a null model with only year and year-by taxon random effect intercepts included.}
 \centering
 \begin{tabular}[t]{llll}
 \toprule
@@ -1393,7 +1393,7 @@ bloom and lower winter abundances.
 
 \begin{figure}
 \centering
-\includegraphics{full_document_files/figure-latex/zoo_daph_plot-1.pdf}
+\includegraphics{../figures/zoo_daph_plot-1.pdf}
 \caption{\label{fig:daph_smooth}Raw data (points) and fitted models
 (lines) for \textit{D. mendota} data. Green: model 1 (no inter-lake
 variation in dynamics); orange: model 2 (interlake variation with
@@ -1411,7 +1411,7 @@ lake-specific intercept and no intra-annual variability (Table
 
 \begin{table}
 
-\caption{\label{tab:zoo_daph_outofsample}Out-of-sample predictive ability for model 1-3 applied to the \textit{D. mendotae} dataset. RMSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a RMSE of one).}
+\caption{\label{tab:zoo_daph_outofsample_kable}Out-of-sample predictive ability for model 1-3 applied to the \textit{D. mendotae} dataset. RMSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a RMSE of one).}
 \centering
 \begin{tabular}[t]{lllll}
 \toprule
@@ -1528,7 +1528,7 @@ to fit this type of model has not been well studied.
 
 \begin{figure}
 \centering
-\includegraphics{full_document_files/figure-latex/single_smooth_bias_plot-1.pdf}
+\includegraphics{../figures/single_smooth_bias_plot-1.pdf}
 \caption{\label{fig:var_pen} a) Illustration of bias that can arise from
 assuming equal smoothness for all group levels (model 4, red line)
 versus allowing for intergroup variation in smoothness (model 5, red
@@ -1622,7 +1622,7 @@ time to fit the bird movement data than model 4 does (Table
 
 \begin{table}
 
-\caption{\label{tab:comp_time}Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model 1 takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smoothers is the total number of unique penalty values estimated by the model.}
+\caption{\label{tab:comp_time_kable}Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model 1 takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smoothers is the total number of unique penalty values estimated by the model.}
 \centering
 \begin{tabular}[t]{lrrr}
 \toprule
@@ -1633,17 +1633,17 @@ model & relative time & coefficients & penalties\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{A. CO2 data}}\\
 \hspace{1em}1 & 1 & 17 & 2\\
-\hspace{1em}2 & 6 & 65 & 3\\
-\hspace{1em}3 & 13 & 65 & 14\\
-\hspace{1em}4 & 5 & 61 & 3\\
-\hspace{1em}5 & 16 & 61 & 13\\
+\hspace{1em}2 & 8 & 65 & 3\\
+\hspace{1em}3 & 16 & 65 & 14\\
+\hspace{1em}4 & 6 & 61 & 3\\
+\hspace{1em}5 & 18 & 61 & 13\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. bird movement data}}\\
 \hspace{1em}1 & 1 & 90 & 2\\
-\hspace{1em}2 & 190 & 540 & 5\\
-\hspace{1em}3 & 410 & 624 & 14\\
+\hspace{1em}2 & 180 & 540 & 5\\
+\hspace{1em}3 & 390 & 624 & 14\\
 \hspace{1em}4 & 140 & 541 & 3\\
-\hspace{1em}5 & 77 & 535 & 12\\
+\hspace{1em}5 & 71 & 535 & 12\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1719,7 +1719,7 @@ of groups, and were as fast as or faster to calculate than
 
 \begin{figure}
 \centering
-\includegraphics{full_document_files/figure-latex/alt_model_timing_plot-1.pdf}
+\includegraphics{../figures/alt_model_timing_plot-1.pdf}
 \caption{\label{fig:alt_timing}Elapsed time to estimate the same model
 using each of the four approaches. Each data set was generated with 20
 observations per group using a unimodal global function and random
@@ -1943,6 +1943,10 @@ author was chosen using the code:
 \KeywordTok{sample}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{'Miller'}\NormalTok{,}\StringTok{'Ross'}\NormalTok{,}\StringTok{'Simpson'}\NormalTok{))}
 \end{Highlighting}
 \end{Shaded}
+
+All code used to generate this paper, as well as prior versions of this
+manuscript, are available at:
+\href{https://github.com/noamross/mixed-effect-gams}{github.com/noamross/mixed-effect-gams}.
 
 \FloatBarrier
 
