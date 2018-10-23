@@ -18,8 +18,13 @@ bibliography: bibliography.bib
 csl: peerj.csl
 ---
 
+```{r knitr_setup, include=FALSE, purl=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, cache=TRUE,fig.path = "../figures/")
+```
+
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, cache=TRUE)
+####Setup ####
+#all the packages needed for this tutorial are listed here
 library(mgcv)
 library(MASS)
 library(stringr)
@@ -92,7 +97,7 @@ The authors would like to thank Carly Ziter, Tiago Marques, Jake Walsh, Geoff Ev
 
 All authors contributed to developing the intial idea for this paper, and to writing and editing the manuscript. Author order after the first author was chosen using the code:
 
-```{r eval=FALSE,echo=TRUE}
+```{r eval=FALSE,echo=TRUE, purl=FALSE}
 set.seed(11)
 sample(c('Miller','Ross','Simpson'))
 ```
