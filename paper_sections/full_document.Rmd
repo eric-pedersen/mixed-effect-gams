@@ -94,6 +94,7 @@ Specifying these models and techniques for fitting them are active areas statist
 
 The authors would like to thank Carly Ziter, Tiago Marques, Jake Walsh, Geoff Evans, Paul Regular, and Laura Wheeland for their thoughtful feedback on earlier versions of this manuscript, and the Ecological Society of America for hosting the **mgcv** workshops that this work started from. EJP was funded by National Science and Engineering Research Council of Canada (NSERC) and Fisheries and Oceans Canada. GLS is funded by a Natural Science and Engineering Research Council of Canada (NSERC) Discovery Grant
 (RGPIN-2014-04032). DLM was partly funded by OPNAV N45 and the SURTASS LFA Settlement Agreement, managed by the U.S. Navy's Living Marine Resources program under Contract No. N39430-17-C-1982.
+NMR was partially funded by the USAID PREDICT-2 program.
 
 All authors contributed to developing the intial idea for this paper, and to writing and editing the manuscript. Author order after the first author was chosen using the code:
 
