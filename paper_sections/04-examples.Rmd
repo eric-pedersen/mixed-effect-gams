@@ -85,7 +85,7 @@ At this stage of the analysis (prior to model-to-model comparisons), it is usefu
 The **mgcv** package provides tools to facilitate this process, using the `gam.check` function. 
 This function creates a set of standard diagnostic plots: a QQ plot, a plot of response versus fitted values, a histogram of residuals, and a plot of residuals versus fitted values. It also conducts a test for each smooth term to determine if the number of degrees of freedom (`k`) for each smooth is adequate (see `?mgcv::check.k` for details on how that test works). The code for model 4 and 5 for the community zooplankton model is shown here: 
 
-```{r zoo_comm_mod5_check_gam,eval = FALSE, echo=FALSE, message=FALSE}
+```{r zoo_comm_mod5_check_gam,eval = FALSE, echo=TRUE, message=FALSE}
 gam.check(zoo_comm_mod4)
 gam.check(zoo_comm_mod5)
 ```
