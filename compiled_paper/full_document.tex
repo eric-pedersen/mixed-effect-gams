@@ -246,7 +246,7 @@ computational and statistical issues involved in fitting HGAMs in
 \textbf{mgcv}. We have also included all the code needed to reproduce
 the results in this manuscript in supplemental code (online), and on the
 GitHub repository associated with this paper
-\href{http://www.github.com/noamross/mixed-effect-gams}{github.com/noamross/mixed-effects-gams}.
+\href{http://www.github.com/noamross/mixed-effect-gams}{github.com/noamross/mixed-effect-gams}.
 
 \FloatBarrier
 
@@ -1048,15 +1048,15 @@ Comparing models based on AIC is a more robust approach to comparing the
 different model structures. There is well-developed theory of how to
 include effects of penalization and smoothing parameter uncertainty when
 estimating the model complexity penalty for AIC (Wood, Pya \& Säfken,
-2016). We demonstrate this approach in Table \ref{tab:AIC_table}. Using
-AIC, there is strong support for including among-group functional
+2016). We demonstrate this approach in Table \ref{tab:AIC_table_kable}.
+Using AIC, there is strong support for including among-group functional
 variability for both the CO2 dataset and the \texttt{bird\_move} dataset
 (compare models 1 versus models 2-5). For the CO2 dataset (Table
-\ref{tab:AIC_table}A), there is relatively strong evidence that there is
-more inter-group variability in smoothness than model 2 allows, and
-weaker evidence that model 4 or 5 (separate smoothers for all plants)
-show the best fit. For the \texttt{bird\_move} dataset (Table
-\ref{tab:AIC_table}B), model 2 (global smoother plus group-level
+\ref{tab:AIC_table_kable}A), there is relatively strong evidence that
+there is more inter-group variability in smoothness than model 2 allows,
+and weaker evidence that model 4 or 5 (separate smoothers for all
+plants) show the best fit. For the \texttt{bird\_move} dataset (Table
+\ref{tab:AIC_table_kable}B), model 2 (global smoother plus group-level
 smoothers with a shared penalty) fits the data best (which is good as we
 simulated the data from a model with this structure!)
 
@@ -1097,15 +1097,15 @@ also strongly recommend not selecting models based purely on AIC.
 Instead, model selection should be based on expert subject knowledge
 about the system, computational time, and most importantly, the
 inferential goals of the study. For instance, while table
-\ref{tab:AIC_table}A indicates that models 4 and 5 (which do not have a
-global function) fit the \texttt{CO2} data slightly better than models
-with a global function; however, it is the shape of the mean function
-that we are actually interested in here, as models 4 and 5 cannot be
-used to predict the concentration-uptake relationship for other plants.
-The same consideration holds when choosing between model 2 and 3: while
-model 3 fits the \texttt{CO2} data better than model 2 (as measured by
-AIC), model 2 can be used to simulate functional variation for
-unobserved group levels, whereas this is not possible within the
+\ref{tab:AIC_table_kable}A indicates that models 4 and 5 (which do not
+have a global function) fit the \texttt{CO2} data slightly better than
+models with a global function; however, it is the shape of the mean
+function that we are actually interested in here, as models 4 and 5
+cannot be used to predict the concentration-uptake relationship for
+other plants. The same consideration holds when choosing between model 2
+and 3: while model 3 fits the \texttt{CO2} data better than model 2 (as
+measured by AIC), model 2 can be used to simulate functional variation
+for unobserved group levels, whereas this is not possible within the
 framework of model 3. The next section works through two examples to
 show how to choose between different models, and section V discusses
 these and other model fitting issues in more depth.
@@ -1228,6 +1228,13 @@ degrees of freedom (\texttt{k}) for each smooth is adequate (see
 \texttt{?mgcv::check.k} for details on how that test works). The code
 for model 4 and 5 for the community zooplankton model is shown here:
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{gam.check}\NormalTok{(zoo_comm_mod4)}
+\KeywordTok{gam.check}\NormalTok{(zoo_comm_mod5)}
+\end{Highlighting}
+\end{Shaded}
+
 For the sake of brevity, and as fitted versus response plots are
 generally less useful for non-normally distributed data, we have plotted
 QQ plots and fitted-versus residual plots for model 5 (the results for
@@ -1287,11 +1294,11 @@ how this is captured by the more flexible model 5 (Figure
 \ref{fig:zoo_comp}). Still, both models show very similar fits to the
 training data. Model 4 is slightly better at predicting out of sample
 fits for all taxa except \emph{M. edax} (Table
-\ref{tab:zoo_comm_outofsample}). Even though \emph{L. siciloides} showed
-weak seasonal dynamics, Model 4 and 5 still did a better job of
+\ref{tab:zoo_comm_outofsample_kable}). Even though \emph{L. siciloides}
+showed weak seasonal dynamics, Model 4 and 5 still did a better job of
 predicting the density of this species out of sample compared to a
 simple model with only a species-specific intercept (Table
-\ref{tab:zoo_comm_outofsample}).
+\ref{tab:zoo_comm_outofsample_kable}).
 
 \begin{figure}
 \centering
@@ -1402,12 +1409,12 @@ Shaded bands are drawn at \(\pm\) 2 standard errors around each model.}
 \end{figure}
 
 Model 3 is able to predict as well as model 1 or 2 (Table
-\ref{tab:zoo_daph_outofsample}), indicating that allowing for inter-lake
-variation in seasonal dynamics improved model prediction. None of the
-models did well in terms of predicting Lake Kegonsa or Lake Waubesa
-dynamics out of sample compared to a simple model with only a
+\ref{tab:zoo_daph_outofsample_kable}), indicating that allowing for
+inter-lake variation in seasonal dynamics improved model prediction.
+None of the models did well in terms of predicting Lake Kegonsa or Lake
+Waubesa dynamics out of sample compared to a simple model with only a
 lake-specific intercept and no intra-annual variability (Table
-\ref{tab:zoo_daph_outofsample}).
+\ref{tab:zoo_daph_outofsample_kable}).
 
 \begin{table}
 
@@ -1590,8 +1597,8 @@ Fitting the same data using a group-level smoother (model 4,
 \(\mathcal{O}(nk^2g^2)\) operations to evaluate. In effect, adding a
 group-level smoother will increase computational cost by an order of the
 number of groups squared. The effect of this is visible in the examples
-we fit in section III. Table \ref{tab:comp_time} compares the relative
-time it takes to compute model 1 versus the other models.
+we fit in section III. Table \ref{tab:comp_time_kable} compares the
+relative time it takes to compute model 1 versus the other models.
 
 One way to deal with this issue would be to reduce the number of basis
 functions used when fitting group-level smoothers when the number of
@@ -1602,9 +1609,9 @@ plate splines entail greater computational costs (Wood, 2017a).
 
 Including a global smoother (models 2 and 3 compared to models 4 and 5)
 will not generally substantially affect the number of coefficients that
-need to be estimate (Table \ref{tab:comp_time}). Adding a global term
-will add at most \texttt{k} extra terms. It can be substantially less
-than that, as \textbf{mgcv} drops basis functions from co-linear
+need to be estimate (Table \ref{tab:comp_time_kable}). Adding a global
+term will add at most \texttt{k} extra terms. It can be substantially
+less than that, as \textbf{mgcv} drops basis functions from co-linear
 smoothers to ensure that the model matrix is full rank.
 
 Adding additional smoothing parameters (moving from model 2 to 3, or
@@ -1615,10 +1622,10 @@ will generally be substantially faster than 3 and 5 when the number of
 groups is large, as models 3 and 5 fit a separate set of penalties for
 each group level. The effect of this is visible in comparing the time it
 takes to fit model 2 to model 3 (which has a smoother for each group) or
-models 4 and 5 for the example data (Table \ref{tab:comp_time}). Note
-that this will not hold in all cases. For instance, model 5 takes less
-time to fit the bird movement data than model 4 does (Table
-\ref{tab:comp_time}B).
+models 4 and 5 for the example data (Table \ref{tab:comp_time_kable}).
+Note that this will not hold in all cases. For instance, model 5 takes
+less time to fit the bird movement data than model 4 does (Table
+\ref{tab:comp_time_kable}B).
 
 \begin{table}
 
@@ -1633,17 +1640,17 @@ model & relative time & coefficients & penalties\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{A. CO2 data}}\\
 \hspace{1em}1 & 1 & 17 & 2\\
-\hspace{1em}2 & 8 & 65 & 3\\
-\hspace{1em}3 & 16 & 65 & 14\\
-\hspace{1em}4 & 6 & 61 & 3\\
-\hspace{1em}5 & 18 & 61 & 13\\
+\hspace{1em}2 & 21 & 65 & 3\\
+\hspace{1em}3 & 49 & 65 & 14\\
+\hspace{1em}4 & 16 & 61 & 3\\
+\hspace{1em}5 & 50 & 61 & 13\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. bird movement data}}\\
 \hspace{1em}1 & 1 & 90 & 2\\
 \hspace{1em}2 & 180 & 540 & 5\\
 \hspace{1em}3 & 390 & 624 & 14\\
-\hspace{1em}4 & 140 & 541 & 3\\
-\hspace{1em}5 & 71 & 535 & 12\\
+\hspace{1em}4 & 130 & 541 & 3\\
+\hspace{1em}5 & 72 & 535 & 12\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1790,15 +1797,15 @@ In some cases, it can result in the estimated global smoother being
 close to flat, even in simulated examples with a known strong global
 effect. This concurvity issue may also increase the time it takes to fit
 these models (for example, compare the time it takes to fit models 3 and
-5 in Table \ref{tab:comp_time}). These models can still be estimated
-because of penalty terms; all of the methods we have discussed for
-fitting model 2 (factor-smoother terms or random effect tensor products)
-automatically create a penalty for the null space of the group-level
-terms, so that only the global term has its own unpenalized null space.
-Both the REML and ML criteria work to balance penalties between nested
-smooth terms (this is why nested random effects can be fitted). We have
-observed that \textbf{mgcv} still occasionally finds solutions with
-simulated data where the global term is over-smoothed.
+5 in Table \ref{tab:comp_time_kable}). These models can still be
+estimated because of penalty terms; all of the methods we have discussed
+for fitting model 2 (factor-smoother terms or random effect tensor
+products) automatically create a penalty for the null space of the
+group-level terms, so that only the global term has its own unpenalized
+null space. Both the REML and ML criteria work to balance penalties
+between nested smooth terms (this is why nested random effects can be
+fitted). We have observed that \textbf{mgcv} still occasionally finds
+solutions with simulated data where the global term is over-smoothed.
 
 To avoid this issue, we recommend both careful choice of basis and
 setting model degrees of freedom so that groupwise terms are either
@@ -1931,7 +1938,8 @@ is funded by a Natural Science and Engineering Research Council of
 Canada (NSERC) Discovery Grant (RGPIN-2014-04032). DLM was partly funded
 by OPNAV N45 and the SURTASS LFA Settlement Agreement, managed by the
 U.S. Navy's Living Marine Resources program under Contract No.
-N39430-17-C-1982.
+N39430-17-C-1982. NMR was partially funded by the USAID PREDICT-2
+program.
 
 All authors contributed to developing the intial idea for this paper,
 and to writing and editing the manuscript. Author order after the first
