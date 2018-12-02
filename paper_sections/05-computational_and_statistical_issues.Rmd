@@ -69,9 +69,9 @@ overfit_predict_data = crossing(x = seq(0,2*pi,length=500),
 overfit_predict_data_long = overfit_predict_data %>%
   gather(model, value, y, fit1, fit2)%>%
   mutate(model = recode(model, y = "true value",fit1 = "model S fit",
-                        fit2 = "model M fit"),
+                        fit2 = "model I fit"),
          model = factor(model, levels=  c("true value","model S fit",
-                                          "model M fit")))
+                                          "model I fit")))
 
 #estimate 2nd derivatives of each curve, then for each curve calculate the sum
 #of squared 2nd derivatives of the true curve and the predictions for both
@@ -88,9 +88,9 @@ deriv_est_data = overfit_predict_data%>%
   mutate(sqr_2nd_deriv = -freq^3*(sin(4*pi*freq)-4*pi*freq)/4)%>%
   gather(key=model,value = obs_sqr_deriv,fit1_int,fit2_int)%>%
   mutate(model = factor(ifelse(model=="fit1_int", "model *S* fit",
-                               "model M fit"),
+                               "model I fit"),
                         levels = c("model S fit",
-                                   "model M fit")))
+                                   "model I fit")))
 
 #The derivative plots
 deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv, 
@@ -120,7 +120,7 @@ simulated data from five different groups, with all groups having the same
 levels of the covariate $x$, ranging from 0 to $2\pi$.
 For each group, the true function relating $x$ to the response, $y$, was a sine wave, but the frequency varied from 0.25 (equal to half a cycle across the range of $x$) to 4 (corresponding to 4 full cycles across the range).
 We added normally distributed error to all $y$-values, with a standard deviation of 0.2.
-We then fit both model *S* (where all curves were assumed to be equally smooth) and model *M* (with varying smoothness) to the entire data set, using REML criteria to estimate penalties.
+We then fit both model *S* (where all curves were assumed to be equally smooth) and model *I* (with varying smoothness) to the entire data set, using REML criteria to estimate penalties.
 For this example (Fig. \ref{fig:var_pen}a), requiring equal smoothness for all group levels resulted in **mgcv** underestimating the penalty for the lowest frequency (most smooth) terms, but accurately estimating the true smoothness of the highest frequency terms as measured by the squared second derivative of the smooth fit versus that of the true function (Fig. \ref{fig:var_pen}b).
 This implies that assuming equal smoothness will result in underestimating
 the true smoothness of low-variability terms, and thus lead to more variable
@@ -136,22 +136,22 @@ It is possible to set up this type of varying penalty model in flexible Bayesian
 [^mean_note]: While this example may seem contrived, this is exactly what happens
 when we assume a given regression coefficient is equal to zero (and thus exclude it from a model).
 
-```{r single_smooth_bias_plot, echo=FALSE, fig.width=7, fig.height=6, message=FALSE, warning=FALSE, cache=TRUE, fig.cap="\\label{fig:var_pen} a) Illustration of bias that can arise from assuming equal smoothness for all group levels (model *S*, red line) versus allowing for intergroup variation in smoothness (model *M*, red line) when the true function (black line) shows substantial variation in smoothness between groups. b) Estimated wiggliness (as measured by the integral of the squared 2nd derivative) of the true function for each group level versus that for the functions estimated by model *S* (red) and model *M* (blue), indicating substantial undersmoothing for low-variability curves by model *S*.", dependson= -1}
+```{r single_smooth_bias_plot, echo=FALSE, fig.width=7, fig.height=6, message=FALSE, warning=FALSE, cache=TRUE, fig.cap="\\label{fig:var_pen} a) Illustration of bias that can arise from assuming equal smoothness for all group levels (model *S*, red line) versus allowing for intergroup variation in smoothness (model *I*, red line) when the true function (black line) shows substantial variation in smoothness between groups. b) Estimated wiggliness (as measured by the integral of the squared 2nd derivative) of the true function for each group level versus that for the functions estimated by model *S* (red) and model *I* (blue), indicating substantial undersmoothing for low-variability curves by model *S*.", dependson= -1}
 #Plot the overfit graphs together.
 cowplot::plot_grid(overfit_vis_plot, deriv_plot, ncol=1, labels="auto",
                    align="hv", axis="lrtb")
 ```
 
-It may seem there is also a bias-variance trade-off between choosing to use a single global smoother (model *G*) or a global smoother plus group-level terms (models 2 and 3).
-In model *G*, all the data is used to estimate a single smooth term, and thus should have lower variance than models 2 and 3, but higher bias for any given group in the presence of inter-group functional variability.
+It may seem there is also a bias-variance trade-off between choosing to use a single global smoother (model *G*) or a global smoother plus group-level terms (models *GS* and *GI*).
+In model *G*, all the data is used to estimate a single smooth term, and thus should have lower variance than models *GS* and *GI*, but higher bias for any given group in the presence of inter-group functional variability.
 However, in practice, this trade-off will be handled via penalization; if there are no average differences between functional responses, **mgcv** will penalize the group-specific functions toward zero, and thus toward the global model.
-The choice between using model *G* versus models *GS* and *GM* should generally be driven by computational costs.
-Model *G* is typically much faster to fit than models *GS* and *GM*, even in the absence of among-group differences.
+The choice between using model *G* versus models *GS* and *GI* should generally be driven by computational costs.
+Model *G* is typically much faster to fit than models *GS* and *GI*, even in the absence of among-group differences.
 If there is no need to estimate inter-group variability, model *G* will typically be
 more efficient.
 
-A similar issue exists when choosing between models *GS* and *GM* and models *S* and *M*.
-If all group levels have very different functional shapes, the global term will get penalized toward zero in models *GS* and *GM*, so they will reduce to models *S* and *M*.
+A similar issue exists when choosing between models *GS* and *GI* and models *S* and *I*.
+If all group levels have very different functional shapes, the global term will get penalized toward zero in models *GS* and *GI*, so they will reduce to models *S* and *I*.
 The choice to include a global term should be made based on scientific considerations (is the global term of interest?) and computational considerations.
 
 ## Complexity-computation trade-offs
@@ -166,8 +166,8 @@ Including a global smoother (models *GS* and *GM* compared to models 4 and 5) wi
 Adding a global term will add at most `k` extra terms.
 It can be substantially less than that, as **mgcv** drops basis functions from co-linear smoothers to ensure that the model matrix is full rank.
 
-Adding additional smoothing parameters (moving from model *GS* to *GM*, or moving from model *S* to *M*) is more costly than increasing the number of coefficients to estimate, as estimating smoothing parameters is computationally intensive [@wood_fast_2011].
-This means that models *GS* and *S* will generally be substantially faster than *GM* and *M* when the number of groups is large, as models *GM* and *M* fit a separate set of penalties for each group level. The effect of this is visible in comparing the time it takes to fit model *GS* to model *GM* (which has a smoother for each group) or models *S* and *M* for the example data (Table \ref{tab:comp_time_kable}). Note that this will not hold in all cases. For instance, model *M* takes less time to fit the bird movement data than model *S* does (Table \ref{tab:comp_time_kable}B).
+Adding additional smoothing parameters (moving from model *GS* to *GI*, or moving from model *S* to *I*) is more costly than increasing the number of coefficients to estimate, as estimating smoothing parameters is computationally intensive [@wood_fast_2011].
+This means that models *GS* and *S* will generally be substantially faster than *GI* and *I* when the number of groups is large, as models *GI* and *I* fit a separate set of penalties for each group level. The effect of this is visible in comparing the time it takes to fit model *GS* to model *GI* (which has a smoother for each group) or models *S* and *I* for the example data (Table \ref{tab:comp_time_kable}). Note that this will not hold in all cases. For instance, model *I* takes less time to fit the bird movement data than model *S* does (Table \ref{tab:comp_time_kable}B).
 
 
 ```{r comp_calc, echo=FALSE,  fig.width=4, fig.height=6, message=FALSE, warning=FALSE, cache=TRUE}
@@ -538,7 +538,7 @@ finds solutions with simulated data where the global term is over-smoothed.
 
 To avoid this issue, we recommend both careful choice of basis and setting model degrees of freedom so that groupwise terms are either slightly less flexible than the global term or have a smaller null space. In the examples in section III, we used smoothers with an unpenalized null space (standard thin plate splines) for the global smoother and ones with no null space for the groupwise terms[^gsnull]. When using thin plate splines, it may also help to use splines with a lower order of derivative penalized in the groupwise smoothers than the global smoothers, as lower-order "tp" splines have fewer basis functions in the null space. For example, we used `m=2` (penalizing squared second derivatives) for the global smoother, and `m=1` (penalizing squared first derivatives) for groupwise smoothers in models 2 and 3. Another option is to use a lower number of basis functions (`k`) for groupwise relative to global terms.  This will reduce the maximum flexibility possible in the groupwise terms. We do caution that these are just rules of thumb. In cases where an accurately estimated global smoother is essential, we recommend either fitting model *G* or using specialized functional regression software such as the `fosr` function in the *refund* package [@scheipl_functional_2014], which allows the user to enforce constraints on the groupwise smoothers so that they always sum to zero at any given point (avoiding the collinearity issue). Also, see below for more information on functional regression.
 
-[^gsnull]: For model *GS* both the factor-smoother, and tensor products of random effect ("re") and other smooth terms do not have a penalized nullspace by construction (they are full rank), as noted above. For model *GM* groupwise terms, we used basis types that had a penalty added to the nullspace, so called "shrinkage" methods: `bs="ts"`, `"cs"`, or `"ps"` have this property.
+[^gsnull]: For model *GS* both the factor-smoother, and tensor products of random effect ("re") and other smooth terms do not have a penalized nullspace by construction (they are full rank), as noted above. For model *GI* groupwise terms, we used basis types that had a penalty added to the nullspace, so called "shrinkage" methods: `bs="ts"`, `"cs"`, or `"ps"` have this property.
 
 ## A brief foray into the land of Bayes
 

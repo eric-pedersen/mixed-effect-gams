@@ -16,13 +16,13 @@ These three choices result in five possible models (figure \ref{fig:models}):
 
 1. A single common smoother for all observations; We will refer to this as model *G*, as it only has a Global smoother.
 2. A global smoother plus group-level smoothers that have the same wiggliness. We will refer to this as model *GS* (for Global smoother with individual effects with a Shared penalty)
-3. A global smoother plus group-level smoothers with differing wiggliness. We will refer to this as model *GM* (for Global smoother with individiual effects with Multiple penalties)
+3. A global smoother plus group-level smoothers with differing wiggliness. We will refer to this as model *GI* (for Global smoother with individiual effects with Individual penalties)
 4. Group-specific smoothers without a global smoother, but with all smoothers having the same wiggliness. We will refer to this as model *S*.
-5. Group-specific smoothers with different wiggliness. We will refer to this as model *M*. 
+5. Group-specific smoothers with different wiggliness. We will refer to this as model *I*. 
 
 ![\label{fig:models}Alternate types of functional variation f(x) that can be fitted with HGAMs. The dashed line indicates the average function value for all groups, and each solid line indicates the functional value at a given predictor value for an  individual group level. The null model (of no functional relationship between the covariate and outcome, top right), is not explicitly assigned a model number.](../figures/alternate_models.png)
 
-It is important to note that "similar wiggliness" and "similar shape" are two distinct concepts; functions can have very similar wiggliness but very different shapes. Wiggliness measures how quickly a function changes across its range, and it is easy to construct two functions that differ in shape but have the same wiggliness. For this paper, we consider two functions to have similar shape if the average squared distance between the functions is small (assuming the functions have been scaled to have a mean value of zero across their ranges). This definition is somewhat restricted; for instance, a cyclic function would not be considered to have the same shape as a phase-shifted version of the same function, nor would two normal distributions with the same mean but different standard deviations. The benefit of this definition of shape, however, is that it is straightforward to translate into penalties akin to those described in section II. Figure \ref{fig:models}, model *S* illustrates the case where models have different shapes. Similarly, two curves could have very similar overall shape, but differ in their wiggliness. For instance, one function could be equal to another plus a high-frequency oscillation term. Figure \ref{fig:models}, model *GM* illustrates this.
+It is important to note that "similar wiggliness" and "similar shape" are two distinct concepts; functions can have very similar wiggliness but very different shapes. Wiggliness measures how quickly a function changes across its range, and it is easy to construct two functions that differ in shape but have the same wiggliness. For this paper, we consider two functions to have similar shape if the average squared distance between the functions is small (assuming the functions have been scaled to have a mean value of zero across their ranges). This definition is somewhat restricted; for instance, a cyclic function would not be considered to have the same shape as a phase-shifted version of the same function, nor would two normal distributions with the same mean but different standard deviations. The benefit of this definition of shape, however, is that it is straightforward to translate into penalties akin to those described in section II. Figure \ref{fig:models}, model *S* illustrates the case where models have different shapes. Similarly, two curves could have very similar overall shape, but differ in their wiggliness. For instance, one function could be equal to another plus a high-frequency oscillation term. Figure \ref{fig:models}, model *GI* illustrates this.
 
 We will discuss the trade-offs between different models and guidelines about when each of these models is appropriate in section V. The remainder of this section will focus on how to specify each of these five models using **mgcv**.
 
@@ -36,7 +36,7 @@ A. The `CO2` dataset, available in R via the **datasets** package. This data is 
 B. Data generated from a hypothetical study of bird movement along a migration corridor, sampled throughout the year (see supplemental code). This dataset consists of simulated sample records of numbers of observed locations of 100 tagged individuals each from six species of bird, at ten locations along a latitudinal gradient, with one observation taken every four weeks. Counts were simulated randomly for each species in each location and week by creating a species-specific migration curve that gave the probability of finding an individual of a given species in a given location, then simulated the distribution of individuals across sites using a multinomial distribution, and subsampling that using a binomial distribution to simulation observation error (i.e. not every bird present at a location would be detected). 
 The data set (`bird_move`) consists of the variables `count`, `latitude`, `week` and `species` (figure \ref{fig:vis_data}b). This example allows us to demonstrate how to fit these models with interactions and with non-normal (count) data. The true model used to generate this data was model *GS*: a single global function plus species-specific deviations around that global function.
 
-[^ordered]: Note that **mgcv** requires that grouping or categorical variables be coded as factors in R; it will raise an error message if passed data coded as characters. It is also important to know whether the factor is coded as ordered or unordered (see `?factor` for more details on this). This matters when fitting groupwise smoothers using the `by=` argument (as is used for fitting models 3 and 5, shown below). If the factor is unordered, **mgcv** will set up a model with one smoother for each grouping level. If the factor is ordered, **mgcv** will set any basis functions for the first grouping level to zero. In model *GM* the ungrouped smoother will then correspond to the first grouping level, rather than the average functional response, and the group-specific smoothers will correspond to deviations from the first group. In model *M*, using an ordered factor will result in the first group not having a smoother associated with it at all.
+[^ordered]: Note that **mgcv** requires that grouping or categorical variables be coded as factors in R; it will raise an error message if passed data coded as characters. It is also important to know whether the factor is coded as ordered or unordered (see `?factor` for more details on this). This matters when fitting groupwise smoothers using the `by=` argument (as is used for fitting models 3 and 5, shown below). If the factor is unordered, **mgcv** will set up a model with one smoother for each grouping level. If the factor is ordered, **mgcv** will set any basis functions for the first grouping level to zero. In model *GI* the ungrouped smoother will then correspond to the first grouping level, rather than the average functional response, and the group-specific smoothers will correspond to deviations from the first group. In model *I*, using an ordered factor will result in the first group not having a smoother associated with it at all.
 
 ```{r vis_data, echo=FALSE,  fig.width=8, fig.height=4, out.width="\\linewidth", fig.cap="\\label{fig:vis_data}Example data sets used throughout section III. a) Grass $\\text{CO}\\textsubscript{2}$ uptake versus $\\text{CO}\\textsubscript{2}$ concentration for 12 individual plants. Color and linetype included to distinguish individual plant trends. b) Simulated data set of bird migration, with point size corresponding to weekly counts of 6 species along a latitudinal gradient (zeros excluded for clarity). "}
 
@@ -269,7 +269,7 @@ variation in migration behaviour (figure \ref{fig:bird_modGS}a). It shows a much
 tighter fit between observed and predicted values, as well as less evidence of
 over-dispersion in some species compared to model *G* (figure \ref{fig:bird_modGS}b).
 
-### A single common smoother plus group-level smoothers with differing wiggliness (Model *GM*)
+### A single common smoother plus group-level smoothers with differing wiggliness (Model *GI*)
 
 This model class is very similar to model *GS*, but we now allow each group-specific smoother to have its own smoothing parameter and hence its own level of wiggliness. This increases the computational cost of the model (as there are more smoothing parameters to estimate), and means that the only information shared between groups is through the global smoother, the common error term, and through the random effect for group-level intercepts (if used). This is useful if different groups differ substantially in how wiggly they are.
 
@@ -281,68 +281,68 @@ y ~ s(x, bs="tp") + s(x, by=fac, m=1, bs="tp") + s(fac, bs="re")
 Note two major differences here from how model *GS* was specified:
 
 1.  We explicitly include a random effect for the intercept (the `bs="re"` term), as group-specific intercepts are not incorporated into factor `by` variable smoothers (as would be the case with a factor smoother or a tensor product random effect).
-2. We specify `m=1` instead of `m=2` for the groupwise smoothers, which means the marginal TPRS basis for this term will penalize the squared 1st derivative of the function, rather than the second derivative. This, also, reduces co-linearity between the global smoother and the group-specific terms which occasionally leads to high uncertainty around the global smoother (see section V for more details). TPRS with `m=1` have a more restricted null space than m=2 smoothers, so should not be as collinear with the global smoother  [@baayen_autocorrelated_2018; @wieling_investigating_2016]. We have observed that this is much more of an issue when fitting model *GM* compared to model *GS*.
+2. We specify `m=1` instead of `m=2` for the groupwise smoothers, which means the marginal TPRS basis for this term will penalize the squared 1st derivative of the function, rather than the second derivative. This, also, reduces co-linearity between the global smoother and the group-specific terms which occasionally leads to high uncertainty around the global smoother (see section V for more details). TPRS with `m=1` have a more restricted null space than m=2 smoothers, so should not be as collinear with the global smoother  [@baayen_autocorrelated_2018; @wieling_investigating_2016]. We have observed that this is much more of an issue when fitting model *GI* compared to model *GS*.
 
 
 We modify the `CO2` model to follow this approach like so:
 
-```{r modGM_CO2-norun, eval=FALSE}
-CO2_modGM <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
+```{r modGI_CO2-norun, eval=FALSE}
+CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                   s(log(conc), by=Plant_uo, k=5, m=1, bs="tp") +
                   s(Plant_uo, bs="re", k=12),
                 data=CO2, method="REML")
 ```
 
-```{r modGM_CO2, fig.width=5, fig.height=3, echo=FALSE, fig.cap="\\label{fig:co2_modGM}Functional relationships for the CO2 data estimated for model *GM*. Top left: the global smoother; Top middle: species-specific random effect intercepts. The remaining plots are a selected subset of the plant-specific smoothers, indicating how the functional response of that plant differs from the global smoother. "}
-CO2_modGM <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
+```{r modGI_CO2, fig.width=5, fig.height=3, echo=FALSE, fig.cap="\\label{fig:co2_modGI}Functional relationships for the CO2 data estimated for model *GI*. Top left: the global smoother; Top middle: species-specific random effect intercepts. The remaining plots are a selected subset of the plant-specific smoothers, indicating how the functional response of that plant differs from the global smoother. "}
+CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                   s(log(conc), by= Plant_uo, k=5, m=1, bs="tp") +
                   s(Plant_uo, bs="re", k=12),
                 data=CO2, method="REML")
 
 op <- par(mfrow=c(2, 3), mar =c(4, 4, 1, 1))
-CO_modGM_ylim = c(-0.3,0.3)
-plot(CO2_modGM, scale=0, 
+CO_modGI_ylim = c(-0.3,0.3)
+plot(CO2_modGI, scale=0, 
      select=1, 
      ylab="Global smoother", 
      seWithMean=TRUE)
-plot(CO2_modGM, 
+plot(CO2_modGI, 
      scale=0, 
      select=14, 
      ylab="Intercept",
      main=NA)
-plot(CO2_modGM, 
+plot(CO2_modGI, 
      scale=0, 
      select=3,  
      ylab="Plant Qn1", 
      seWithMean=TRUE,
-     ylim = CO_modGM_ylim)
-plot(CO2_modGM, 
+     ylim = CO_modGI_ylim)
+plot(CO2_modGI, 
      scale=0, 
      select=5,  
      ylab="Plant Qc1",     
      seWithMean=TRUE,
-     ylim = CO_modGM_ylim)
-plot(CO2_modGM, 
+     ylim = CO_modGI_ylim)
+plot(CO2_modGI, 
      scale=0, 
      select=10, 
      ylab="Plant Mn1",     
      seWithMean=TRUE,
-     ylim = CO_modGM_ylim)
-plot(CO2_modGM, 
+     ylim = CO_modGI_ylim)
+plot(CO2_modGI, 
      scale=0, 
      select=13, 
      ylab="Plant Mc1",
      seWithMean=TRUE,
-     ylim = CO_modGM_ylim)
+     ylim = CO_modGI_ylim)
 par(op)
 ```
 
-Figure \ref{fig:co2_modGM} shows a subsample of the group-specific smoothers from this model. It is apparent from this that some groups (e.g. `Qc1`) have very similar shapes to the global smoother (differing only in intercept), others do differ from the global trend, with higher uptake at low concentrations and lower uptake at higher concentrations (e.g. `Mc1`, `Qn1`), or the reverse pattern (e.g. `Mn1`).
+Figure \ref{fig:co2_modGI} shows a subsample of the group-specific smoothers from this model. It is apparent from this that some groups (e.g. `Qc1`) have very similar shapes to the global smoother (differing only in intercept), others do differ from the global trend, with higher uptake at low concentrations and lower uptake at higher concentrations (e.g. `Mc1`, `Qn1`), or the reverse pattern (e.g. `Mn1`).
 
-Using model *GM* with higher-dimensional data is also straightforward; `by` terms work just as well in tensor-product smoothers as they do with isotropic smoothers. We can see this with our bird model:
+Using model *GI* with higher-dimensional data is also straightforward; `by` terms work just as well in tensor-product smoothers as they do with isotropic smoothers. We can see this with our bird model:
 
-```{r modGM_bird}
-bird_modGM <- gam(count ~ species +
+```{r modGI_bird}
+bird_modGI <- gam(count ~ species +
                    te(week, latitude, bs=c("cc", "tp"),
                       k=c(10, 10), m=2) +
                    te(week, latitude, by=species, bs= c("cc", "tp"),
@@ -353,7 +353,7 @@ bird_modGM <- gam(count ~ species +
 
 As above, we have set (`m=1`) for the latitude marginal effect to  avoid issues of collinearity between the global and groupwise smoother. Note that switching `m=1` to `m=2` does not have any effect on the marginal basis for `week`, where we are using a cyclic smoother instead of a tprs.
 
-The fitted model for `bird_modGM` is visually indistinguishable from `bird_modGS` (figure \ref{fig:bird_modGS}) so we do not illustrate it here. 
+The fitted model for `bird_modGI` is visually indistinguishable from `bird_modGS` (figure \ref{fig:bird_modGS}) so we do not illustrate it here. 
 
 ### Models without global smoothers (models 4 and 5)
 
@@ -361,7 +361,7 @@ We can modify the above models to exclude the global term (which is generally fa
 
 #### Model *S*:
 
-Model *S* (shared smoothers) is simply model *GS* without the global smoother; this type of model takes the form: `y~s(x, fac, bs="fs")` or `y~te(x1, x2, fac, bs=c("tp", "tp", "re")` in `mgcv`. This model assumes all groups have the same smoothness, but that the individual shapes of the smooth terms are not related. Here we just show how to code these models; plotting them works in the same way as for models *G*,*GS*, and *GM* above, the plots for these datasets are very similar to the plots for model *GS*. This will not always be the case; if in a given study there are very few data points in each grouping level (relative to the strength of the functional relationship of interest), estimates from model *S*
+Model *S* (shared smoothers) is simply model *GS* without the global smoother; this type of model takes the form: `y~s(x, fac, bs="fs")` or `y~te(x1, x2, fac, bs=c("tp", "tp", "re")` in `mgcv`. This model assumes all groups have the same smoothness, but that the individual shapes of the smooth terms are not related. Here we just show how to code these models; plotting them works in the same way as for models *G*,*GS*, and *GI* above, the plots for these datasets are very similar to the plots for model *GS*. This will not always be the case; if in a given study there are very few data points in each grouping level (relative to the strength of the functional relationship of interest), estimates from model *S*
 will typically be much more variable than from model *GS*, as there is no way for the model to share information on function shape between grouping levels without the global smoother. See section V on computational issues for more on how to choose between different models.
 
 
@@ -375,17 +375,17 @@ bird_modS <- gam(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
                  knots = list(week = c(0, 52)))
 ```
 
-#### Model *M*:
+#### Model *I*:
 
-Model *M* is simply model *GM* without the first term: `y~fac+s(x, by=fac)` or `y~fac+te(x1,x2, by=fac)` (as above, plots are very similar to model *GM*).
+Model *I* is simply model *GI* without the first term: `y~fac+s(x, by=fac)` or `y~fac+te(x1,x2, by=fac)` (as above, plots are very similar to model *GI*).
 
-```{r modM}
-CO2_modM <- gam(log(uptake) ~ s(log(conc), by=Plant_uo, k=5, bs="tp", m=2) +
+```{r modI}
+CO2_modI <- gam(log(uptake) ~ s(log(conc), by=Plant_uo, k=5, bs="tp", m=2) +
                               s(Plant_uo, bs="re", k=12),
                 data= CO2, method="REML")
 
 
-bird_modM <- gam(count ~ species + 
+bird_modI <- gam(count ~ species + 
                    te(week, latitude, by=species, bs= c("cc", "tp"), 
                       k=c(10, 10), m=2),
                  data=bird_move, method="REML", family="poisson",
@@ -394,16 +394,16 @@ bird_modM <- gam(count ~ species +
 
 ## Comparing different HGAM specifications
 
-These models can be compared using standard model comparison tools. Model *GS* and model *GM* will generally be nested in model *G* (depending on how each model is specified) so comparisons using generalized likelihood ratio tests (GLRTs) may be used to test if groupwise smoothers are necessary. However, we do not currently recommend this method. There is not sufficient theory on how accurate parametric p-values are for comparing these models; there is uncertainty about what degrees of freedom to assign to models with varying smoothness, and slightly different model specifications may not result in nested models. (See @wood_generalized_2017 Section 6.12.4 and `?mgcv::anova.gam` for more discussion on using GLRTs to compare GAMs.)
+These models can be compared using standard model comparison tools. Model *GS* and model *GI* will generally be nested in model *G* (depending on how each model is specified) so comparisons using generalized likelihood ratio tests (GLRTs) may be used to test if groupwise smoothers are necessary. However, we do not currently recommend this method. There is not sufficient theory on how accurate parametric p-values are for comparing these models; there is uncertainty about what degrees of freedom to assign to models with varying smoothness, and slightly different model specifications may not result in nested models. (See @wood_generalized_2017 Section 6.12.4 and `?mgcv::anova.gam` for more discussion on using GLRTs to compare GAMs.)
 
-Comparing models based on AIC is a more robust approach to comparing the different model structures. There is well-developed theory of how to include effects of penalization and smoothing parameter uncertainty when estimating the model complexity penalty for AIC [@wood_smoothing_2016]. We demonstrate this approach in Table \ref{tab:AIC_table_kable}. Using AIC, there is strong support for including among-group functional variability for both the CO2 dataset and the `bird_move` dataset (compare models *G* versus all other models). For the CO2 dataset (Table \ref{tab:AIC_table_kable}A), there is relatively strong evidence that there is more inter-group variability in smoothness than model *GS* allows, and weaker evidence that model *S* or *M* (separate smoothers for all plants) show the best fit. 
+Comparing models based on AIC is a more robust approach to comparing the different model structures. There is well-developed theory of how to include effects of penalization and smoothing parameter uncertainty when estimating the model complexity penalty for AIC [@wood_smoothing_2016]. We demonstrate this approach in Table \ref{tab:AIC_table_kable}. Using AIC, there is strong support for including among-group functional variability for both the CO2 dataset and the `bird_move` dataset (compare models *G* versus all other models). For the CO2 dataset (Table \ref{tab:AIC_table_kable}A), there is relatively strong evidence that there is more inter-group variability in smoothness than model *GS* allows, and weaker evidence that model *S* or *I* (separate smoothers for all plants) show the best fit. 
 
 For the `bird_move` dataset (Table \ref{tab:AIC_table_kable}B), model *GS* (global smoother plus group-level smoothers with a shared penalty) gives the best fit for all models including a global smooth (which is good as we simulated the data from a model with this structure!). However, model *S* (without a global term) still fits this data better than model *GS* based on AIC. This highlights an issue with AIC for selecting between models with and without a global smooth: as it is possible to fully recreate the global term by just allowing each group-level smoother to have a similiar shape to one another (that is, the global term is totally concurve with the group-level smoothers; see section V) model selection criteria such as AIC may indicate that the extra parameters required to fit the global smoother are unnecessary. 
 
 ```{r AIC_table, echo=FALSE,  fig.width=4, fig.height=6, message=FALSE, warning=FALSE, cache=TRUE}
 
-AIC_table = AIC(CO2_modG,CO2_modGS, CO2_modGM, CO2_modS, CO2_modM,
-             bird_modG, bird_modGS, bird_modGM, bird_modS, bird_modM)%>%
+AIC_table = AIC(CO2_modG,CO2_modGS, CO2_modGI, CO2_modS, CO2_modI,
+             bird_modG, bird_modGS, bird_modGI, bird_modS, bird_modI)%>%
   rownames_to_column(var= "Model")%>%
   mutate(data_source = rep(c("CO2","bird_data"), each =5))%>%
   group_by(data_source)%>%
@@ -423,7 +423,7 @@ kable(AIC_table, format =table_out_format,
   group_rows("B. bird_move models", 6,10)
 ```
 
-Given this issue with selecting global terms, we strongly recommend not selecting models based purely on AIC. Instead, model selection should be based on expert subject knowledge about the system, computational time, and most importantly, the inferential goals of the study. Table \ref{tab:AIC_table_kable}A indicates that models 4 and 5 (which do not have a global function) fit the `CO2` data better than models with a global function, and that model *S* fits the `bird_move` data better than model *GS*. However, it is the shape of the global function that we are actually interested in here, as models *S* and *M* cannot be used to predict the concentration-uptake relationship for plants that are not part of the training set, or the average migration path for birds. The same consideration holds when choosing between model *GS* and *GM*: while model *GM* fits the `CO2` data better than model *GS* (as measured by AIC), model *GS* can be used to simulate functional variation for unobserved group levels, whereas this is not possible within the framework of model *GM*. The next section works through two examples to show how to choose between different models, and section V discusses these and other model fitting issues in more depth.
+Given this issue with selecting global terms, we strongly recommend not selecting models based purely on AIC. Instead, model selection should be based on expert subject knowledge about the system, computational time, and most importantly, the inferential goals of the study. Table \ref{tab:AIC_table_kable}A indicates that models 4 and 5 (which do not have a global function) fit the `CO2` data better than models with a global function, and that model *S* fits the `bird_move` data better than model *GS*. However, it is the shape of the global function that we are actually interested in here, as models *S* and *I* cannot be used to predict the concentration-uptake relationship for plants that are not part of the training set, or the average migration path for birds. The same consideration holds when choosing between model *GS* and *GI*: while model *GI* fits the `CO2` data better than model *GS* (as measured by AIC), model *GS* can be used to simulate functional variation for unobserved group levels, whereas this is not possible within the framework of model *GI*. The next section works through two examples to show how to choose between different models, and section V discusses these and other model fitting issues in more depth.
 
 It also is important to recognize that AIC, like any function of the data, is a random variable and should be expected to have some sampling error [@forster_aic_2011]. In cases when the goal is to select the model that has the best predictive ability, we recommend holding some fraction of the data out prior to the analysis and comparing how well different models fit that data or using $k$-fold cross validation as a more accurate guide to how well a given model may predict out of sample. 
 Predictive accuracy may also be substantially improved by averaging over multiple models [@dormann_model_2018]. 

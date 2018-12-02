@@ -42,10 +42,10 @@ global_trend = c("Shared (Global) trend", "No shared trend" )
 global_trend = factor(global_trend, levels =global_trend)
 indiv_trend = c("No group-level trends",
                 "Group-level trends\nsimilar smoothness\n(Shared penalty)",
-                "Group-level trends\ndifferent smoothness\n(Multiple penalties)")
+                "Group-level trends\ndifferent smoothness\n(Individual penalties)")
 
 models= as.data.frame(expand.grid(global_trend=global_trend, indiv_trend=indiv_trend))
-models$model_num = c("model G",NA,"model GS","model S","model GM","model M")
+models$model_num = c("model G",NA,"model GS","model S","model GI","model I")
 
 global_func = generate_smooth_func(x,n_funcs = 1,main_func_scale,total_amp)
 
