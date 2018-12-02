@@ -140,8 +140,8 @@ spline_basis_penalties$penalty_type = "Smoothness penalty"
 set.seed(6) #ensure we can reproduce this example
 coef_sample = rmvn(n = 1, mu = rep(0, times = k),V = 4*ginv(tp_basis$S[[1]]))
 
-#randomly draw the null space terms from a normal
-coef_sample[(k-1):k] = c(-0.1,0.12)  distribution
+#randomly draw the null space terms from a normal distribution
+coef_sample[(k-1):k] = c(-0.1,0.12)  
 random_basis = as.matrix(tp_basis_funcr[,1:6])%*%diag(coef_sample) 
 random_basis = as.data.frame(random_basis)
 names(random_basis) = names(tp_basis_funcr)[1:6]
