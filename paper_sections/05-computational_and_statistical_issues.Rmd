@@ -14,7 +14,7 @@ The variance of an estimator corresponds to how much that estimator would fluctu
 same population.
 These two properties tend to be traded off when fitting models.
 For instance, rather than estimating a population mean from data, we could simply use a predetermined fixed value regardless of the observed data[^mean_note].
-This estimate would have no variance (as it is always the same regardless of what the data look like) but would have high bias unless the true population mean happened to equal zero. 
+This estimate would have no variance (as it is always the same regardless of what the data look like) but would have high bias unless the true population mean happened to equal the fixed value we chose. 
 Penalization is useful because using a penalty term slightly increases model bias, but can substantially decrease variance [@efron_steins_1977].
 
 In GAMs, the bias-variance trade-off is managed by the terms of the penalty matrix, and equivalently random effect variances in HGLMs.
@@ -34,8 +34,8 @@ wiggly terms, or a mixture of these two, depending on the fitting criteria.
 #This code will generate the bias-variance tradeoff plot
 set.seed(1)
 
-#Calculate the numerical approximation of the 2nd derivative for a a function given x and y values 
-#Assumes a constant step size (delta) for x along its path.
+#Calculate the numerical approximation of the 2nd derivative for a a function
+#given x and y values. Assumes a constant step size (delta) for x along its path.
 calc_2nd_deriv = function(x,y){
   deriv_val = (lag(y) + lead(y) - 2*y)/(x-lag(x))^2
   deriv_val
@@ -56,14 +56,16 @@ mod1 = bam(y~s(x,k=30,grp, bs="fs"), data=dat)
 mod2 = bam(y~s(x,k=30,by=grp)+s(grp,bs="re"), data=dat)
 
 #Extract fitted values for each model for all the test data
-overfit_predict_data = crossing(x = seq(0,2*pi,length=500), freq = freq_vals)%>%
+overfit_predict_data = crossing(x = seq(0,2*pi,length=500), 
+                                freq = freq_vals)%>%
   mutate(grp = paste("frequency = ",freq,sep= ""),
          grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")),
          y = sin(freq*x))%>%
   mutate(fit1 = as.numeric(predict(mod1,newdata = .,type = "response")),
          fit2 = as.numeric(predict(mod2,newdata = .,type="response")))
 
-#turn this into long-format data for plotting, and to make it easier to calculate derivatives
+#turn this into long-format data for plotting, and to make it easier to
+#calculate derivatives
 overfit_predict_data_long = overfit_predict_data %>%
   gather(model, value, y, fit1, fit2)%>%
   mutate(model = recode(model, y = "true value",fit1 = "model 4 fit",
@@ -71,15 +73,17 @@ overfit_predict_data_long = overfit_predict_data %>%
          model = factor(model, levels=  c("true value","model 4 fit",
                                           "model 5 fit")))
 
-#estimate 2nd derivatives of each curve, then for each curve calculate the sum of
-#squared 2nd derivatives of the true curve and the predictions for both models.
+#estimate 2nd derivatives of each curve, then for each curve calculate the sum
+#of squared 2nd derivatives of the true curve and the predictions for both
+#models.
 deriv_est_data = overfit_predict_data%>%
   group_by(grp)%>%
   arrange(grp, x)%>%
   mutate(fit1_deriv = calc_2nd_deriv(x,fit1),
          fit2_deriv = calc_2nd_deriv(x,fit2))%>%
-  summarize(freq = freq[1], fit1_int = sum(fit1_deriv^2*(x-lag(x)),na.rm = T),
-            fit2_int = sum(fit2_deriv^2*(x-lag(x)),na.rm = T))%>%
+  summarize(freq = freq[1], fit1_int = sum(fit1_deriv^2*(x-lag(x)),
+                                           na.rm = TRUE),
+            fit2_int = sum(fit2_deriv^2*(x-lag(x)),na.rm = TRUE))%>%
   ungroup()%>%
   mutate(sqr_2nd_deriv = -freq^3*(sin(4*pi*freq)-4*pi*freq)/4)%>%
   gather(key=model,value = obs_sqr_deriv,fit1_int,fit2_int)%>%
@@ -89,7 +93,9 @@ deriv_est_data = overfit_predict_data%>%
                                    "model 5 fit")))
 
 #The derivative plots
-deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv, y= obs_sqr_deriv,color= model))+
+deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv, 
+                                              y= obs_sqr_deriv,
+                                              color= model))+
   geom_point()+
   scale_y_log10("Estimated wiggliness\nof fitted curves")+
   scale_x_log10("Wiggliness of true curve")+
@@ -99,7 +105,8 @@ deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv, y= obs_sqr_deriv,
 
 fit_colors = c("black",RColorBrewer::brewer.pal(3, "Set1")[1:2])
 
-overfit_vis_plot = ggplot(data=overfit_predict_data_long,aes(x=x,y= value,color=model))+
+overfit_vis_plot = ggplot(data=overfit_predict_data_long,
+                          aes(x=x,y= value,color=model))+
   geom_line()+
   scale_color_manual(values=fit_colors)+
   facet_grid(.~grp)+
@@ -119,7 +126,7 @@ This implies that assuming equal smoothness will result in underestimating
 the true smoothness of low-variability terms, and thus lead to more variable
 estimates of these terms.
 If this is a potential issue, we recommend fitting both models 4 and 5 and using standard model evaluation criteria (e.g., AIC) to determine if there is evidence for among-group variability in smoothness.
-For instance, the AIC for model 4 fit to this data is `r round(AIC(mod1))`, whereas it is `r round(AIC(mod2))` for model 5, implying a substantial improvement in fit by allowing smoothness to vary.
+For instance, the AIC for model 4 fit to this data is `r round(AIC(mod1))`, whereas it is `r round(AIC(mod2))` for model 5, implying a improvement in fit by allowing smoothness to vary.
 However, it may be the case that there are too few data points per group to estimate separate smoothness levels, in which case model 2 or model 4 may still be the better option even in the face of varying smoothness.
 
 The ideal case would be to assume that among-group penalties follow their own distribution (estimated from the data), to allow variation in smoothness while still getting the benefit of pooling information on smoothness between groups.
@@ -149,13 +156,13 @@ The choice to include a global term should be made based on scientific considera
 
 ## Complexity-computation trade-offs
 
-The more flexible a model is, the larger an effective parameter space any fitting software has to search. It can be surprisingly easy to use massive computational resources trying to fit models to even small datasets. While we typically want to select models based on their fit and our inferential goals, computing resources can often act as an effective upper bound on model complexity. For a given data set, assuming a fixed family and link function, the time taken to estimate an HGAM will depend (roughly) on four factors: *(i)* the number of basis functions to be estimated, *(ii)* the number of smoothing parameters to be estimated, *(iii)* whether the model needs to estimate both a global smoother and groupwise smoothers, and *(iv)* the algorithm and fitting criteria used to estimate parameters.
+The more flexible a model is, the larger an effective parameter space any fitting software has to search. It can be surprisingly easy to use massive computational resources trying to fit models to even small datasets. While we typically want to select models based on their fit and our inferential goals, computing resources can often act as an effective upper bound on model complexity. For a given data set, assuming a fixed family and link function, the time taken to estimate an HGAM will depend (roughly) on four factors: *(i)* the number of coefficients to be estimated (and thus the number of basis functions chosen), *(ii)* the number of smoothing parameters to be estimated, *(iii)* whether the model needs to estimate both a global smoother and groupwise smoothers, and *(iv)* the algorithm and fitting criteria used to estimate parameters.
 
-The most straightforward factor that will affect the amount of computational resources is the number of parameters in the model. Adding group-level smoothers (moving from model 1 to 2-5) means that there will be more regression parameters to estimate. For a dataset with $n_g$ different groups and $n$ data, fitting a model with just a global smoother, `y~s(x,k=k)` will require $k$ coefficients, and takes $\mathcal{O}(nk^2)$ operations to evaluate.  Fitting the same data using a group-level smoother (model 4, `y~s(x,fac,bs="fs",k=k)`) will require $\mathcal{O}(nk^2g^2)$ operations to evaluate.  In effect, adding a group-level smoother will increase computational cost by an order of the number of groups squared. The effect of this is visible in the examples we fit in section III.  Table \ref{tab:comp_time_kable} compares the relative time it takes to compute model 1 versus the other models.
+The most straightforward factor that will affect the amount of computational resources is the number of parameters in the model. Adding group-level smoothers (moving from model 1 to 2-5) means that there will be more regression parameters to estimate. For a dataset with $g$ different groups and $n$ data points, fitting a model with just a global smoother, `y~s(x,k=k)` will require $k$ coefficients, and takes $\mathcal{O}(nk^2)$ operations to evaluate.  Fitting the same data using a group-level smoother (model 4, `y~s(x,fac,bs="fs",k=k)`) will require $\mathcal{O}(nk^2g^2)$ operations to evaluate.  In effect, adding a group-level smoother will increase computational cost by an order of the number of groups squared. The effect of this is visible in the examples we fit in section III.  Table \ref{tab:comp_time_kable} compares the relative time it takes to compute model 1 versus the other models.
 
 One way to deal with this issue would be to reduce the number of basis functions used when fitting group-level smoothers when the number of groups is large, limiting the flexibility of the model. It can also make sense to use more computationally-efficient basis functions when fitting large data sets, such as P-splines [@wood_p_splines_2017] or cubic splines.  Thin plate splines entail greater computational costs [@wood_generalized_2017].
 
-Including a global smoother (models 2 and 3 compared to models 4 and 5) will not generally substantially affect the number of coefficients that need to be estimate (Table \ref{tab:comp_time_kable}).
+Including a global smoother (models 2 and 3 compared to models 4 and 5) will not generally substantially affect the number of coefficients that need to be estimated (Table \ref{tab:comp_time_kable}).
 Adding a global term will add at most `k` extra terms.
 It can be substantially less than that, as **mgcv** drops basis functions from co-linear smoothers to ensure that the model matrix is full rank.
 
@@ -164,11 +171,13 @@ This means that models 2 and 4 will generally be substantially faster than 3 and
 
 
 ```{r comp_calc, echo=FALSE,  fig.width=4, fig.height=6, message=FALSE, warning=FALSE, cache=TRUE}
-#Note: this code takes quite a long time to run! It's fitting all 10 models.
-#Run once if possible, then rely on the cached code. There's a reason it's split off from the rest of the chunks of code.
+#Note: this code takes quite a long time to run! It's fitting all 10 models. Run
+#once if possible, then rely on the cached code. There's a reason it's split off
+#from the rest of the chunks of code.
 
-#This function extracts the number of penalties used in a model. For Gamma and Gaussian
-#families, you need to remove the penalty (i.e. variance) associated with the scale term
+#This function extracts the number of penalties used in a model. For Gamma and
+#Gaussian families, you need to remove the penalty (i.e. variance) associated
+#with the scale term
 get_n_pen  = function(model) {
   family = model$family[[1]]
   if(family %in% c("Gamma","gaussian")){
@@ -188,40 +197,56 @@ get_n_out_iter = function(model) model$iter
 
 #combine results into a single table
 comp_resources = crossing(model_number = c("1","2","3","4","5"),
-                       data_source = factor(c("CO2","bird_move"),
-                                     levels = c("CO2","bird_move")),
-                       time = 0, n_smooths = 0,
-                       n_coef = 0)
+                          data_source = factor(c("CO2","bird_move"),
+                                               levels = c("CO2","bird_move")),
+                          time = 0, n_smooths = 0,
+                          n_coef = 0)
 
 
 #Fit each model to the example data sets, and calculate run time for them
-comp_resources[1,"time"] = system.time(CO2_mod1 <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+s(Plant_uo, k =12,  bs="re"),
-                                                    data= CO2,method="REML",
-                                                    control = list(keepData=TRUE)))[3]
+comp_resources[1,"time"] = system.time(
+  CO2_mod1 <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
+                                s(Plant_uo, k =12,  bs="re"),
+                  data= CO2,
+                  method="REML",
+                  control = list(keepData=TRUE))
+  )[3]
 
-comp_resources[2,"time"] = system.time(bird_mod1 <- gam(count ~ te(week,latitude, bs= c("cc", "tp"), k=c(10,10)),
-                                                     data= bird_move, method="REML", family= poisson,
-                                                     control = list(keepData=TRUE)))[3]
+comp_resources[2,"time"] = system.time(
+  bird_mod1 <- gam(count ~ te(week,latitude, bs= c("cc", "tp"), k=c(10,10)),
+                   data= bird_move, 
+                   method="REML", 
+                   family= poisson,
+                   control = list(keepData=TRUE))
+  )[3]
 
-comp_resources[3,"time"] = system.time(CO2_mod2 <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
-                                                       s(log(conc), Plant_uo, k=5, bs="fs",m=1),
-                                                     data= CO2,method="REML",
-                                                     control = list(keepData=TRUE)))[3]
+comp_resources[3,"time"] = system.time(
+  CO2_mod2 <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
+                                s(log(conc), Plant_uo, k=5, bs="fs",m=1),
+                  data= CO2,
+                  method="REML",
+                  control = list(keepData=TRUE))
+  )[3]
 
 
-comp_resources[4,"time"] = system.time(bird_mod2 <- gam(count ~ te(week,latitude, bs= c("cc", "tp"),
-                                                                 k=c(10,10),m=c(2,2))+
-                                                        te(week,latitude,species, bs= c("cc", "tp","re"),
-                                                           k=c(10,10,6),m = c(1,1,1)),
-                                                      data= bird_move, method="REML", family= poisson,
-                                                      control = list(keepData=TRUE)))[3]
+comp_resources[4,"time"] = system.time(
+  bird_mod2 <- gam(count ~ te(week,latitude, bs= c("cc", "tp"),
+                              k=c(10,10),m=c(2,2))+
+                           te(week,latitude,species, bs= c("cc", "tp","re"),
+                              k=c(10,10,6),m = c(1,1,1)),
+                   data= bird_move, 
+                   method="REML", 
+                   family= poisson,
+                   control = list(keepData=TRUE))
+  )[3]
 
 
 comp_resources[5,"time"] = system.time(
   CO2_mod3 <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
-                    s(log(conc),by= Plant_uo, k =5,  bs="ts",m=1)+
-                    s(Plant_uo,bs="re",k=12),
-                  data= CO2,method="REML",
+                                s(log(conc),by= Plant_uo, k =5,  bs="ts",m=1)+
+                                s(Plant_uo,bs="re",k=12),
+                  data= CO2,
+                  method="REML",
                   control = list(keepData=TRUE)))[3]
 
 
@@ -229,37 +254,46 @@ comp_resources[5,"time"] = system.time(
 comp_resources[6,"time"] = system.time(
   bird_mod3 <- gam(count ~ te(week,latitude, bs= c("cc", "tp"),
                               k=c(10,10),m=c(2,2)) +
-                     te(week,latitude, bs= c("cc", "tp"),
-                        k=c(10,10),m=c(1,1),by= species),
-                   data= bird_move, method="REML", family= poisson,
+                           te(week,latitude, bs= c("cc", "tp"),
+                              k=c(10,10),m=c(1,1),by= species),
+                   data= bird_move, 
+                   method="REML", 
+                   family= poisson,
                    control = list(keepData=TRUE)))[3]
 
 
 comp_resources[7,"time"] = system.time(
   CO2_mod4 <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5,  bs="fs",m=2),
-                  data= CO2,method="REML",
-                  control = list(keepData=TRUE)))[3]
+                  data= CO2,
+                  method="REML",
+                  control = list(keepData=TRUE))
+  )[3]
 
 
 comp_resources[8,"time"] = system.time(
   bird_mod4 <- gam(count ~ te(week,latitude,species, bs= c("cc", "tp","re"),
                               k=c(10,10,6),m = 2),
-                   data= bird_move, method="REML", family= poisson,
+                   data= bird_move, 
+                   method="REML", 
+                   family= poisson,
                    control = list(keepData=TRUE))
 )[3]
 
 
 comp_resources[9,"time"] = system.time(
-  CO2_mod5 <- gam(log(uptake) ~ s(log(conc),by= Plant_uo, k =5,  bs="tp",m=2)+
-                    s(Plant_uo,bs="re",k=12), data= CO2,method="REML",
+  CO2_mod5 <- gam(log(uptake) ~ s(log(conc),by= Plant_uo, k =5,  bs="tp",m=2) +
+                                s(Plant_uo,bs="re",k=12),
+                  data= CO2,
+                  method="REML",
                   control = list(keepData=TRUE))
-
 )[3]
 
 comp_resources[10,"time"] = system.time(
   bird_mod5 <- gam(count ~ te(week,latitude,by=species, bs= c("cc", "tp"),
                               k=c(10,10),m = 2),
-                   data= bird_move, method="REML", family= poisson,
+                   data= bird_move, 
+                   method="REML", 
+                   family= poisson,
                    control = list(keepData=TRUE))
 )[3]
 
@@ -268,7 +302,8 @@ comp_resources$model = list(CO2_mod1, bird_mod1, CO2_mod2, bird_mod2,
                             CO2_mod3, bird_mod3,CO2_mod4, bird_mod4,
                             CO2_mod5, bird_mod5)
 
-#Extract all of the information on computer time and resources needed for each model
+#Extract all of the information on computer time and resources needed for each
+#model
 comp_resources = comp_resources %>%
   group_by(model_number, data_source)%>%
   mutate(n_smooths = get_n_pen(model[[1]]),
@@ -289,16 +324,20 @@ comp_resources_table =comp_resources %>%
             `penalties` = n_smooths
             )%>%
   group_by(data_source) %>%
-  mutate(`relative time` = `relative time`/`relative time`[1],#scales processing time relative to model 1
-         `relative time` = ifelse(`relative time`<10, signif(`relative time`,1), signif(`relative time`, 2)) #rounds to illustrate differences in timing.
+  mutate(#scales processing time relative to model 1
+         `relative time` = `relative time`/`relative time`[1],
+         #rounds to illustrate differences in timing.
+         `relative time` = ifelse(`relative time`<10, 
+                                  signif(`relative time`,1), 
+                                  signif(`relative time`, 2)) 
          )%>%
   ungroup() %>%
   dplyr::select( - data_source)
 ```
 
 ```{r comp_time_kable, echo=FALSE, fig.width=4, fig.height=6, message=FALSE, warning=FALSE, cache=TRUE,purl=FALSE}
-kable(comp_resources_table,format ="latex", caption="Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model 1 takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smoothers is the total number of unique penalty values estimated by the model.", booktabs = T)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
-  kable_styling(full_width = F)%>%
+kable(comp_resources_table,format ="latex", caption="Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model 1 takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smoothers is the total number of unique penalty values estimated by the model.", booktabs = TRUE)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+  kable_styling(full_width = FALSE)%>%
   add_header_above(c(" " = 1," "=1, "# of terms"=2))%>%
   group_rows("A. CO2 data", 1,5)%>%
   group_rows("B. bird movement data", 6,10)
@@ -309,7 +348,7 @@ kable(comp_resources_table,format ="latex", caption="Relative computational time
 
 When fitting models with large numbers of groups, it is often possible to speed up computation substantially by using one of the alternative fitting routines available through **mgcv**.
 
-The first option is the funcion `bam()`, this requires the least changes to existing code written using the `gam()` function. `bam()` is designed to improve  performance when fitting large data sets via two mechanisms. First, it saves on memory needed to compute a given model by using a random subset of the data to calculate the basis functions. It then blocks the data and updates model fit within each block [@wood_generalized_2015]. While this is primarily designed to reduce memory usage, it can also substantially reduce computation time. Second, when using `bam()`'s default fREML ("Fast REML") method, you can use the `discrete=TRUE` option: this first bins continuous covariates into a smaller number of discrete values before estimating the model, substantially reducing the amount of computation needed (@Wood2017-iy; see `?mgcv::bam` for more details). Setting up models 1-5 in `bam()` uses the same code as we have previously covered;
+The first option is the function `bam()`, this requires the least changes to existing code written using the `gam()` function. `bam()` is designed to improve  performance when fitting large data sets via two mechanisms. First, it saves on memory needed to compute a given model by using a random subset of the data to calculate the basis functions. It then blocks the data and updates model fit within each block [@wood_generalized_2015]. While this is primarily designed to reduce memory usage, it can also substantially reduce computation time. Second, when using `bam()`'s default fREML ("Fast REML") method, you can use the `discrete=TRUE` option: this first bins continuous covariates into a smaller number of discrete values before estimating the model, substantially reducing the amount of computation needed (@Wood2017-iy; see `?mgcv::bam` for more details). Setting up models 1-5 in `bam()` uses the same code as we have previously covered;
 the only difference is that you use the `bam()` instead of `gam()` function, and
 have the additional option of discretizing your covariates.
 
@@ -350,10 +389,11 @@ computations for `gam()` and `bam()` in detail.
 
 ```{r alt_model_timing_plot, echo=FALSE, fig.width=6, fig.height=4, message=FALSE, warning=FALSE, cache=TRUE, purl=TRUE, fig.cap = "\\label{fig:alt_timing}Elapsed time to estimate the same model using each of the four approaches. Each data set was generated with 20 observations per group using a unimodal global function and random group-specific functions consisting of an intercept, a quadratic term, and logistic trend for each group. Observation error was normally distributed. Models were fit using model 2: \\texttt{y~s(x, k=10, bs=\"cp\") + s(x,fac, k=10, bs=\"fs\", xt=list(bs=\"cp\"), m=1)}. All models were run on a single core."}
 
-#This code calculates the timing it takes to fit the same model (with varying amounts of data) for 
-#gam, bam, gamm, and gamm4. 
+#This code calculates the timing it takes to fit the same model (with varying
+#amounts of data) for gam, bam, gamm, and gamm4.
 
-set.seed = 1 # ensures that each new model parameter set is an extension of the old one
+# ensures that each new model parameter set is an extension of the old one
+set.seed = 1
 
 n_x = 20
 x = seq(-2,2, length=n_x)
@@ -373,7 +413,8 @@ model_coefs_all = data_frame(fac=fac_all)%>%
          x2  = rnorm(n(),0,0.2),
          logit_slope = rnorm(n(),0, 0.2))
 
-#for each number of observations, fit all the models and calculate run times for them
+#for each number of observations, fit all the models and calculate run times for
+#them
 for(i in 1:n_steps){
 
   n_g =  fit_timing_data$n_groups[i]
@@ -385,7 +426,8 @@ for(i in 1:n_steps){
     filter(fac %in% fac_current)%>%
     mutate(fac = factor(fac, levels= unique(fac)))
   
-  set.seed = 1 #ensures that each new data set is an extension of the old one
+  #ensures that each new data set is an extension of the old one
+  set.seed = 1 
   
   model_data = crossing(fac=fac_current, x=x)%>%
     left_join(model_coefs)%>%
@@ -393,29 +435,46 @@ for(i in 1:n_steps){
            indiv_func = int + x^2*x2 + 2*(exp(x*logit_slope)/(1+exp(x*logit_slope))-0.5),
            y = base_func + indiv_func + rnorm(n()))
   
-  fit_timing_data$gam[i] = system.time(gam(y~s(x,k=10, bs="cp") + s(x,fac, k=10, bs="fs", xt=list(bs="cp"), m=2),
-                             data= model_data, method="REML"))[3]
+  fit_timing_data$gam[i] = system.time(gam(y~s(x,k=10, bs="cp") + 
+                                             s(x,fac, k=10, bs="fs", 
+                                               xt=list(bs="cp"), m=2),
+                             data= model_data, method="REML")
+                             )[3]
   
-  fit_timing_data$`bam (discrete = FALSE)`[i] = system.time(bam(y~s(x,k=10, bs="cp") + s(x,fac, k=10, bs="fs", xt=list(bs="cp"),m=2),
-                             data= model_data, discrete = FALSE))[3]
+  fit_timing_data$`bam (discrete = FALSE)`[i] = system.time(
+    bam(y~s(x,k=10, bs="cp") + 
+          s(x,fac, k=10, bs="fs", xt=list(bs="cp"),m=2),
+        data= model_data, 
+        discrete = FALSE)
+    )[3]
   
-  fit_timing_data$`bam (discrete = TRUE)`[i] = system.time(bam(y~s(x,k=10, bs="cp") + s(x,fac, k=10, bs="fs", xt=list(bs="cp"),m=2),
-                                                                data= model_data,discrete=TRUE))[3]
+  fit_timing_data$`bam (discrete = TRUE)`[i] = system.time(
+    bam(y~s(x,k=10, bs="cp") + 
+          s(x,fac, k=10, bs="fs", xt=list(bs="cp"),m=2),
+        data= model_data,
+        discrete=TRUE)
+    )[3]
   
   
-  fit_timing_data$gamm[i] = system.time(gamm(y~s(x,k=10, bs="cp") + s(x,fac, k=10, bs="fs", xt=list(bs="cp"),m=2),
-                               data= model_data))[3]
+  fit_timing_data$gamm[i] = system.time(
+    gamm(y~s(x,k=10, bs="cp") + 
+           s(x,fac, k=10, bs="fs", xt=list(bs="cp"),m=2),
+         data= model_data)
+    )[3]
   
   
-  fit_timing_data$gamm4[i] = system.time(gamm4(y~s(x,k=10, bs="cp") + s(x,fac, k=10, bs="fs", xt=list(bs="cp"),m=2),
-                                 data= model_data))[3]
+  fit_timing_data$gamm4[i] = system.time(
+    gamm4(y~s(x,k=10, bs="cp") + 
+            s(x,fac, k=10, bs="fs", xt=list(bs="cp"),m=2),
+          data= model_data)
+    )[3]
 }
 
 #Combine all of the timing data into long format, ready for plotting
 fit_timing_long = fit_timing_data %>% 
   gather(model, timing, gam,`bam (discrete = FALSE)`, 
          `bam (discrete = TRUE)`, gamm, gamm4)%>%
-  mutate(model =factor(model, levels = c("gam",
+  mutate(model = factor(model, levels = c("gam",
                                          "bam (discrete = FALSE)",
                                          "bam (discrete = TRUE)",
                                          "gamm", 
@@ -425,18 +484,21 @@ fit_timing_long = fit_timing_data %>%
 timing_plot = ggplot(aes(n_groups, timing, color=model, linetype= model), 
                      data=fit_timing_long)+
   geom_line()+
-  geom_point()+
+  geom_point(show.legend = FALSE)+
   scale_color_manual(values = c("black", "#1b9e77","#1b9e77", "#d95f02", "#7570b3"))+
   scale_linetype_manual(values =c(1,1,2,1,1))+
-  scale_y_log10("run time (seconds)", breaks = c(0.1,1,10,100), labels = c("0.1", "1","10", "100"))+
-  scale_x_log10("number of groups", breaks = c(2,8,32,128))+
+  scale_y_log10("run time (seconds)", 
+                breaks = c(0.1,1,10,100), 
+                labels = c("0.1", "1","10", "100"))+
+  scale_x_log10("number of groups", 
+                breaks = c(2,8,32,128))+
   guides(color = guide_legend(nrow = 2, byrow = TRUE))+
   theme(legend.position = "top")
 timing_plot
 ```
 
 Both `gamm()` and `gamm4()` require a few changes to model code.
-First, there are a few limitations on how you are able to specify models 1-5 in both frameworks. Factor-smoother interaction (`bs="fs"`) basis setup works in both `gamm()` and `gamm4()`. However, as the **nlme** package does not support crossed random effects, it is not possible to have two factor-smoother interaction terms for the same grouping variable in `gamm()` models (e.g., `y~s(x1, grp, bs="fs")+s(x2, grp, bs="fs")`. These type of crossed random effects are allowed in **gamm4**. The use of `te()` and `ti()` terms are not possible in **gamm4**, due to
+First, there are a few limitations on how you are able to specify models 1-5 in both frameworks. Factor-smoother interaction (`bs="fs"`) basis setup works in both `gamm()` and `gamm4()`. However, as the **nlme** package does not support crossed random effects, it is not possible to have two factor-smoother interaction terms for the same grouping variable in `gamm()` models (e.g., `y~s(x1, grp, bs="fs")+s(x2, grp, bs="fs")`. These type of crossed random effects are allowed in **gamm4**. The use of `te()` terms are not possible in **gamm4**, due to
 issues with how random effects are specified in the **lme4** package, making it impossible to code models where multiple penalties apply to a single basis function. Instead, for multidimensional group-level smoothers, the alternate function `t2()` needs to be used to generate these terms, as it creates tensor products with only a single penalty for each basis function (see `?mgcv::t2` for details on these smoothers, and @wood_straightforward_2012 for the theoretical basis behind this type of tensor product). For instance, model 2 for the
 bird movement data we discussed in section III would need to be coded as:
 
@@ -474,7 +536,7 @@ to balance penalties between nested smooth terms (this is why nested random
 effects can be fitted). We have observed that **mgcv** still occasionally
 finds solutions with simulated data where the global term is over-smoothed.
 
-To avoid this issue, we recommend both careful choice of basis and setting model degrees of freedom so that groupwise terms are either slightly less flexible than the global term or have a smaller null space. In the examples in section III, we used smoothers with an unpenalized null space (standard thin plate splines) for the global smoother and ones with no null space for the groupwise terms[^gsnull]. When using thin plate splines, it may also help to use splines with a lower order of derivative penalized in the groupwise smoothers than the global smoothers, as lower-order "tp" splines have fewer basis functions in the null space. For example, we used `m=2` (penalizing squared second derivatives) for the global smoother, and `m=1` (penalizing squared first derivatives) for groupwise smoothers in models 2 and 3. Another option is to use a lower number of basis functions (`k`) for groupwise relative to global terms.  This will reduce the maximum flexibility possible in the groupwise terms. We do caution that these are just rules of thumb. In cases where an accurately estimated global smoother is essential, we recommend either fitting model 1 or using specialized functional regression software such as the *refund* package [@scheipl_functional_2014], which enforces constraints on the groupwise smoothers so that they always sum to zero at any given point (avoiding the collinearity issue). Also, see below for more information on functional regression.
+To avoid this issue, we recommend both careful choice of basis and setting model degrees of freedom so that groupwise terms are either slightly less flexible than the global term or have a smaller null space. In the examples in section III, we used smoothers with an unpenalized null space (standard thin plate splines) for the global smoother and ones with no null space for the groupwise terms[^gsnull]. When using thin plate splines, it may also help to use splines with a lower order of derivative penalized in the groupwise smoothers than the global smoothers, as lower-order "tp" splines have fewer basis functions in the null space. For example, we used `m=2` (penalizing squared second derivatives) for the global smoother, and `m=1` (penalizing squared first derivatives) for groupwise smoothers in models 2 and 3. Another option is to use a lower number of basis functions (`k`) for groupwise relative to global terms.  This will reduce the maximum flexibility possible in the groupwise terms. We do caution that these are just rules of thumb. In cases where an accurately estimated global smoother is essential, we recommend either fitting model 1 or using specialized functional regression software such as the `fosr` function in the *refund* package [@scheipl_functional_2014], which allows the user to enforce constraints on the groupwise smoothers so that they always sum to zero at any given point (avoiding the collinearity issue). Also, see below for more information on functional regression.
 
 [^gsnull]: For model 2 both the factor-smoother, and tensor products of random effect ("re") and other smooth terms do not have a penalized nullspace by construction (they are full rank), as noted above. For model 3 groupwise terms, we used basis types that had a penalty added to the nullspace, so called "shrinkage" methods: `bs="ts"`, `"cs"`, or `"ps"` have this property.
 
@@ -483,9 +545,8 @@ To avoid this issue, we recommend both careful choice of basis and setting model
 As mentioned in section II, the penalty matrix can also be treated as the inverse of a prior covariance matrix for model parameters $\boldsymbol{\beta}$.
 Intuitively, the basis functions and penalty we use form a prior (in the informal sense) on how we'd like our model term to behave. REML gives an empirical Bayes estimate of the smooth model [@laird_random-effects_1982], where terms in the
 null space of the smoother have improper, flat priors (i.e., any value for these terms are considered equally likely), any terms in the range space are treated as having a multivariate normal distribution, and the penalty terms are treated as having an improper flat prior (see
--@wood_generalized_2017 Section 5.8 for more details on this connection). The posterior Bayesian covariance matrix for model parameters can be extracted from any fitted `gam()` or `bam()` model with `vcov(model)`. This can in turn be used
-to generate samples from the posterior distribution of the model, as the
-Bayesian covariance matrix already incorporates the uncertainty from having to
+-@wood_generalized_2017 Section 5.8 for more details on this connection). The large-sample approximation of the posterior Bayesian covariance matrix  [@wood_confidence_2006] for model parameters can be extracted from any fitted `gam()` or `bam()` model with `vcov(model)`. This can in turn be used
+to generate samples from the posterior distribution of the model, as the approximate Bayesian covariance matrix already incorporates the uncertainty from having to
 estimate the covariance matrix into it [the standard confidence intervals used in
 **mgcv** are in fact Bayesian posterior credible intervals, which happen to have good frequentist properties; @wood_confidence_2006; @marra_coverage_2012]. Viewing our GAM as Bayesian is a somewhat unavoidable consequence of the equivalence of random effects and splines --- if we think that there is some true smoother that we wish to estimate, we must take a Bayesian view of our random effects (splines) as we do not think that the true smoother changes each time we collect data [@wood_generalized_2017, Section 5.8].
 
@@ -495,14 +556,17 @@ take a specified model formula and automatically convert it into code for the JA
 (or BUGS) Bayesian statistical packages, which can be adapted by the user to
 their own needs.
 
-Similarly, the **brms** package [@burkner_brms:_2017], which can fit complex statistical models using the Bayesian software **Stan** [@carpenter_stan:_2017] allows for the inclusion of **mgcv**-style smooth terms as part of the model specification. The **brms** package does not currently support `te()` tensor products or factor-smoother interaction terms, but does support `t2()`-style tensor products, which means all of the models fitted in this paper can be fit by **brms**.
+Similarly, the **brms** package [@burkner_brms:_2017], which can fit complex statistical models using the Bayesian software **Stan** [@carpenter_stan:_2017] allows for the inclusion of **mgcv**-style smooth terms as part of the model specification. The **brms** package does not currently support `te()` tensor products, but does support factor-smooth interactions and `t2()`-style tensor products, which means all of the models fitted in this paper can be fit by **brms**.
 
 ## Beyond HGAMs: functional regression
 
-The HGAMs we have discussed are actually a type of *functional regression*, which is an extension of standard regression models to cases where the outcome variable $y_i$ and/or the predictor variables $x_i$ for a given outcome are functions, rather than single variables [@ramsay_functional_2005]. HGAMs as we have described them are a form of function-on-scalar regression [@ramsay_functional_2005; @reiss_fast_2010], where we are trying to estimate a smooth function that varies between grouping levels.
+The HGAMs we have discussed are actually a type of *functional regression*, which is an extension of standard regression models to cases where the outcome variable $y_i$ and/or the predictor variables $x_i$ for a given outcome are functions, rather than single variables [@ramsay_functional_2005]. HGAMs as we have described them are a form of function-on-scalar regression [@ramsay_functional_2005; @reiss_fast_2010], where we are trying to estimate a smooth function that varies between grouping levels. Here the "scalar" refers to the grouping level, and the function is the smooth term that varies between levels; in contrast, a standard GAM is a type of scalar-on-scalar regression, as the goal is to use a set of single values (scalars) to estimate each (scalar) response. 
 
-We have deliberately focused our paper on these simpler classes of functional regression model, and chosen to use the term HGAM rather than functional regression, as we believe that this more clearly connects these models to modelling approaches already familiar to ecologists. Further, we consider the unit of analysis to still be individual observations, as compared to functional regression where the the unit of analysis is whole functions. For instance, we are interested in applications such as species distribution modelling, where the presence of a given species may be predicted from a sum of several species-specific functions of different environmental variables. However, there is an extensive literature dedicated to the estimation of more complex functional regression models for any interested reader (see @ramsay_functional_2005 for a good introduction, and @scheipl_generalized_2016 for more recent work in this field). The `refund` package [@reiss_fast_2010; @scheipl_functional_2014; @scheipl_generalized_2016] uses the statistical machinery of **mgcv** to fit these models, and should be usable by anyone familiar with **mgcv** modelling syntax.
+We have deliberately focused our paper on these simpler classes of functional regression model, and chosen to use the term HGAM rather than functional regression, as we believe that this more clearly connects these models to modelling approaches already familiar to ecologists. Further, we consider the unit of analysis to still be individual observations, as compared to functional regression where the unit of analysis is whole functions. For instance, we are interested in applications such as species distribution modelling, where the presence of a given species may be predicted from a sum of several species-specific functions of different environmental variables. 
+
+However, there is an extensive literature dedicated to the estimation of more complex functional regression models for any interested reader (see @morris_functional_2015 and  @greven_general_2017 for a good introduction and overview of more recent work in this field). The `refund` package [@greven_general_2017] uses the statistical machinery of **mgcv** to fit these models, and should be usable by anyone familiar with **mgcv** modelling syntax.
 Functional regression is also a major area of study in Bayesian statistics (e.g., @kaufman_bayesian_2010).
+
 
 
 

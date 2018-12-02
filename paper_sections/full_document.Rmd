@@ -1,5 +1,5 @@
 ---
-title: "Hierarchical Generalized Additive Models: an introduction with mgcv"
+title: "Hierarchical Generalized Additive Models in ecology: an introduction with mgcv"
 header-includes:
   - \usepackage{lineno}
     \usepackage{placeins}
@@ -63,7 +63,7 @@ HGLMs and GAMs, explain how to model different assumptions about the degree of
 inter-group variability in functional response, and show how HGAMs can be readily fitted
 using existing GAM software, the mgcv package in R. We also discuss computational
 and statistical issues with fitting these models, and demonstrate how to fit HGAMs
-on example data.
+on example data. 
 
 ```{r child = '01-intro.Rmd'}
 ```
@@ -96,7 +96,7 @@ The authors would like to thank Carly Ziter, Tiago Marques, Jake Walsh, Geoff Ev
 (RGPIN-2014-04032). DLM was partly funded by OPNAV N45 and the SURTASS LFA Settlement Agreement, managed by the U.S. Navy's Living Marine Resources program under Contract No. N39430-17-C-1982.
 NMR was partially funded by the USAID PREDICT-2 program.
 
-All authors contributed to developing the intial idea for this paper, and to writing and editing the manuscript. Author order after the first author was chosen using the code:
+All authors contributed to developing the initial idea for this paper, and to writing and editing the manuscript. Author order after the first author was chosen using the code:
 
 ```{r eval=FALSE,echo=TRUE, purl=FALSE}
 set.seed(11)
