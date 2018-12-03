@@ -11,7 +11,7 @@ md: paper_sections/01-intro.Rmd paper_sections/02-gams.Rmd paper_sections/03-hie
 fig: figures/temp_growth_example.pdf figures/alternate_models.png 
 				R --vanilla --slave -e "source('code/alternate_models.R')"
 
-tex: paper_sections/bibliography.bib paper_sections/peerj.csl paper_sections/author_info.sty
+tex: paper_sections/bibliography.bib paper_sections/peerj.csl paper_sections/preamble.sty
 
 main: paper_sections/full_document.Rmd
 				R --vanilla --slave -e "rmarkdown::render('paper_sections/full_document.Rmd',output_file = 'full_document.pdf')"
