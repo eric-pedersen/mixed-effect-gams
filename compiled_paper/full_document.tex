@@ -24,7 +24,7 @@
 \usepackage[left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm,headheight=12pt,letterpaper]{geometry}
 \usepackage{hyperref}
 \hypersetup{unicode=true,
-            pdftitle={Hierarchical Generalized Additive Models: an introduction with mgcv},
+            pdftitle={Hierarchical Generalized Additive Models in ecology: an introduction with mgcv},
             pdfborder={0 0 0},
             breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
@@ -102,12 +102,30 @@
 \def\footnote{\protect\rmarkdownfootnote}
 
 
-  \title{Hierarchical Generalized Additive Models: an introduction with mgcv}
+  \title{Hierarchical Generalized Additive Models in ecology: an introduction
+with mgcv}
     \author{}
     \date{}
   
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage[table]{xcolor}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{lineno}
+\usepackage{placeins}
 \usepackage{authblk}
 
+\linenumbers
 
 \author[1,2,*]{Eric J. Pedersen}
 \author[3,4]{David L. Miller}
@@ -169,14 +187,15 @@ At first glance, GAMs and HGLMs are very different tools used to solve
 different problems. GAMs are used to estimate smooth functional
 relationships between predictor variables and the response. HGLMs, on
 the other hand, are used to estimate linear relationships between
-predictor variables and response, but impose a structure where
-predictors are organized into groups (often referred to as ``blocks'')
-and the relationships between predictor and response may differ between
-those groups. Either the slope or intercept, or both, may be subject to
-grouping. A typical example of HGLM use might be to include
-site-specific effects in a model of population counts, or to model
-individual level heterogeneity in a study with repeated observations of
-multiple individuals.
+predictor variables and response (although nonlinear relationships can
+also be modeled through quadratic terms or other transformations of the
+predictor variables), but impose a structure where predictors are
+organized into groups (often referred to as ``blocks'') and the
+relationships between predictor and response may vary across groups.
+Either the slope or intercept, or both, may be subject to grouping. A
+typical example of HGLM use might be to include site-specific effects in
+a model of population counts, or to model individual level heterogeneity
+in a study with repeated observations of multiple individuals.
 
 However, the connection between HGLMs and GAMs is quite deep, both
 conceptually and mathematically (Verbyla et al., 1999). HGLMs and GAMs
@@ -289,21 +308,21 @@ appropriate complexity of each smoother. For each smoother, one or more
 basis functions, is pre- and post-multiplied by the parameter vector
 \(\boldsymbol{\beta}\) to calculate the penalty
 \((\boldsymbol{\beta}^T \mathbf{S} \boldsymbol{\beta})\). A penalty term
-is then added to the model likelihood \(L\), controlling the trade-off
-via a \emph{smoothing parameter} (\(\lambda\)). The penalized likelihood
-used to fit the model is thus: \[
+is then added to the model log-likelihood \(L\), controlling the
+trade-off via a \emph{smoothing parameter} (\(\lambda\)). The penalized
+log-likelihood used to fit the model is thus: \[
 L - \boldsymbol{\lambda} \boldsymbol{\beta}^T \mathbf{S} \boldsymbol{\beta}
 \]
 
 Figure \ref{fig:smoothing_effect} shows an example of how different
-choices of the smoothing parameter (\(\lambda\)) effect the shape of the
+choices of the smoothing parameter (\(\lambda\)) affect the shape of the
 resulting smoother. Data (points) were generated from the blue function
-and noise added to them. In the left plot \(\lambda\) was estimated
-using Restricted Maximum Likelihood (REML) to give a good fit to the
-data, in the middle plot \(\lambda\) was set to zero, so the penalty has
-no effect and the function interpolates the data, the right plot shows
-when \(\lambda\) is set to a very large value, so the penalty removes
-all terms that have any wiggliness, giving a straight line.
+and noise added to them. In the left plot \(\lambda\) was selected using
+Restricted Maximum Likelihood (REML) to give a good fit to the data, in
+the middle plot \(\lambda\) was set to zero, so the penalty has no
+effect and the function interpolates the data, the right plot shows when
+\(\lambda\) is set to a very large value, so the penalty removes all
+terms that have any wiggliness, giving a straight line.
 
 To measure the complexity of a penalized smooth terms we use the
 \emph{effective degrees of freedom} (EDF), which at a maximum is the
@@ -324,7 +343,7 @@ determine if \(k\) has been set too low.
 \end{figure}
 
 Random effects are also ``smooths'' in this framework. In this case, the
-penalty matrix is the inverse of the covariance matrix of the basis
+penalty matrix is the inverse of the correlation matrix of the basis
 function coefficients (Kimeldorf \& Wahba, 1970; Wood, 2017a). To
 include a simple single-level random effect to account for variation in
 group means (intercepts) there will be one basis function for each level
@@ -356,21 +375,22 @@ smoothers: thin plate regression splines, cyclic cubic smoothers, and
 random effects.
 
 Thin plate regression splines (TPRS; Wood, 2003), are a general purpose
-spline basis which can be use for problems in any number of dimensions,
+spline basis which can be used for problems in any number of dimensions,
 provided one can assume that the amount of smoothing in any of the
 covariates is the same (so called isotropy or rotational invariance).
 TPRS, like many splines, use a penalty matrix made up of terms based on
-the the squared derivatives of basis functions across their range.
+the the integral of the squared derivatives of basis functions across
+their range (see Wood (2017a) page 216 for details on this penalty).
 Models that overfit the data will tend to have large derivatives, so
 this penalization reduces wiggliness. We will refer to the order of
-penalized derivative as \(m\). Typically, TPRS are second-order
-(\(m=2\)), meaning that the penalty is proportionate to the squared
-second derivative. However, TPRS may be of lower order (\(m=1\),
-penalizing squared first derivatives), or higher order (\(m > 2\),
-penalizing squared higher order derivatives). We will see in section III
-how lower-order TPRS smoothers are useful in fitting HGAMs. Example
-basis functions and penalty matrix \(\mathbf{S}\) for a \(m=2\) TPRS
-with six basis functions for evenly spaced data are shown in figure
+penalized derivatives as \(m\). Typically, TPRS are second-order
+(\(m=2\)), meaning that the penalty is proportionate to the integral of
+the squared second derivative. However, TPRS may be of lower order
+(\(m=1\), penalizing squared first derivatives), or higher order
+(\(m > 2\), penalizing squared higher order derivatives). We will see in
+section III how lower-order TPRS smoothers are useful in fitting HGAMs.
+Example basis functions and penalty matrix \(\mathbf{S}\) for a \(m=2\)
+TPRS with six basis functions for evenly spaced data are shown in figure
 \ref{fig:basis_example}.
 
 Cyclic cubic smoothers are another smoother that penalizes the squared
@@ -400,7 +420,7 @@ useful later in section III, where we use random effect smoothers as one
 of the components of a HGAM.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/basis_function_examples-1} \caption{\label{fig:basis_example}a) Examples of the basis functions associated with a six basis function thin plate spline (m=2), calculated for data, $x$, spread evenly between $x=0$ and $x=1$. Each line represents a single basis function. b) The smoothing  penalty matrix for the thin plate smoother. Red entries indicate positive values and blue indicate negative values.  For example, functions F3 and F4 would have the greatest proportionate effect on the total penalty (as they have the largest values on the diagonal), whereas function F5 and F6 would not contribute to the wiggliness penalty at all (all the values in the 5th and 6th row and column of the penalty matrix are zero). This means these functions are in the null space of this basis, and are treated as completely smooth. c) An example of how the basis functions add up to create a single smooth function. Thin coloured lines represent each basis function multiplied by a coefficient, and the solid black line is the sum of those basis functions.}\label{fig:basis_function_examples}
+\includegraphics[width=\linewidth]{../figures/basis_function_examples-1} \caption{\label{fig:basis_example}a) Examples of the basis functions associated with a six basis function thin plate spline (m=2), calculated for data, $x$, spread evenly between $x=0$ and $x=1$. Each line represents a single basis function. b) The smoothing  penalty matrix for the thin plate smoother. Red entries indicate positive values and blue indicate negative values.  For example, functions F3 and F4 would have the greatest proportionate effect on the total penalty (as they have the largest values on the diagonal), whereas function F5 and F6 would not contribute to the wiggliness penalty at all (all the values in the 5th and 6th row and column of the penalty matrix are zero). This means these functions are in the null space of the penalty matrix, and are treated as completely smooth. c) An example of how the basis functions add up to create a single smooth function. Thin coloured lines represent each basis function multiplied by a coefficient, and the solid black line is the sum of those basis functions.}\label{fig:basis_function_examples}
 \end{figure}
 
 \subsection{Interactions between smooth
@@ -408,7 +428,7 @@ terms}\label{interactions-between-smooth-terms}
 
 It is also possible to create interactions between covariates with
 different smoothers (or degrees of smoothness) assumed for each
-covariate, using \emph{tensor products}. For instance, if one wanted
+covariate, using \emph{tensor products}. For instance, if one wanted to
 estimate the interacting effects of temperature and time (in seconds) on
 some outcome, it would not make sense to use a two-dimensional TPRS
 smoother, as that would assume that a one degree change in temperature
@@ -421,8 +441,8 @@ smooth, as required for the data at hand.
 There are two approaches used in \textbf{mgcv} for generating tensor
 products. The first approach (Wood, 2006a) essentially creates an
 interaction of each pair of basis functions for each marginal term, and
-a penalty for each marginal term that penalizes the average average
-wiggliness in that term; in \textbf{mgcv}, these are created using the
+a penalty for each marginal term that penalizes the average wiggliness
+in that term; in \textbf{mgcv}, these are created using the
 \texttt{te()} function. The second approach (Wood, Scheipl \& Faraway,
 2013) separates each penalty into penalized (range space) and
 unpenalized components (null space; components that don't have
@@ -451,10 +471,10 @@ individuals may be nested within sample sites, sites are nested within
 forests, and forests within provinces. The depth of the nesting is
 limited by the fitting procedure and number of parameters to estimate.
 
-HGLMs are a highly flexible way to think about grouping in data; the
-groupings used in models often refer to the spatial or temporal scale of
-the data (McMahon \& Diez, 2007) though can be based on any useful
-grouping.
+HGLMs are a highly flexible way to think about grouping in ecological
+data; the groupings used in models often refer to the spatial or
+temporal scale of the data (McMahon \& Diez, 2007) though can be based
+on any useful grouping.
 
 We would like to be able to think about the groupings in our data in a
 similar way, even when the covariates in our model are related to the
@@ -522,7 +542,7 @@ number.}
 
 It is important to note that ``similar wiggliness'' and ``similar
 shape'' are two distinct concepts; functions can have very similar
-wiggliness but very different shapes. wiggliness measures how quickly a
+wiggliness but very different shapes. Wiggliness measures how quickly a
 function changes across its range, and it is easy to construct two
 functions that differ in shape but have the same wiggliness. For this
 paper, we consider two functions to have similar shape if the average
@@ -567,20 +587,19 @@ modified from the default version available with R, to recode the
 \texttt{Plant} variable as an unordered factor
 \texttt{Plant\_uo}\footnote{Note that \textbf{mgcv} requires that
   grouping or categorical variables be coded as factors in R; it will
-  will raise an error message if passed data coded as character. It is
-  also important to know whether the factor is coded as ordered or
-  unordered (see \texttt{?factor} for more details on this). This
-  matters when fitting groupwise smoothers using the \texttt{by=}
-  argument (as is used for fitting models 3 and 5, shown below). If the
-  factor is unordered, \textbf{mgcv} will set up a model with one
-  smoother for each grouping level. If the factor is ordered,
-  \textbf{mgcv} will set any basis functions for the first grouping
-  level to zero. In model 3 the ungrouped smoother will then correspond
-  to the first grouping level, rather than the average functional
-  response, and the group-specific smoothers will correspond to
-  deviations from the first group. In model 5, using an ordered factor
-  will result in the first group not having a smoother associated with
-  it at all.}.
+  raise an error message if passed data coded as characters. It is also
+  important to know whether the factor is coded as ordered or unordered
+  (see \texttt{?factor} for more details on this). This matters when
+  fitting groupwise smoothers using the \texttt{by=} argument (as is
+  used for fitting models 3 and 5, shown below). If the factor is
+  unordered, \textbf{mgcv} will set up a model with one smoother for
+  each grouping level. If the factor is ordered, \textbf{mgcv} will set
+  any basis functions for the first grouping level to zero. In model 3
+  the ungrouped smoother will then correspond to the first grouping
+  level, rather than the average functional response, and the
+  group-specific smoothers will correspond to deviations from the first
+  group. In model 5, using an ordered factor will result in the first
+  group not having a smoother associated with it at all.}.
 
 B. Data generated from a hypothetical study of bird movement along a
 migration corridor, sampled throughout the year (see supplemental code).
@@ -602,7 +621,7 @@ true model used to generate this data was model 2: a single global
 function plus species-specific deviations around that global function.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/vis_data-1} \caption{\label{fig:vis_data}Example data sets used throughout section III. a) Grass $\text{CO}\textsubscript{2}$ uptake versus $\text{CO}\textsubscript{2}$ concentration for 12 individual plants. Color and line linetype included to distinguish individual plant trends. b) Simulated data set of bird migration, with point size corresponding to weekly counts of 6 species along a latitudinal gradient (zeros excluded for clarity). }\label{fig:vis_data}
+\includegraphics[width=\linewidth]{../figures/vis_data-1} \caption{\label{fig:vis_data}Example data sets used throughout section III. a) Grass $\text{CO}\textsubscript{2}$ uptake versus $\text{CO}\textsubscript{2}$ concentration for 12 individual plants. Color and linetype included to distinguish individual plant trends. b) Simulated data set of bird migration, with point size corresponding to weekly counts of 6 species along a latitudinal gradient (zeros excluded for clarity). }\label{fig:vis_data}
 \end{figure}
 
 Throughout the examples we use Restricted Maximum Likelihood (REML) to
@@ -654,12 +673,12 @@ argument, and the maximum number of basis functions is specified by
 depending on the type of smoother chosen; here we use a tprs smoother
 (\texttt{bs="tp"}) for the concentration smoother, and set \texttt{k=5}
 as there are only 7 separate values of concentration measured, so the
-default k=10 (for tprs) would be too high; further, setting \texttt{k=5}
-saves on computational time (see section V). The random effect smoother
-(\texttt{bs="re"}) that we used for the \texttt{Plant\_uo} factor has a
-default \texttt{k} equal to the number of levels in the grouping
-variable (here, 12). We specified \texttt{k=12} just to make this
-connection apparent.
+default \texttt{k=10} (for tprs) would be too high; further, setting
+\texttt{k=5} saves on computational time (see section V). The random
+effect smoother (\texttt{bs="re"}) that we used for the
+\texttt{Plant\_uo} factor has a default \texttt{k} equal to the number
+of levels in the grouping variable (here, 12). We specified
+\texttt{k=12} just to make this connection apparent.
 
 \begin{figure}
 \centering
@@ -692,7 +711,7 @@ more details on how to generate these predictions).
 
 Examining these plots, we see that while functional responses among
 plants are similar, some patterns are not captured by this model. For
-instance,for plant Qc2, the model clearly underestimates CO2 uptake. A
+instance, for plant Qc2, the model clearly underestimates CO2 uptake. A
 model including individual differences in functional responses may
 better explain variation.
 
@@ -842,9 +861,9 @@ We illustrate this approach below on the bird migration data.
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{bird_mod2 <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{),}
-                            \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\KeywordTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{)) }\OperatorTok{+}
+                            \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\DecValTok{2}\NormalTok{) }\OperatorTok{+}
 \StringTok{                   }\KeywordTok{t2}\NormalTok{(week, latitude, species, }\DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{, }\StringTok{"re"}\NormalTok{),}
-                      \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{, }\DecValTok{6}\NormalTok{), }\DataTypeTok{m=}\KeywordTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{), }\DataTypeTok{full=}\OtherTok{TRUE}\NormalTok{),}
+                      \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{, }\DecValTok{6}\NormalTok{), }\DataTypeTok{m=}\DecValTok{2}\NormalTok{, }\DataTypeTok{full=}\OtherTok{TRUE}\NormalTok{),}
                  \DataTypeTok{data=}\NormalTok{bird_move, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{, }\DataTypeTok{family=}\StringTok{"poisson"}\NormalTok{, }
                  \DataTypeTok{knots =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{week =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{52}\NormalTok{)))}
 \end{Highlighting}
@@ -869,8 +888,9 @@ group-specific smoother to have its own smoothing parameter and hence
 its own level of wiggliness. This increases the computational cost of
 the model (as there are more smoothing parameters to estimate), and
 means that the only information shared between groups is through the
-global smoother. This is useful if different groups differ substantially
-in how wiggly they are.
+global smoother, the common error term, and through the random effect
+for group-level intercepts (if used). This is useful if different groups
+differ substantially in how wiggly they are.
 
 Fitting a separate smoother (with its own penalties) can be done in
 \textbf{mgcv} by using the \texttt{by} argument in the \texttt{s()} and
@@ -879,11 +899,11 @@ formula for this model as:
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{y }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(x, }\DataTypeTok{bs=}\StringTok{"tp"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{s}\NormalTok{(x, }\DataTypeTok{by=}\NormalTok{fac, }\DataTypeTok{m=}\DecValTok{1}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"ts"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{s}\NormalTok{(fac, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{)}\StringTok{`}\DataTypeTok{.}
+\NormalTok{y }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(x, }\DataTypeTok{bs=}\StringTok{"tp"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{s}\NormalTok{(x, }\DataTypeTok{by=}\NormalTok{fac, }\DataTypeTok{m=}\DecValTok{1}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"tp"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{s}\NormalTok{(fac, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
-Note three major differences here from how model 2 was specified:
+Note two major differences here from how model 2 was specified:
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -893,16 +913,6 @@ Note three major differences here from how model 2 was specified:
   \texttt{bs="re"} term), as group-specific intercepts are not
   incorporated into factor \texttt{by} variable smoothers (as would be
   the case with a factor smoother or a tensor product random effect).
-\item
-  We explicitly use a basis with a fully penalized null space for the
-  group-level smoother (\texttt{bs="ts"}, which is a tprs modified so
-  that the null space terms are also penalized; see
-  \texttt{?mgcv::smooth.construct.ts.smooth.spec} and Wood (2017a) for
-  details). The \texttt{by} method does not automatically penalize the
-  null space, so there is potential for collinearity between unpenalized
-  components of the global and group-level smoothers. Using \texttt{ts}
-  helps reduce this issue, as the only unpenalized null space terms will
-  occur in the global smoother.
 \item
   We specify \texttt{m=1} instead of \texttt{m=2} for the groupwise
   smoothers, which means the marginal TPRS basis for this term will
@@ -922,7 +932,7 @@ We modify the \texttt{CO2} model to follow this approach like so:
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{CO2_mod3 <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(}\KeywordTok{log}\NormalTok{(uptake) }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), }\DataTypeTok{k=}\DecValTok{5}\NormalTok{, }\DataTypeTok{m=}\DecValTok{2}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"tp"}\NormalTok{) }\OperatorTok{+}
-\StringTok{                  }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), }\DataTypeTok{by=}\NormalTok{Plant_uo, }\DataTypeTok{k=}\DecValTok{5}\NormalTok{, }\DataTypeTok{m=}\DecValTok{1}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"ts"}\NormalTok{) }\OperatorTok{+}
+\StringTok{                  }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), }\DataTypeTok{by=}\NormalTok{Plant_uo, }\DataTypeTok{k=}\DecValTok{5}\NormalTok{, }\DataTypeTok{m=}\DecValTok{1}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"tp"}\NormalTok{) }\OperatorTok{+}
 \StringTok{                  }\KeywordTok{s}\NormalTok{(Plant_uo, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{, }\DataTypeTok{k=}\DecValTok{12}\NormalTok{),}
                 \DataTypeTok{data=}\NormalTok{CO2, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{)}
 \end{Highlighting}
@@ -954,17 +964,19 @@ do with isotropic smoothers. We can see this with our bird model:
 \begin{Highlighting}[]
 \NormalTok{bird_mod3 <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\NormalTok{species }\OperatorTok{+}
 \StringTok{                   }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{),}
-                      \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\KeywordTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{)) }\OperatorTok{+}
-\StringTok{                   }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{by=}\NormalTok{species, }\DataTypeTok{bs=} \KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"ts"}\NormalTok{),}
-                      \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\KeywordTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{)),}
+                      \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\DecValTok{2}\NormalTok{) }\OperatorTok{+}
+\StringTok{                   }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{by=}\NormalTok{species, }\DataTypeTok{bs=} \KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{),}
+                      \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\DecValTok{1}\NormalTok{),}
                  \DataTypeTok{data=}\NormalTok{bird_move, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{, }\DataTypeTok{family=}\StringTok{"poisson"}\NormalTok{,}
                  \DataTypeTok{knots =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{week =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{52}\NormalTok{)))}
 \end{Highlighting}
 \end{Shaded}
 
-As above, here we used a TPRS shrinkage smoother (\texttt{bs="ts"}) for
-the latitude marginal effect to penalize the null space and avoid issues
-of collinearity between the global and groupwise smoother.
+As above, we have set (\texttt{m=1}) for the latitude marginal effect to
+avoid issues of collinearity between the global and groupwise smoother.
+Note that switching \texttt{m=1} to \texttt{m=2} does not have any
+effect on the marginal basis for \texttt{week}, where we are using a
+cyclic smoother instead of a tprs.
 
 The fitted model for \texttt{bird\_mod3} is visually indistinguishable
 from \texttt{bird\_mod2} (figure \ref{fig:bird_mod2}) so we do not
@@ -981,19 +993,21 @@ similarities in the shape of the functions.
 \paragraph{Model 4:}\label{model-4}
 
 Model 4 (shared smoothers) is simply model 2 without the global
-smoother: \texttt{y\textasciitilde{}s(x,\ fac,\ bs="fs")} or
-\texttt{y\textasciitilde{}te(x1,\ x2,\ fac,\ bs=c("tp",\ "tp",\ "re")}.
-This model assumes all groups have the same smoothness, but that the
-individual shapes of the smooth terms are not related. Here we just show
-how to code these models; plotting them works in the same way as for
-models 1-3 above, the plots for these datasets are very similar to the
-plots for model 2. This will not always be the case; if in a given study
-there are very few data points in each grouping level (relative to the
-strength of the functional relationship of interest), estimates from
-model 4 will typically be much more variable than from model 2, as there
-is no way for the model to share information on function shape between
-grouping levels without the global smoother. See section V on
-computational issues for more on how to choose between different models.
+smoother; this type of model takes the form:
+\texttt{y\textasciitilde{}s(x,\ fac,\ bs="fs")} or
+\texttt{y\textasciitilde{}te(x1,\ x2,\ fac,\ bs=c("tp",\ "tp",\ "re")}
+in \texttt{mgcv}. This model assumes all groups have the same
+smoothness, but that the individual shapes of the smooth terms are not
+related. Here we just show how to code these models; plotting them works
+in the same way as for models 1-3 above, the plots for these datasets
+are very similar to the plots for model 2. This will not always be the
+case; if in a given study there are very few data points in each
+grouping level (relative to the strength of the functional relationship
+of interest), estimates from model 4 will typically be much more
+variable than from model 2, as there is no way for the model to share
+information on function shape between grouping levels without the global
+smoother. See section V on computational issues for more on how to
+choose between different models.
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -1022,8 +1036,8 @@ very similar to model 3).
 
 
 \NormalTok{bird_mod5 <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\NormalTok{species }\OperatorTok{+}\StringTok{ }
-\StringTok{                   }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{by=}\NormalTok{species, }\DataTypeTok{bs=} \KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"ts"}\NormalTok{), }
-                      \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\KeywordTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{)),}
+\StringTok{                   }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{by=}\NormalTok{species, }\DataTypeTok{bs=} \KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{), }
+                      \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\DecValTok{2}\NormalTok{),}
                  \DataTypeTok{data=}\NormalTok{bird_move, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{, }\DataTypeTok{family=}\StringTok{"poisson"}\NormalTok{,}
                  \DataTypeTok{knots =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{week =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{52}\NormalTok{)))}
 \end{Highlighting}
@@ -1055,10 +1069,20 @@ variability for both the CO2 dataset and the \texttt{bird\_move} dataset
 \ref{tab:AIC_table_kable}A), there is relatively strong evidence that
 there is more inter-group variability in smoothness than model 2 allows,
 and weaker evidence that model 4 or 5 (separate smoothers for all
-plants) show the best fit. For the \texttt{bird\_move} dataset (Table
-\ref{tab:AIC_table_kable}B), model 2 (global smoother plus group-level
-smoothers with a shared penalty) fits the data best (which is good as we
-simulated the data from a model with this structure!)
+plants) show the best fit.
+
+For the \texttt{bird\_move} dataset (Table \ref{tab:AIC_table_kable}B),
+model 2 (global smoother plus group-level smoothers with a shared
+penalty) gives the best fit for all models including a global smooth
+(which is good as we simulated the data from a model with this
+structure!). However, model 4 (without a global term) still fits this
+data better than model 2 based on AIC. This highlights an issue with AIC
+for selecting between models with and without a global smooth: as it is
+possible to fully recreate the global term by just allowing each
+group-level smoother to have a similiar shape to one another (that is,
+the global term is totally concurve with the group-level smoothers; see
+section V) model selection criteria such as AIC may indicate that the
+extra parameters required to fit the global smoother are unnecessary.
 
 \begin{table}
 
@@ -1077,38 +1101,43 @@ Model & df & AIC & deltaAIC\\
 \hspace{1em}CO2\_mod5 & 56 & -220 & 0\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. bird\_move models}}\\
-\hspace{1em}bird\_mod1 & 51 & 3374 & 1819\\
-\hspace{1em}bird\_mod2 & 141 & 1560 & 6\\
-\hspace{1em}bird\_mod3 & 208 & 1680 & 125\\
-\hspace{1em}bird\_mod4 & 130 & 1555 & 0\\
-\hspace{1em}bird\_mod5 & 197 & 1635 & 81\\
+\hspace{1em}bird\_mod1 & 51 & 3374 & 1820\\
+\hspace{1em}bird\_mod2 & 140 & 1554 & 0\\
+\hspace{1em}bird\_mod3 & 208 & 1682 & 128\\
+\hspace{1em}bird\_mod4 & 130 & 1555 & 1\\
+\hspace{1em}bird\_mod5 & 200 & 1634 & 80\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-It is important to recognize that AIC, like any function of the data, is
-a random variable and should be expected to have some sampling error
-(Forster \& Sober, 2011). In cases when the goal is to select the model
-that has the best predictive ability, we recommend holding some fraction
-of the data out prior to the analysis and comparing how well different
-models fit that data or using \(k\)-fold cross validation as a more
-accurate guide to how well a given model may predict out of sample. We
-also strongly recommend not selecting models based purely on AIC.
-Instead, model selection should be based on expert subject knowledge
-about the system, computational time, and most importantly, the
-inferential goals of the study. For instance, while table
+Given this issue with selecting global terms, we strongly recommend not
+selecting models based purely on AIC. Instead, model selection should be
+based on expert subject knowledge about the system, computational time,
+and most importantly, the inferential goals of the study. Table
 \ref{tab:AIC_table_kable}A indicates that models 4 and 5 (which do not
-have a global function) fit the \texttt{CO2} data slightly better than
-models with a global function; however, it is the shape of the mean
+have a global function) fit the \texttt{CO2} data better than models
+with a global function, and that model 4 fits the \texttt{bird\_move}
+data better than model 2. However, it is the shape of the global
 function that we are actually interested in here, as models 4 and 5
 cannot be used to predict the concentration-uptake relationship for
-other plants. The same consideration holds when choosing between model 2
-and 3: while model 3 fits the \texttt{CO2} data better than model 2 (as
-measured by AIC), model 2 can be used to simulate functional variation
-for unobserved group levels, whereas this is not possible within the
-framework of model 3. The next section works through two examples to
-show how to choose between different models, and section V discusses
-these and other model fitting issues in more depth.
+plants that are not part of the training set, or the average migration
+path for birds. The same consideration holds when choosing between model
+2 and 3: while model 3 fits the \texttt{CO2} data better than model 2
+(as measured by AIC), model 2 can be used to simulate functional
+variation for unobserved group levels, whereas this is not possible
+within the framework of model 3. The next section works through two
+examples to show how to choose between different models, and section V
+discusses these and other model fitting issues in more depth.
+
+It also is important to recognize that AIC, like any function of the
+data, is a random variable and should be expected to have some sampling
+error (Forster \& Sober, 2011). In cases when the goal is to select the
+model that has the best predictive ability, we recommend holding some
+fraction of the data out prior to the analysis and comparing how well
+different models fit that data or using \(k\)-fold cross validation as a
+more accurate guide to how well a given model may predict out of sample.
+Predictive accuracy may also be substantially improved by averaging over
+multiple models (Dormann et al., 2018).
 
 \FloatBarrier
 
@@ -1145,27 +1174,27 @@ years to fit (train) models, and the odd years to test the fit.
 Each record consists of counts of a given zooplankton taxon taken from a
 subsample from a single vertical net tow, which was then scaled to
 account for the relative volume of subsample versus the whole net sample
-and the area of the net tow and rounded to 1000 give estimated
-population density per \(m^2\) for each taxon at each point in time in
-each sampled lake. As this meant that data were not counts, and observed
-densities spanned four orders of magnitude, we modelled density using a
-Gamma distribution with a log-link. For any net tow sample where a given
-taxon was not observed, we set that taxon's density to 1000 (the minimum
-possible sample size)\footnote{A more appropriate model for this data
-  would be to assume that density is \emph{left censored}, where 1000 is
-  treated as a threshold which the data may lie below, but it is not
-  possible to measure lower than this. However, \textbf{mgcv} does not
-  currently have a left-censored family. The \textbf{brms} package, for
-  Bayesian model fitting, can fit a left-censored Gamma distribution, so
-  it would be possible to fit this model using that software. We discuss
-  using HGAMs in \textbf{brms} in section V.}.
+and the area of the net tow and rounded to the nearest 1000 to give
+estimated population density per \(m^2\) for each taxon at each point in
+time in each sampled lake. As this meant that data were not counts, and
+observed densities spanned four orders of magnitude, we modelled density
+using a Gamma distribution with a log-link. For any net tow sample where
+a given taxon was not observed, we set that taxon's density to 1000 (the
+minimum possible sample size)\footnote{A more appropriate model for this
+  data would be to assume that density is \emph{left censored}, where
+  1000 is treated as a threshold which the data may lie below, but it is
+  not possible to measure lower than this. However, \textbf{mgcv} does
+  not currently have a left-censored family. The \textbf{brms} package,
+  for Bayesian model fitting, can fit a left-censored Gamma
+  distribution, so it would be possible to fit this model using that
+  software. We discuss using HGAMs in \textbf{brms} in section V.}.
 
 First, we demonstrate how to model community-level variability in
 seasonality, by regressing scaled density on day of year, with
 species-specific curves. As we are not interested here in average
 seasonal dynamics, we will focus on models 4 and 5 (if we wanted to
 estimate the seasonal dynamics for rarer species, adding a global smooth
-term might be useful, so we could could borrow information from the more
+term might be useful, so we could borrow information from the more
 common species). As the data are seasonal, we use cyclic smoothers as
 the basis for seasonal dynamics. Therefore we need to specify start and
 end points for our cycles using the \texttt{knots} argument to
@@ -1216,17 +1245,17 @@ to those in the held-out test data set.
 \end{Highlighting}
 \end{Shaded}
 
-At this stage of the analysis (prior to model-to-model comparisons), it
-is useful to determine if any of the fitted models adequately describe
-patterns in the data (i.e.~goodness of fit testing). The \textbf{mgcv}
-package provides tools to facilitate this process, using the
-\texttt{gam.check} function. This function creates a set of standard
-diagnostic plots: a QQ plot, a plot of response versus fitted values, a
-histogram of residuals, and a plot of residuals versus fitted values. It
-also conducts a test for each smooth term to determine if the number of
-degrees of freedom (\texttt{k}) for each smooth is adequate (see
-\texttt{?mgcv::check.k} for details on how that test works). The code
-for model 4 and 5 for the community zooplankton model is shown here:
+At this stage of the analysis (prior to model comparisons), it is useful
+to determine if any of the fitted models adequately describe patterns in
+the data (i.e.~goodness of fit testing). The \textbf{mgcv} package
+provides tools to facilitate this process, using the \texttt{gam.check}
+function. This function creates a set of standard diagnostic plots: a QQ
+plot, a plot of response versus fitted values, a histogram of residuals,
+and a plot of residuals versus fitted values. It also conducts a test
+for each smooth term to determine if the number of degrees of freedom
+(\texttt{k}) for each smooth is adequate (see \texttt{?mgcv::gam.check}
+for details on how that test works). The code for checking model 4 and 5
+for the community zooplankton model is given as:
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -1236,12 +1265,14 @@ for model 4 and 5 for the community zooplankton model is shown here:
 \end{Shaded}
 
 For the sake of brevity, and as fitted versus response plots are
-generally less useful for non-normally distributed data, we have plotted
-QQ plots and fitted-versus residual plots for model 5 (the results for
-model 4 are virtually indistinguishable to the naked eye). These plots
-(Figure \ref{fig:zoo_comm_diag_plot}) indicate that the Gamma
-distribution seems to fit the observed data well except at low values,
-where the deviance residuals are larger than predicted by the
+generally less useful for non-normally distributed data (as it can be
+difficult to visually assess if the observed data shows more
+heteroskedasticity than expected for a specified distribution) we have
+plotted QQ plots and fitted-versus residual plots for model 5; the
+results for model 4 are virtually indistinguishable to the naked eye.
+These plots (Figure \ref{fig:zoo_comm_diag_plot}) indicate that the
+Gamma distribution seems to fit the observed data well except at low
+values, where the deviance residuals are larger than predicted by the
 theoretical quantiles (Figure \ref{fig:zoo_comm_diag_plot} left). There
 also does not seem to be a pattern in the residual versus fitted values
 (Figure \ref{fig:zoo_comm_diag_plot} right), except for a line of
@@ -1249,22 +1280,33 @@ residuals at the lowest values, which correspond to all of those
 observations where a given taxon was absent from the sample. The
 \texttt{k.check} test shows that the default maximum degrees of freedom
 for the smoothers used in model 5 are sufficient for all species, as the
-p-value for the observed k-index (which measures pattern in the
+effective degrees of freedom (edf) for all estimated smoothers are well
+below their maximum possible value (\texttt{k\textquotesingle{}}), and
+the p-value for the observed k-index (which measures pattern in the
 residuals) is not significant:
 
-\begin{verbatim}
-##                                 k'   edf k-index p-value
-## s(day):taxonC. sphaericus        8  4.78    0.89    0.43
-## s(day):taxonCalanoid copepods    8  6.66    0.89    0.47
-## s(day):taxonCyclopoid copepods   8  5.31    0.89    0.45
-## s(day):taxonD. mendotae          8  6.95    0.89    0.48
-## s(day):taxonD. thomasi           8  6.57    0.89    0.46
-## s(day):taxonK. cochlearis        8  5.92    0.89    0.49
-## s(day):taxonL. siciloides        8  0.52    0.89    0.48
-## s(day):taxonM. edax              8  4.69    0.89    0.46
-## s(taxon)                         8  6.26      NA      NA
-## s(taxon,year_f)                152 51.73      NA      NA
-\end{verbatim}
+\begin{table}
+
+\caption{\label{tab:zoo_comm_check_k_kable}Results from running \texttt{k.check} on \texttt{zoo\_comm\_mod5}.}
+\centering
+\begin{tabular}[t]{lrrrr}
+\toprule
+  & k' & edf & k-index & p-value\\
+\midrule
+s(day):taxonC. sphaericus & 8 & 4.78 & 0.89 & 0.43\\
+s(day):taxonCalanoid copepods & 8 & 6.66 & 0.89 & 0.47\\
+s(day):taxonCyclopoid copepods & 8 & 5.31 & 0.89 & 0.45\\
+s(day):taxonD. mendotae & 8 & 6.95 & 0.89 & 0.48\\
+s(day):taxonD. thomasi & 8 & 6.57 & 0.89 & 0.46\\
+\addlinespace
+s(day):taxonK. cochlearis & 8 & 5.92 & 0.89 & 0.49\\
+s(day):taxonL. siciloides & 8 & 0.52 & 0.89 & 0.48\\
+s(day):taxonM. edax & 8 & 4.69 & 0.89 & 0.46\\
+s(taxon) & 8 & 6.26 & NA & NA\\
+s(taxon,year\_f) & 152 & 51.73 & NA & NA\\
+\bottomrule
+\end{tabular}
+\end{table}
 
 In this table, each row corresponds to a single smooth term,
 \texttt{k\textquotesingle{}} corresponds to the number of basis
@@ -1276,15 +1318,19 @@ smoother, the \texttt{k-index} is a measure of the remaining pattern in
 the residuals, and the p-value is calculated based on the distribution
 of the k-index after randomizing the order of the residuals. Note that
 there is no p-value for the random effects smoothers \texttt{s(taxon)}
-and \texttt{s(taxon,year\_f)} as the \texttt{k} value for this term is
-already set at its maximum.
+and \texttt{s(taxon,year\_f)} as the p-value is calculated from
+simulation-based tests for autocorrelation of the residuals. As
+\texttt{taxon} and \texttt{year\_f} are treated as simple random effects
+with no natural ordering, there is no meaningful way of checking for
+autocorrelation.
 
 \begin{figure}
 \centering
 \includegraphics{../figures/zoo_comm_diag-1.pdf}
-\caption{\label{fig:zoo_comm_diag_plot} Diagnostic plots for model 5.
-Top row: QQ plots plus the 1-1 line. Bottom row: deviance residuals
-versus fitted values (on the link scale).}
+\caption{\label{fig:zoo_comm_diag_plot} Diagnostic plots for model 5
+fitted to zooplankton community data in Lake Mendota. Top row: QQ plots
+plus the 1-1 line. Bottom row: deviance residuals versus fitted values
+(on the link scale).}
 \end{figure}
 
 Differences between models 4 (shared smoothness between taxa) and 5
@@ -1305,10 +1351,9 @@ simple model with only a species-specific intercept (Table
 \includegraphics{../figures/zoo_comm_plot-1.pdf}
 \caption{\label{fig:zoo_comp}Species-specific seasonal dynamics for the
 eight zooplankon species tracked in Lake Mendota. Black points indicate
-individual plankton observations (after log-transformation and centering
-and scaling). Lines indicate predicted average values for model 4
-(black) and model 5 (red). Ribbons indicate \(\pm\) 2 standard errors
-around the mean.}
+individual plankton observations. Lines indicate predicted average
+values for model 4 (black) and model 5 (red). Ribbons indicate \(\pm\) 2
+standard errors around the mean.}
 \end{figure}
 
 \begin{table}
@@ -1390,8 +1435,12 @@ shared smoother and lake-specific smoothers.
 We will exclude the \texttt{gam.check} diagnostic plots and results, as
 they do not indicate any issues with model fit. The AIC values indicate
 that both model 2 (1093.71) and 3 (1085.7) are better fits than model 1
-(1097.62), but models 3 fits somewhat better than model 2. There does
-not seem to be a large amount of inter-lake variability (the effective
+(1097.62), but models 3 fits somewhat better than model 2.\footnote{When
+  comparing models via AIC, we use the standard rule of thumb from
+  Burnham \& Anderson (1998), where models that differ by 2 units or
+  less from the lowest AIC model have substantial support, and those
+  differing by more than 4 units having less support.} There does not
+seem to be a large amount of inter-lake variability (the effective
 degrees of freedom per lake are low in models 2 \& 3). Plots for all
 three models (Figure \ref{fig:daph_smooth}) show that Mendota, Monona,
 and Kegonsa lakes are very close to the average and to one another for
@@ -1418,7 +1467,7 @@ lake-specific intercept and no intra-annual variability (Table
 
 \begin{table}
 
-\caption{\label{tab:zoo_daph_outofsample_kable}Out-of-sample predictive ability for model 1-3 applied to the \textit{D. mendotae} dataset. RMSE values represent the average squared difference between model predictions and observations for held-out data (zero predictive ability would correspond to a RMSE of one).}
+\caption{\label{tab:zoo_daph_outofsample_kable}Out-of-sample predictive ability for model 1-3 applied to the \textit{D. mendotae} dataset. RMSE values represent the average squared difference between model predictions and observations for held-out data.}
 \centering
 \begin{tabular}[t]{lllll}
 \toprule
@@ -1467,9 +1516,9 @@ observed data\footnote{While this example may seem contrived, this is
   equal to zero (and thus exclude it from a model).}. This estimate
 would have no variance (as it is always the same regardless of what the
 data look like) but would have high bias unless the true population mean
-happened to equal zero. Penalization is useful because using a penalty
-term slightly increases model bias, but can substantially decrease
-variance (Efron \& Morris, 1977).
+happened to equal the fixed value we chose. Penalization is useful
+because using a penalty term slightly increases model bias, but can
+substantially decrease variance (Efron \& Morris, 1977).
 
 In GAMs, the bias-variance trade-off is managed by the terms of the
 penalty matrix, and equivalently random effect variances in HGLMs.
@@ -1518,11 +1567,11 @@ terms. If this is a potential issue, we recommend fitting both models 4
 and 5 and using standard model evaluation criteria (e.g., AIC) to
 determine if there is evidence for among-group variability in
 smoothness. For instance, the AIC for model 4 fit to this data is -178,
-whereas it is -211 for model 5, implying a substantial improvement in
-fit by allowing smoothness to vary. However, it may be the case that
-there are too few data points per group to estimate separate smoothness
-levels, in which case model 2 or model 4 may still be the better option
-even in the face of varying smoothness.
+whereas it is -211 for model 5, implying a improvement in fit by
+allowing smoothness to vary. However, it may be the case that there are
+too few data points per group to estimate separate smoothness levels, in
+which case model 2 or model 4 may still be the better option even in the
+face of varying smoothness.
 
 The ideal case would be to assume that among-group penalties follow
 their own distribution (estimated from the data), to allow variation in
@@ -1580,17 +1629,18 @@ and our inferential goals, computing resources can often act as an
 effective upper bound on model complexity. For a given data set,
 assuming a fixed family and link function, the time taken to estimate an
 HGAM will depend (roughly) on four factors: \emph{(i)} the number of
-basis functions to be estimated, \emph{(ii)} the number of smoothing
-parameters to be estimated, \emph{(iii)} whether the model needs to
-estimate both a global smoother and groupwise smoothers, and \emph{(iv)}
-the algorithm and fitting criteria used to estimate parameters.
+coefficients to be estimated (and thus the number of basis functions
+chosen), \emph{(ii)} the number of smoothing parameters to be estimated,
+\emph{(iii)} whether the model needs to estimate both a global smoother
+and groupwise smoothers, and \emph{(iv)} the algorithm and fitting
+criteria used to estimate parameters.
 
 The most straightforward factor that will affect the amount of
 computational resources is the number of parameters in the model. Adding
 group-level smoothers (moving from model 1 to 2-5) means that there will
-be more regression parameters to estimate. For a dataset with \(n_g\)
-different groups and \(n\) data, fitting a model with just a global
-smoother, \texttt{y\textasciitilde{}s(x,k=k)} will require \(k\)
+be more regression parameters to estimate. For a dataset with \(g\)
+different groups and \(n\) data points, fitting a model with just a
+global smoother, \texttt{y\textasciitilde{}s(x,k=k)} will require \(k\)
 coefficients, and takes \(\mathcal{O}(nk^2)\) operations to evaluate.
 Fitting the same data using a group-level smoother (model 4,
 \texttt{y\textasciitilde{}s(x,fac,bs="fs",k=k)}) will require
@@ -1609,7 +1659,7 @@ plate splines entail greater computational costs (Wood, 2017a).
 
 Including a global smoother (models 2 and 3 compared to models 4 and 5)
 will not generally substantially affect the number of coefficients that
-need to be estimate (Table \ref{tab:comp_time_kable}). Adding a global
+need to be estimated (Table \ref{tab:comp_time_kable}). Adding a global
 term will add at most \texttt{k} extra terms. It can be substantially
 less than that, as \textbf{mgcv} drops basis functions from co-linear
 smoothers to ensure that the model matrix is full rank.
@@ -1640,17 +1690,17 @@ model & relative time & coefficients & penalties\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{A. CO2 data}}\\
 \hspace{1em}1 & 1 & 17 & 2\\
-\hspace{1em}2 & 21 & 65 & 3\\
-\hspace{1em}3 & 49 & 65 & 14\\
-\hspace{1em}4 & 16 & 61 & 3\\
-\hspace{1em}5 & 50 & 61 & 13\\
+\hspace{1em}2 & 7 & 65 & 3\\
+\hspace{1em}3 & 15 & 65 & 14\\
+\hspace{1em}4 & 6 & 61 & 3\\
+\hspace{1em}5 & 17 & 61 & 13\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. bird movement data}}\\
 \hspace{1em}1 & 1 & 90 & 2\\
-\hspace{1em}2 & 180 & 540 & 5\\
-\hspace{1em}3 & 390 & 624 & 14\\
-\hspace{1em}4 & 130 & 541 & 3\\
-\hspace{1em}5 & 72 & 535 & 12\\
+\hspace{1em}2 & 82 & 540 & 5\\
+\hspace{1em}3 & 180 & 624 & 14\\
+\hspace{1em}4 & 66 & 541 & 3\\
+\hspace{1em}5 & 35 & 535 & 12\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1663,7 +1713,7 @@ When fitting models with large numbers of groups, it is often possible
 to speed up computation substantially by using one of the alternative
 fitting routines available through \textbf{mgcv}.
 
-The first option is the funcion \texttt{bam()}, this requires the least
+The first option is the function \texttt{bam()}, this requires the least
 changes to existing code written using the \texttt{gam()} function.
 \texttt{bam()} is designed to improve performance when fitting large
 data sets via two mechanisms. First, it saves on memory needed to
@@ -1747,17 +1797,17 @@ interaction terms for the same grouping variable in \texttt{gamm()}
 models (e.g.,
 \texttt{y\textasciitilde{}s(x1,\ grp,\ bs="fs")+s(x2,\ grp,\ bs="fs")}.
 These type of crossed random effects are allowed in \textbf{gamm4}. The
-use of \texttt{te()} and \texttt{ti()} terms are not possible in
-\textbf{gamm4}, due to issues with how random effects are specified in
-the \textbf{lme4} package, making it impossible to code models where
-multiple penalties apply to a single basis function. Instead, for
-multidimensional group-level smoothers, the alternate function
-\texttt{t2()} needs to be used to generate these terms, as it creates
-tensor products with only a single penalty for each basis function (see
-\texttt{?mgcv::t2} for details on these smoothers, and Wood, Scheipl \&
-Faraway (2013) for the theoretical basis behind this type of tensor
-product). For instance, model 2 for the bird movement data we discussed
-in section III would need to be coded as:
+use of \texttt{te()} terms are not possible in \textbf{gamm4}, due to
+issues with how random effects are specified in the \textbf{lme4}
+package, making it impossible to code models where multiple penalties
+apply to a single basis function. Instead, for multidimensional
+group-level smoothers, the alternate function \texttt{t2()} needs to be
+used to generate these terms, as it creates tensor products with only a
+single penalty for each basis function (see \texttt{?mgcv::t2} for
+details on these smoothers, and Wood, Scheipl \& Faraway (2013) for the
+theoretical basis behind this type of tensor product). For instance,
+model 2 for the bird movement data we discussed in section III would
+need to be coded as:
 
 \begin{verbatim}
 bird_mod4_gamm4 <-
@@ -1831,10 +1881,11 @@ the maximum flexibility possible in the groupwise terms. We do caution
 that these are just rules of thumb. In cases where an accurately
 estimated global smoother is essential, we recommend either fitting
 model 1 or using specialized functional regression software such as the
-\emph{refund} package (Scheipl, Staicu \& Greven, 2014), which enforces
-constraints on the groupwise smoothers so that they always sum to zero
-at any given point (avoiding the collinearity issue). Also, see below
-for more information on functional regression.
+\texttt{fosr} function in the \emph{refund} package (Scheipl, Staicu \&
+Greven, 2014), which allows the user to enforce constraints on the
+groupwise smoothers so that they always sum to zero at any given point
+(avoiding the collinearity issue). Also, see below for more information
+on functional regression.
 
 \subsection{A brief foray into the land of
 Bayes}\label{a-brief-foray-into-the-land-of-bayes}
@@ -1849,11 +1900,12 @@ have improper, flat priors (i.e., any value for these terms are
 considered equally likely), any terms in the range space are treated as
 having a multivariate normal distribution, and the penalty terms are
 treated as having an improper flat prior (see Wood (2017a) Section 5.8
-for more details on this connection). The posterior Bayesian covariance
-matrix for model parameters can be extracted from any fitted
-\texttt{gam()} or \texttt{bam()} model with \texttt{vcov(model)}. This
-can in turn be used to generate samples from the posterior distribution
-of the model, as the Bayesian covariance matrix already incorporates the
+for more details on this connection). The large-sample approximation of
+the posterior Bayesian covariance matrix (Wood, 2006b) for model
+parameters can be extracted from any fitted \texttt{gam()} or
+\texttt{bam()} model with \texttt{vcov(model)}. This can in turn be used
+to generate samples from the posterior distribution of the model, as the
+approximate Bayesian covariance matrix already incorporates the
 uncertainty from having to estimate the covariance matrix into it (the
 standard confidence intervals used in \textbf{mgcv} are in fact Bayesian
 posterior credible intervals, which happen to have good frequentist
@@ -1875,10 +1927,10 @@ Similarly, the \textbf{brms} package (Bürkner, 2017), which can fit
 complex statistical models using the Bayesian software \textbf{Stan}
 (Carpenter et al., 2017) allows for the inclusion of \textbf{mgcv}-style
 smooth terms as part of the model specification. The \textbf{brms}
-package does not currently support \texttt{te()} tensor products or
-factor-smoother interaction terms, but does support \texttt{t2()}-style
-tensor products, which means all of the models fitted in this paper can
-be fit by \textbf{brms}.
+package does not currently support \texttt{te()} tensor products, but
+does support factor-smooth interactions and \texttt{t2()}-style tensor
+products, which means all of the models fitted in this paper can be fit
+by \textbf{brms}.
 
 \subsection{Beyond HGAMs: functional
 regression}\label{beyond-hgams-functional-regression}
@@ -1890,28 +1942,32 @@ cases where the outcome variable \(y_i\) and/or the predictor variables
 (Ramsay \& Silverman, 2005). HGAMs as we have described them are a form
 of function-on-scalar regression (Ramsay \& Silverman, 2005; Reiss,
 Huang \& Mennes, 2010), where we are trying to estimate a smooth
-function that varies between grouping levels.
+function that varies between grouping levels. Here the ``scalar'' refers
+to the grouping level, and the function is the smooth term that varies
+between levels; in contrast, a standard GAM is a type of
+scalar-on-scalar regression, as the goal is to use a set of single
+values (scalars) to estimate each (scalar) response.
 
 We have deliberately focused our paper on these simpler classes of
 functional regression model, and chosen to use the term HGAM rather than
 functional regression, as we believe that this more clearly connects
 these models to modelling approaches already familiar to ecologists.
 Further, we consider the unit of analysis to still be individual
-observations, as compared to functional regression where the the unit of
+observations, as compared to functional regression where the unit of
 analysis is whole functions. For instance, we are interested in
 applications such as species distribution modelling, where the presence
 of a given species may be predicted from a sum of several
 species-specific functions of different environmental variables.
+
 However, there is an extensive literature dedicated to the estimation of
 more complex functional regression models for any interested reader (see
-Ramsay \& Silverman (2005) for a good introduction, and Scheipl,
-Gertheiss \& Greven (2016) for more recent work in this field). The
-\texttt{refund} package (Reiss, Huang \& Mennes, 2010; Scheipl, Staicu
-\& Greven, 2014; Scheipl, Gertheiss \& Greven, 2016) uses the
-statistical machinery of \textbf{mgcv} to fit these models, and should
-be usable by anyone familiar with \textbf{mgcv} modelling syntax.
-Functional regression is also a major area of study in Bayesian
-statistics (e.g., Kaufman, Sain \& others (2010)).
+Morris (2015) and Greven \& Scheipl (2017) for a good introduction and
+overview of more recent work in this field). The \texttt{refund} package
+(Greven \& Scheipl, 2017) uses the statistical machinery of
+\textbf{mgcv} to fit these models, and should be usable by anyone
+familiar with \textbf{mgcv} modelling syntax. Functional regression is
+also a major area of study in Bayesian statistics (e.g., Kaufman, Sain
+\& others (2010)).
 
 \section{Conclusion}\label{conclusion}
 
@@ -1941,7 +1997,7 @@ U.S. Navy's Living Marine Resources program under Contract No.
 N39430-17-C-1982. NMR was partially funded by the USAID PREDICT-2
 program.
 
-All authors contributed to developing the intial idea for this paper,
+All authors contributed to developing the initial idea for this paper,
 and to writing and editing the manuscript. Author order after the first
 author was chosen using the code:
 
@@ -1979,6 +2035,11 @@ MHH., White J-SS. 2009. Generalized linear mixed models: a practical
 guide for ecology and evolution. \emph{Trends in Ecology \& Evolution}
 24:127--135.
 
+\hypertarget{ref-burnham_model_1998}{}
+Burnham KP., Anderson DR. 1998. \emph{Model selection and inference: A
+practical information-theoretic approach}. New York, NY: Springer
+Science \& Business Media.
+
 \hypertarget{ref-burkner_brms:_2017}{}
 Bürkner P-C. 2017. \texttt{brms}: An R package for Bayesian multilevel
 models using Stan. \emph{Journal of Statistical Software} 80:1--28.
@@ -1990,6 +2051,16 @@ programming language. \emph{Journal of statistical software} 76.
 
 \hypertarget{ref-deBoor:1978wq}{}
 de Boor C. 1978. \emph{A Practical Guide to Splines}. Springer.
+
+\hypertarget{ref-dormann_model_2018}{}
+Dormann CF., Calabrese JM., Guillera‐Arroita G., Matechou E., Bahn V.,
+Bartoń K., Beale CM., Ciuti S., Elith J., Gerstner K., Guelat J., Keil
+P., Lahoz‐Monfort JJ., Pollock LJ., Reineking B., Roberts DR., Schröder
+B., Thuiller W., Warton DI., Wintle BA., Wood SN., Wüest RO., Hartig F.
+2018. Model averaging in ecology: A review of Bayesian,
+information-theoretic, and tactical approaches for predictive inference.
+\emph{Ecological Monographs} 88:485--504. DOI:
+\href{https://doi.org/10.1002/ecm.1309}{10.1002/ecm.1309}.
 
 \hypertarget{ref-efron_steins_1977}{}
 Efron B., Morris C. 1977. Stein's paradox in statistics.
@@ -2008,6 +2079,11 @@ cannot do. \emph{Technometrics} 48:432--435.
 \hypertarget{ref-gelman2013bayesian}{}
 Gelman A., Carlin J., Stern H., Dunson D., Vehtari A., Rubin D. 2013.
 \emph{Bayesian Data Analysis, third edition}. Taylor \& Francis.
+
+\hypertarget{ref-greven_general_2017}{}
+Greven S., Scheipl F. 2017. A general framework for functional
+regression modelling. \emph{Statistical Modelling} 17:1--35. DOI:
+\href{https://doi.org/10.1177/1471082X16681317}{10.1177/1471082X16681317}.
 
 \hypertarget{ref-Hastie:1990vg}{}
 Hastie TJ., Tibshirani RJ. 1990. \emph{Generalized Additive Models}.
@@ -2047,6 +2123,11 @@ McMahon SM., Diez JM. 2007. Scales of association: hierarchical linear
 models and the measurement of ecological systems. \emph{Ecology Letters}
 10:437--452.
 
+\hypertarget{ref-morris_functional_2015}{}
+Morris JS. 2015. Functional regression. \emph{Annual Review of
+Statistics and Its Application} 2:321--359. DOI:
+\href{https://doi.org/10.1146/annurev-statistics-010814-020413}{10.1146/annurev-statistics-010814-020413}.
+
 \hypertarget{ref-potvin_statistical_1990}{}
 Potvin C., Lechowicz M., Tardif S. 1990. The statistical analysis of
 ecophysiological response curves obtained from experiments involving
@@ -2065,12 +2146,6 @@ Biostatistics} 6. DOI:
 \hypertarget{ref-Ruppert:2003uc}{}
 Ruppert D., Wand MP., Carroll RJ. 2003. \emph{Semiparametric
 Regression}. Cambridge University Press.
-
-\hypertarget{ref-scheipl_generalized_2016}{}
-Scheipl F., Gertheiss J., Greven S. 2016. Generalized functional
-additive mixed models. \emph{Electronic Journal of Statistics}
-10:1455--1492. DOI:
-\href{https://doi.org/10.1214/16-EJS1145}{10.1214/16-EJS1145}.
 
 \hypertarget{ref-scheipl_functional_2014}{}
 Scheipl F., Staicu A-M., Greven S. 2014. Functional additive mixed
