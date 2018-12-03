@@ -402,9 +402,18 @@ zoo_test  <- subset(zooplankton, year%%2==1 & lake=="Mendota")
 daphnia_train <- subset(zooplankton, year%%2==0 & taxon=="D. mendotae")
 daphnia_test  <- subset(zooplankton, year%%2==1 & taxon=="D. mendotae")
 
-#This function calculates the root-mean-squared-error for out-of-sample data
-get_RMSE <- function(fit, obs) sqrt(mean((fit-obs)^2))
-
+#This function calculates the deviance of out-of-sample data,
+#conditional on their mean predicted value from the model
+get_deviance <- function(model, y_pred, y_obs, weights = NULL){
+  stopifnot(length(y_obs)==length(y_pred))
+  #We don't use the weights term in this paper, but it can be useful if
+  #how well the model matters more for some sample points than others
+  if(is.null(weights)) weights = rep(1, times= length(y_obs))
+  #this uses the deviance residual function from the model family to
+  #calculate deviances for individual points
+  dev_residuals = model$family$dev.resids(y_obs, y_pred, weights)
+  return(sum(dev_residuals))
+}
 zoo_comm_mod4 <- gam(density_adj ~ s(day, taxon,
                                      bs="fs",
                                      k=10,
@@ -485,7 +494,7 @@ zoo_plot <- ggplot(zoo_plot_data) +
 
 zoo_plot
 
-#Getting the out of sample predictions for both models:
+#Getting the out-of-sample predictions for both models:
 
 # we need to compare how well this model fits with a null model. here we'll use an
 # intercept-only model
@@ -505,13 +514,13 @@ zoo_test_summary = zoo_test %>%
     mod5 = predict(zoo_comm_mod5, ., type="response"))%>%
   group_by(taxon)%>%
   summarise(
-    `Intercept only` = format(get_RMSE(mod0, density_adj), 
+    `Intercept only` = format(get_deviance(zoo_comm_mod0, mod0, density_adj), 
                               scientific = FALSE, 
                               digits=3),
-    `Model 4` = format(get_RMSE(mod4, density_adj), 
+    `Model 4` = format(get_deviance(zoo_comm_mod4, mod4, density_adj), 
                        scientific = FALSE, 
                        digits=3),
-    `Model 5` = format(get_RMSE(mod5, density_adj), 
+    `Model 5` = format(get_deviance(zoo_comm_mod5, mod5, density_adj), 
                        scientific = FALSE, 
                        digits=3))%>%
   #need to specify this to ensure that species names are italized in the table
@@ -624,13 +633,13 @@ daph_test_summary <- daphnia_test %>%
     mod2 = as.numeric(predict(zoo_daph_mod2,.,type="response")),
     mod3 = as.numeric(predict(zoo_daph_mod3,.,type="response")))%>%
   group_by(lake)%>%
-  summarise(`Intercept only` = format(get_RMSE(mod0, density_adj), 
+  summarise(`Intercept only` = format(get_deviance(zoo_daph_mod0, mod0, density_adj), 
                                       scientific = FALSE, digits=2),
-            `Model 1` = format(get_RMSE(mod1, density_adj), 
+            `Model 1` = format(get_deviance(zoo_daph_mod1, mod1, density_adj), 
                                scientific = FALSE, digits=2),
-            `Model 2` = format(get_RMSE(mod2, density_adj), 
+            `Model 2` = format(get_deviance(zoo_daph_mod2, mod2, density_adj), 
                                scientific = FALSE, digits=2),
-            `Model 3` = format(get_RMSE(mod3, density_adj), 
+            `Model 3` = format(get_deviance(zoo_daph_mod3, mod3, density_adj), 
                                scientific = FALSE, digits=2))%>%
   rename(Lake = lake)
 
