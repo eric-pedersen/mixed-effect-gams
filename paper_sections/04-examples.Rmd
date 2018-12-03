@@ -106,9 +106,9 @@ round(k.check(zoo_comm_mod5),2)
 
 kable(round(k.check(zoo_comm_mod5),2), 
       format = table_out_format, 
-      caption="Results from running `k.check` on zoo_comm_mod5.", 
+      caption="Results from running \\texttt{k.check} on \\texttt{zoo\\_comm\\_mod5}.", 
       booktabs = TRUE,
-      escape = FALSE)%>%
+      escape = TRUE)%>%
   kable_styling(full_width = FALSE) %>%
   row_spec(2:3,italic = FALSE) %>%
   row_spec(2:3, italic = FALSE)
