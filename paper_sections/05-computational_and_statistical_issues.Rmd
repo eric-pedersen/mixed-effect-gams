@@ -387,7 +387,7 @@ you are using to configure, we do not go into how to use these methods
 here. The help file `?mgcv::mgcv.parallel` explains how to use parallel
 computations for `gam()` and `bam()` in detail.
 
-```{r alt_model_timing_plot, echo=FALSE, fig.width=6, fig.height=4, message=FALSE, warning=FALSE, cache=TRUE, purl=TRUE, fig.cap = "\\label{fig:alt_timing}Elapsed time to estimate the same model using each of the four approaches. Each data set was generated with 20 observations per group using a unimodal global function and random group-specific functions consisting of an intercept, a quadratic term, and logistic trend for each group. Observation error was normally distributed. Models were fit using model 2: \\texttt{y~s(x, k=10, bs=\"cp\") + s(x,fac, k=10, bs=\"fs\", xt=list(bs=\"cp\"), m=1)}. All models were run on a single core."}
+```{r alt_model_timing_plot, echo=FALSE, fig.width=6.5, fig.height=4, message=FALSE, warning=FALSE, cache=TRUE, purl=TRUE, fig.cap = "\\label{fig:alt_timing}Elapsed time to estimate the same model using each of the four approaches. Each data set was generated with 20 observations per group using a unimodal global function and random group-specific functions consisting of an intercept, a quadratic term, and logistic trend for each group. Observation error was normally distributed. Models were fit using model 2: \\texttt{y~s(x, k=10, bs=\"cp\") + s(x,fac, k=10, bs=\"fs\", xt=list(bs=\"cp\"), m=1)}. All models were run on a single core."}
 
 #This code calculates the timing it takes to fit the same model (with varying
 #amounts of data) for gam, bam, gamm, and gamm4.
