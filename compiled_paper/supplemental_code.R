@@ -432,7 +432,7 @@ zoo_comm_mod5 <- gam(density_adj ~ s(day, by=taxon,
 ## round(k.check(zoo_comm_mod5),2)
 #individual components of gam.check: residual plots
 par(mfrow= c(1,2))
-qq.gam(zoo_comm_mod4)
+qq.gam(zoo_comm_mod4, rep = 250)
 plot(log(fitted(zoo_comm_mod5)), 
      residuals.gam(zoo_comm_mod5,type = "deviance"), 
      xlab = "linear predictor",
