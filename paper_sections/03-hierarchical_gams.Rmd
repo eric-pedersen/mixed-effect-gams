@@ -94,7 +94,8 @@ This is a common GAM structure, with a single smooth term for each variable. Spe
 ```{r co2_mod1, echo=FALSE, fig.width=6, fig.height=3, dev.args=list(pointsize=10), fig.cap="\\label{fig:co2_mod1}**mgcv** plotting output for model 1 applied to the CO2 dataset. Left shows the smoother of $\\log_e$ concentration and right plot shows a quantile-quantile plot of the random effects against Gaussian quantiles, used to check the appropriateness of the normal random effect assumption. Numbers in the vertical axis of the left figure and the title of the right give the effective degrees of freedom of the smoothers."}
 <<co2_mod1_unrun>>
 
-plot(CO2_mod1, pages=1, seWithMean=TRUE)
+## plot(CO2_mod1, pages=1, seWithMean=TRUE)
+draw(CO2_mod1, inc_mean = TRUE)
 ```
 
 Figure \ref{fig:co2_mod1} illustrates **mgcv**'s default plotting out for `CO2_mod1`: the left panel shows the estimated smoother for concentration, and the right shows a quantile-quantile plot of the estimated random effects vs Gaussian quantiles, which can be used to check our model.
@@ -161,8 +162,9 @@ Note that in `bird_mod1` we have specified week 0 and week 52 as the endpoints, 
 #mgcv gam plot for the two-dimensional tensor product smoother for bird_mod1.
 #scheme=2 displays the color scheme (rather than mgcv's default, which only
 #shows contour lines)
-plot(bird_mod1, pages=1, scheme=2, rug=FALSE)
-box()
+#plot(bird_mod1, pages=1, scheme=2, rug=FALSE)
+#box()
+draw(bird_mod1)
 ```
 
 Figure \ref{fig:bird_mod1} shows the default plot (created by running `plot(bird_mod1, pages=1, scheme=2, rug=FALSE)`) for the week-by-latitude smoother. It shows birds starting at low latitudes in the winter then migrating to high latitudes from the 10th to 20th week, staying there for 15-20 weeks, then migrating back. However, the plot also indicates a large amount of variability in the timing of migration. The source of this variability is apparent when we look at the timing of migration of each species (cf. figure \ref{fig:vis_data}b).
@@ -203,7 +205,8 @@ CO2_mod2 <- gam(log(uptake) ~ s(log(conc), k=5, m=2) +
 ```
 
 ```{r co2_mod2_plot, fig.width=6, fig.height=3, dev.args=list(pointsize=10), out.width="\\linewidth", echo=FALSE, fig.cap="\\label{fig:co2_mod2}Global function (left) and group-specific deviations from the global function (right) for \\texttt{CO2\\_mod2}"}
-plot(CO2_mod2, page=1, seWithMean=TRUE)
+## plot(CO2_mod2, page=1, seWithMean=TRUE)
+draw(CO2_mod2, inc_mean = TRUE)
 ```
 
 Figure \ref{fig:co2_mod2} shows the fitted smoothers for `CO2_mod2`. The plots of group-specific smoothers indicate that plants differ not only in average log-uptake (which would correspond to each plant having a straight line at different levels for the group-level smoother), but differ slightly in the shape of their functional responses. Figure \ref{fig:co2_mod2_pred} shows how the global and group-specific smoothers combine to predict uptake rates for individual plants.  We see that, unlike in the single global smoother case above, none of the curves deviate from the data systematically.
