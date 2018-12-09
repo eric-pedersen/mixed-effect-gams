@@ -14,8 +14,8 @@ fig: figures/temp_growth_example.pdf figures/alternate_models.png
 tex: paper_sections/bibliography.bib paper_sections/peerj.csl paper_sections/preamble.sty
 
 main: paper_sections/full_document.Rmd
-				R --vanilla --slave -e "rmarkdown::render('paper_sections/full_document.Rmd',output_file = 'full_document.pdf')"
-				R --vanilla --slave -e "knitr::purl('paper_sections/full_document.Rmd',documentation =0, output = 'compiled_paper/supplemental_code.R')"
+				R --vanilla --slave -e "library(knitr); purl('paper_sections/full_document.Rmd',documentation =0, output = 'compiled_paper/supplemental_code.R')"
+				R --vanilla --slave -e "library(rmarkdown); render('paper_sections/full_document.Rmd',output_file = 'full_document.pdf')"
 				mv paper_sections/full_document.pdf compiled_paper/full_document.pdf 
 				mv paper_sections/full_document.tex compiled_paper/full_document.tex 
 

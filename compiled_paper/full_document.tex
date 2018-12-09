@@ -138,6 +138,22 @@ with mgcv}
 \affil[5]{Institute of Environmental Change and Society, University of Regina, Regina, SK, Canada}
 \affil[6]{Ecohealth Alliance, New York, NY, USA}
 \affil[*]{Corresponding author. Email: eric.j.pedersen@gmail.com}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage[table]{xcolor}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+
+\usepackage{lineno} \usepackage{placeins} \linenumbers
 
 \begin{document}
 \maketitle
@@ -498,18 +514,23 @@ These three choices result in five possible models (figure
 \def\labelenumi{\arabic{enumi}.}
 \tightlist
 \item
-  A single common smoother for all observations.
+  A single common smoother for all observations; We will refer to this
+  as model \emph{G}, as it only has a Global smoother.
 \item
   A global smoother plus group-level smoothers that have the same
-  wiggliness.
+  wiggliness. We will refer to this as model \emph{GS} (for Global
+  smoother with individual effects with a Shared penalty)
 \item
   A global smoother plus group-level smoothers with differing
-  wiggliness.
+  wiggliness. We will refer to this as model \emph{GI} (for Global
+  smoother with individiual effects with Individual penalties)
 \item
   Group-specific smoothers without a global smoother, but with all
-  smoothers having the same wiggliness.
+  smoothers having the same wiggliness. We will refer to this as model
+  \emph{S}.
 \item
-  Group-specific smoothers with different wiggliness.
+  Group-specific smoothers with different wiggliness. We will refer to
+  this as model \emph{I}.
 \end{enumerate}
 
 \begin{figure}
@@ -538,11 +559,11 @@ the same function, nor would two normal distributions with the same mean
 but different standard deviations. The benefit of this definition of
 shape, however, is that it is straightforward to translate into
 penalties akin to those described in section II. Figure
-\ref{fig:models}, model 4 illustrates the case where models have
+\ref{fig:models}, model \emph{S} illustrates the case where models have
 different shapes. Similarly, two curves could have very similar overall
 shape, but differ in their wiggliness. For instance, one function could
 be equal to another plus a high-frequency oscillation term. Figure
-\ref{fig:models}, model 3 illustrates this.
+\ref{fig:models}, model \emph{GI} illustrates this.
 
 We will discuss the trade-offs between different models and guidelines
 about when each of these models is appropriate in section V. The
@@ -575,15 +596,16 @@ modified from the default version available with R, to recode the
   important to know whether the factor is coded as ordered or unordered
   (see \texttt{?factor} for more details on this). This matters when
   fitting groupwise smoothers using the \texttt{by=} argument (as is
-  used for fitting models 3 and 5, shown below). If the factor is
-  unordered, \textbf{mgcv} will set up a model with one smoother for
-  each grouping level. If the factor is ordered, \textbf{mgcv} will set
-  any basis functions for the first grouping level to zero. In model 3
-  the ungrouped smoother will then correspond to the first grouping
-  level, rather than the average functional response, and the
-  group-specific smoothers will correspond to deviations from the first
-  group. In model 5, using an ordered factor will result in the first
-  group not having a smoother associated with it at all.}.
+  used for fitting models \emph{GI} and \emph{I}, shown below). If the
+  factor is unordered, \textbf{mgcv} will set up a model with one
+  smoother for each grouping level. If the factor is ordered,
+  \textbf{mgcv} will set any basis functions for the first grouping
+  level to zero. In model \emph{GI} the ungrouped smoother will then
+  correspond to the first grouping level, rather than the average
+  functional response, and the group-specific smoothers will correspond
+  to deviations from the first group. In model \emph{I}, using an
+  ordered factor will result in the first group not having a smoother
+  associated with it at all.}.
 
 B. Data generated from a hypothetical study of bird movement along a
 migration corridor, sampled throughout the year (see supplemental code).
@@ -601,8 +623,9 @@ bird present at a location would be detected). The data set
 \texttt{latitude}, \texttt{week} and \texttt{species} (figure
 \ref{fig:vis_data}b). This example allows us to demonstrate how to fit
 these models with interactions and with non-normal (count) data. The
-true model used to generate this data was model 2: a single global
-function plus species-specific deviations around that global function.
+true model used to generate this data was model \emph{GS}: a single
+global function plus species-specific deviations around that global
+function.
 
 \begin{figure}
 \includegraphics[width=\linewidth]{../figures/vis_data-1} \caption{\label{fig:vis_data}Example data sets used throughout section III. a) Grass $\text{CO}\textsubscript{2}$ uptake versus $\text{CO}\textsubscript{2}$ concentration for 12 individual plants. Color and linetype included to distinguish individual plant trends. b) Simulated data set of bird migration, with point size corresponding to weekly counts of 6 species along a latitudinal gradient (zeros excluded for clarity). }\label{fig:vis_data}
@@ -616,8 +639,9 @@ default GCV criteria when fitting GAMs, for the reasons outlined in Wood
 to obtain the graphics and results below. See supplemental code for
 details on data processing steps.
 
-\subsubsection{A single common smoother for all observations (Model
-1)}\label{a-single-common-smoother-for-all-observations-model-1}
+\subsubsection{\texorpdfstring{A single common (global) smoother for all
+observations (Model
+\emph{G})}{A single common (global) smoother for all observations (Model G)}}\label{a-single-common-global-smoother-for-all-observations-model-g}
 
 We start with the simplest model we can in our framework and include
 many details here to ensure that readers are comfortable with the
@@ -640,7 +664,7 @@ In R we can write our model as:
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{CO2_mod1 <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(}\KeywordTok{log}\NormalTok{(uptake) }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), }\DataTypeTok{k=}\DecValTok{5}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"tp"}\NormalTok{) }\OperatorTok{+}
+\NormalTok{CO2_modG <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(}\KeywordTok{log}\NormalTok{(uptake) }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), }\DataTypeTok{k=}\DecValTok{5}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"tp"}\NormalTok{) }\OperatorTok{+}
 \StringTok{                  }\KeywordTok{s}\NormalTok{(Plant_uo, }\DataTypeTok{k=}\DecValTok{12}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{),}
                 \DataTypeTok{data=}\NormalTok{CO2, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{, }\DataTypeTok{family=}\StringTok{"gaussian"}\NormalTok{)}
 \end{Highlighting}
@@ -666,18 +690,18 @@ of levels in the grouping variable (here, 12). We specified
 
 \begin{figure}
 \centering
-\includegraphics{../figures/co2_mod1-1.pdf}
-\caption{\label{fig:co2_mod1}\textbf{mgcv} plotting output for model 1
-applied to the CO2 dataset. Left shows the smoother of \(\log_e\)
-concentration and right plot shows a quantile-quantile plot of the
-random effects against Gaussian quantiles, used to check the
+\includegraphics{../figures/co2_modG-1.pdf}
+\caption{\label{fig:co2_modG}\textbf{mgcv} plotting output for model
+\emph{G} applied to the CO2 dataset. Left shows the smoother of
+\(\log_e\) concentration and right plot shows a quantile-quantile plot
+of the random effects against Gaussian quantiles, used to check the
 appropriateness of the normal random effect assumption. Numbers in the
 vertical axis of the left figure and the title of the right give the
 effective degrees of freedom of the smoothers.}
 \end{figure}
 
-Figure \ref{fig:co2_mod1} illustrates \textbf{mgcv}'s default plotting
-out for \texttt{CO2\_mod1}: the left panel shows the estimated smoother
+Figure \ref{fig:co2_modG} illustrates \textbf{mgcv}'s default plotting
+out for \texttt{CO2\_modG}: the left panel shows the estimated smoother
 for concentration, and the right shows a quantile-quantile plot of the
 estimated random effects vs Gaussian quantiles, which can be used to
 check our model.
@@ -686,11 +710,11 @@ Looking at the effects by term is useful, but we are often interested in
 fitted values or predictions from our models. Using the built in
 prediction functions with \textbf{mgcv}, we can estimate what the fitted
 function (and uncertainty around it) should look like for each level, as
-shown in Figure \ref{fig:co2_mod1_predict} (see supplemental code for
+shown in Figure \ref{fig:co2_modG_predict} (see supplemental code for
 more details on how to generate these predictions).
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/co2_mod1_ggplot-1} \caption{\label{fig:co2_mod1_predict} Predicted uptake function ($\pm$ 2 s.e.) for each plant, based on model 1 (a single global function for uptake plus a individual-level random effect intercept). Model predictions are for log-uptake, but are transformed here to show the fitted function on the original scale of the data.}\label{fig:co2_mod1_ggplot}
+\includegraphics[width=\linewidth]{../figures/co2_modG_ggplot-1} \caption{\label{fig:co2_modG_predict} Predicted uptake function ($\pm$ 2 s.e.) for each plant, based on model *G* (a single global function for uptake plus a individual-level random effect intercept). Model predictions are for log-uptake, but are transformed here to show the fitted function on the original scale of the data.}\label{fig:co2_modG_ggplot}
 \end{figure}
 
 Examining these plots, we see that while functional responses among
@@ -719,14 +743,14 @@ marginal week effect to account for the cyclic nature of weekly effects
   a specified start and end point, \texttt{gam} will assume the end
   points are the smallest and largest observed levels of the covariate
   (see \texttt{mgcv::smooth.construct.cc.smooth.spec} for more details).
-  Note that in \texttt{bird\_mod1} we have specified week 0 and week 52
+  Note that in \texttt{bird\_modG} we have specified week 0 and week 52
   as the endpoints, as the first (week 1) and last weeks (week 52) of
   the year should not have exactly the same expected value.}, both
 splines had basis complexity (\texttt{k}) of 10.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{bird_mod1 <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{), }\DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{)),}
+\NormalTok{bird_modG <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{), }\DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{)),}
                  \DataTypeTok{data=}\NormalTok{bird_move, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{, }\DataTypeTok{family=}\StringTok{"poisson"}\NormalTok{,}
                  \DataTypeTok{knots =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{week =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{52}\NormalTok{)))}
 \end{Highlighting}
@@ -734,14 +758,14 @@ splines had basis complexity (\texttt{k}) of 10.
 
 \begin{figure}
 \centering
-\includegraphics{../figures/bird_mod1_plot-1.pdf}
-\caption{\label{fig:bird_mod1} Plot illustrating the average
+\includegraphics{../figures/bird_modG_plot-1.pdf}
+\caption{\label{fig:bird_modG} Plot illustrating the average
 log-abundance of all bird species at each latitude for each week, with
 yellow colours indicating more individuals and red colours fewer.}
 \end{figure}
 
-Figure \ref{fig:bird_mod1} shows the default plot (created by running
-\texttt{plot(bird\_mod1,\ pages=1,\ scheme=2,\ rug=FALSE)}) for the
+Figure \ref{fig:bird_modG} shows the default plot (created by running
+\texttt{plot(bird\_modG,\ pages=1,\ scheme=2,\ rug=FALSE)}) for the
 week-by-latitude smoother. It shows birds starting at low latitudes in
 the winter then migrating to high latitudes from the 10th to 20th week,
 staying there for 15-20 weeks, then migrating back. However, the plot
@@ -754,33 +778,33 @@ migration patterns, but they differ in the timing of when they leave
 their winter grounds and the amount of time they spend at their summer
 grounds. Averaging over all of this variation results in a relatively
 imprecise (diffuse) estimate of migration timing (figure
-\ref{fig:bird_mod1}), and viewing species-specific plots of observed
-versus predicted values (figure \ref{fig:bird-fitted-mod1}), it is
+\ref{fig:bird_modG}), and viewing species-specific plots of observed
+versus predicted values (figure \ref{fig:bird-fitted-modG}), it is
 apparent that the model fits some of the species better than others.
 This model could potentially be improved by adding inter-group variation
 in migration timing. The rest of this section will focus on how to model
 this type of variation.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/bird-fitted-mod1-1} \caption{\label{fig:bird-fitted-mod1}Observed counts by species versus predicted counts from \texttt{bird\_mod1} (1-1 line added as reference). If our model fitted well we would expect that all species should show similiar patterns of dispersion around the 1-1 line (and as we are assuming the data is Poisson, the variance around the mean should equal the mean). Instead we see that variance around the predicted value is much higher for species 1 and 6.}\label{fig:bird-fitted-mod1}
+\includegraphics[width=\linewidth]{../figures/bird-fitted-modG-1} \caption{\label{fig:bird-fitted-modG}Observed counts by species versus predicted counts from \texttt{bird\_modG} (1-1 line added as reference). If our model fitted well we would expect that all species should show similiar patterns of dispersion around the 1-1 line (and as we are assuming the data is Poisson, the variance around the mean should equal the mean). Instead we see that variance around the predicted value is much higher for species 1 and 6.}\label{fig:bird-fitted-modG}
 \end{figure}
 
-\subsubsection{A single common smoother plus group-level smoothers that
-have the same wiggliness (Model
-2)}\label{a-single-common-smoother-plus-group-level-smoothers-that-have-the-same-wiggliness-model-2}
+\subsubsection{\texorpdfstring{A single common smoother plus group-level
+smoothers that have the same wiggliness (model
+\emph{GS})}{A single common smoother plus group-level smoothers that have the same wiggliness (model GS)}}\label{a-single-common-smoother-plus-group-level-smoothers-that-have-the-same-wiggliness-model-gs}
 
-Model 2 is a close analogue to a GLMM with varying slopes: all groups
-have similar functional responses, but inter-group variation in
+model \emph{GS} is a close analogue to a GLMM with varying slopes: all
+groups have similar functional responses, but inter-group variation in
 responses is allowed. This approach works by allowing each grouping
 level to have its own functional response, but penalizing functions that
 are too far from the average.
 
 This can be coded in \textbf{mgcv} by explicitly specifying one term for
-the global smoother (as in model 1 above) then adding a second smooth
-term specifying the group-level smooth terms, using a penalty term that
-tends to draw these group-level smoothers to zero. For one-dimensional
-smoothers, \textbf{mgcv} provides an explicit basis type to do this, the
-factor-smoother interaction or \texttt{"fs"} basis (see
+the global smoother (as in model \emph{G} above) then adding a second
+smooth term specifying the group-level smooth terms, using a penalty
+term that tends to draw these group-level smoothers to zero. For
+one-dimensional smoothers, \textbf{mgcv} provides an explicit basis type
+to do this, the factor-smoother interaction or \texttt{"fs"} basis (see
 \texttt{?mgcv::factor.smooth.interaction} for details). This smoother
 creates a copy of each set of basis functions for each level of the
 grouping variable, but only estimates one smoothing parameter for all
@@ -789,7 +813,7 @@ zero effect, each component of the penalty null space is given its own
 penalty\footnote{As part of the penalty construction, each group will
   also have its own intercept (part of the penalized null space), so
   there is no need to add a separate term for group specific intercepts
-  as we did in model 1.}.
+  as we did in model \emph{G}.}.
 
 We modify the previous \(\text{CO}_2\) model to incorporate group-level
 smoothers as follows:
@@ -803,28 +827,28 @@ smoother for concentration for the given plant. In R we then have:
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{CO2_mod2 <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(}\KeywordTok{log}\NormalTok{(uptake) }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), }\DataTypeTok{k=}\DecValTok{5}\NormalTok{, }\DataTypeTok{m=}\DecValTok{2}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\NormalTok{CO2_modGS <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(}\KeywordTok{log}\NormalTok{(uptake) }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), }\DataTypeTok{k=}\DecValTok{5}\NormalTok{, }\DataTypeTok{m=}\DecValTok{2}\NormalTok{) }\OperatorTok{+}\StringTok{ }
 \StringTok{                  }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), Plant_uo, }\DataTypeTok{k=}\DecValTok{5}\NormalTok{,  }\DataTypeTok{bs=}\StringTok{"fs"}\NormalTok{, }\DataTypeTok{m=}\DecValTok{2}\NormalTok{),}
                 \DataTypeTok{data=}\NormalTok{CO2, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/co2_mod2_plot-1} \caption{\label{fig:co2_mod2}Global function (left) and group-specific deviations from the global function (right) for \texttt{CO2\_mod2}}\label{fig:co2_mod2_plot}
+\includegraphics[width=\linewidth]{../figures/co2_modGS_plot-1} \caption{\label{fig:co2_modGS}Global function (left) and group-specific deviations from the global function (right) for \texttt{CO2\_modGS}}\label{fig:co2_modGS_plot}
 \end{figure}
 
-Figure \ref{fig:co2_mod2} shows the fitted smoothers for
-\texttt{CO2\_mod2}. The plots of group-specific smoothers indicate that
+Figure \ref{fig:co2_modGS} shows the fitted smoothers for
+\texttt{CO2\_modGS}. The plots of group-specific smoothers indicate that
 plants differ not only in average log-uptake (which would correspond to
 each plant having a straight line at different levels for the
 group-level smoother), but differ slightly in the shape of their
-functional responses. Figure \ref{fig:co2_mod2_pred} shows how the
+functional responses. Figure \ref{fig:co2_modGS_pred} shows how the
 global and group-specific smoothers combine to predict uptake rates for
 individual plants. We see that, unlike in the single global smoother
 case above, none of the curves deviate from the data systematically.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/co2_mod2_ggplot-1} \caption{\label{fig:co2_mod2_pred}Predicted uptake values (lines) versus observed uptake for each plant, based on model 2.}\label{fig:co2_mod2_ggplot}
+\includegraphics[width=\linewidth]{../figures/co2_modGS_ggplot-1} \caption{\label{fig:co2_modGS_pred}Predicted uptake values (lines) versus observed uptake for each plant, based on model *GS*.}\label{fig:co2_modGS_ggplot}
 \end{figure}
 
 The factor-smoother interaction-based approach mentioned above does not
@@ -844,7 +868,7 @@ We illustrate this approach below on the bird migration data.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{bird_mod2 <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{),}
+\NormalTok{bird_modGS <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{),}
                             \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\DecValTok{2}\NormalTok{) }\OperatorTok{+}
 \StringTok{                   }\KeywordTok{t2}\NormalTok{(week, latitude, species, }\DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{, }\StringTok{"re"}\NormalTok{),}
                       \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{, }\DecValTok{6}\NormalTok{), }\DataTypeTok{m=}\DecValTok{2}\NormalTok{, }\DataTypeTok{full=}\OtherTok{TRUE}\NormalTok{),}
@@ -854,23 +878,23 @@ We illustrate this approach below on the bird migration data.
 \end{Shaded}
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/bird_mod2_ggplot-1} \caption{\label{fig:bird_mod2}a) Predicted migration paths for each species based on \texttt{bird\_mod2}, with lighter colors corresponding to higher predicted counts. b) Observed counts versus predictions from \texttt{bird\_mod2}.}\label{fig:bird_mod2_ggplot}
+\includegraphics[width=\linewidth]{../figures/bird_modGS_ggplot-1} \caption{\label{fig:bird_modGS}a) Predicted migration paths for each species based on \texttt{bird\_modGS}, with lighter colors corresponding to higher predicted counts. b) Observed counts versus predictions from \texttt{bird\_modGS}.}\label{fig:bird_modGS_ggplot}
 \end{figure}
 
-Model 2 is able to effectively capture the observed patterns of
+Model \emph{GS} is able to effectively capture the observed patterns of
 interspecific variation in migration behaviour (figure
-\ref{fig:bird_mod2}a). It shows a much tighter fit between observed and
+\ref{fig:bird_modGS}a). It shows a much tighter fit between observed and
 predicted values, as well as less evidence of over-dispersion in some
-species compared to model 1 (figure \ref{fig:bird_mod2}b).
+species compared to model \emph{G} (figure \ref{fig:bird_modGS}b).
 
-\subsubsection{A single common smoother plus group-level smoothers with
-differing wiggliness (Model
-3)}\label{a-single-common-smoother-plus-group-level-smoothers-with-differing-wiggliness-model-3}
+\subsubsection{\texorpdfstring{A single common smoother plus group-level
+smoothers with differing wiggliness (Model
+\emph{GI})}{A single common smoother plus group-level smoothers with differing wiggliness (Model GI)}}\label{a-single-common-smoother-plus-group-level-smoothers-with-differing-wiggliness-model-gi}
 
-This model class is very similar to model 2, but we now allow each
-group-specific smoother to have its own smoothing parameter and hence
-its own level of wiggliness. This increases the computational cost of
-the model (as there are more smoothing parameters to estimate), and
+This model class is very similar to model \emph{GS}, but we now allow
+each group-specific smoother to have its own smoothing parameter and
+hence its own level of wiggliness. This increases the computational cost
+of the model (as there are more smoothing parameters to estimate), and
 means that the only information shared between groups is through the
 global smoother, the common error term, and through the random effect
 for group-level intercepts (if used). This is useful if different groups
@@ -887,7 +911,7 @@ formula for this model as:
 \end{Highlighting}
 \end{Shaded}
 
-Note two major differences here from how model 2 was specified:
+Note two major differences here from how model \emph{GS} was specified:
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -907,15 +931,15 @@ Note two major differences here from how model 2 was specified:
   details). TPRS with \texttt{m=1} have a more restricted null space
   than m=2 smoothers, so should not be as collinear with the global
   smoother (Wieling et al., 2016; Baayen et al., 2018). We have observed
-  that this is much more of an issue when fitting model 3 compared to
-  model 2.
+  that this is much more of an issue when fitting model \emph{GI}
+  compared to model \emph{GS}.
 \end{enumerate}
 
 We modify the \texttt{CO2} model to follow this approach like so:
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{CO2_mod3 <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(}\KeywordTok{log}\NormalTok{(uptake) }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), }\DataTypeTok{k=}\DecValTok{5}\NormalTok{, }\DataTypeTok{m=}\DecValTok{2}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"tp"}\NormalTok{) }\OperatorTok{+}
+\NormalTok{CO2_modGI <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(}\KeywordTok{log}\NormalTok{(uptake) }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), }\DataTypeTok{k=}\DecValTok{5}\NormalTok{, }\DataTypeTok{m=}\DecValTok{2}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"tp"}\NormalTok{) }\OperatorTok{+}
 \StringTok{                  }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), }\DataTypeTok{by=}\NormalTok{Plant_uo, }\DataTypeTok{k=}\DecValTok{5}\NormalTok{, }\DataTypeTok{m=}\DecValTok{1}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"tp"}\NormalTok{) }\OperatorTok{+}
 \StringTok{                  }\KeywordTok{s}\NormalTok{(Plant_uo, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{, }\DataTypeTok{k=}\DecValTok{12}\NormalTok{),}
                 \DataTypeTok{data=}\NormalTok{CO2, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{)}
@@ -924,15 +948,15 @@ We modify the \texttt{CO2} model to follow this approach like so:
 
 \begin{figure}
 \centering
-\includegraphics{../figures/mod3_CO2-1.pdf}
-\caption{\label{fig:co2_mod3}Functional relationships for the CO2 data
-estimated for model 3. Top left: the global smoother; Top middle:
-species-specific random effect intercepts. The remaining plots are a
-selected subset of the plant-specific smoothers, indicating how the
-functional response of that plant differs from the global smoother.}
+\includegraphics{../figures/modGI_CO2-1.pdf}
+\caption{\label{fig:co2_modGI}Functional relationships for the CO2 data
+estimated for model \emph{GI}. Top left: the global smoother; Top
+middle: species-specific random effect intercepts. The remaining plots
+are a selected subset of the plant-specific smoothers, indicating how
+the functional response of that plant differs from the global smoother.}
 \end{figure}
 
-Figure \ref{fig:co2_mod3} shows a subsample of the group-specific
+Figure \ref{fig:co2_modGI} shows a subsample of the group-specific
 smoothers from this model. It is apparent from this that some groups
 (e.g. \texttt{Qc1}) have very similar shapes to the global smoother
 (differing only in intercept), others do differ from the global trend,
@@ -940,13 +964,14 @@ with higher uptake at low concentrations and lower uptake at higher
 concentrations (e.g. \texttt{Mc1}, \texttt{Qn1}), or the reverse pattern
 (e.g. \texttt{Mn1}).
 
-Using model 3 with higher-dimensional data is also straightforward;
-\texttt{by} terms work just as well in tensor-product smoothers as they
-do with isotropic smoothers. We can see this with our bird model:
+Using model \emph{GI} with higher-dimensional data is also
+straightforward; \texttt{by} terms work just as well in tensor-product
+smoothers as they do with isotropic smoothers. We can see this with our
+bird model:
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{bird_mod3 <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\NormalTok{species }\OperatorTok{+}
+\NormalTok{bird_modGI <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\NormalTok{species }\OperatorTok{+}
 \StringTok{                   }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{),}
                       \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\DecValTok{2}\NormalTok{) }\OperatorTok{+}
 \StringTok{                   }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{by=}\NormalTok{species, }\DataTypeTok{bs=} \KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{),}
@@ -962,64 +987,66 @@ Note that switching \texttt{m=1} to \texttt{m=2} does not have any
 effect on the marginal basis for \texttt{week}, where we are using a
 cyclic smoother instead of a tprs.
 
-The fitted model for \texttt{bird\_mod3} is visually indistinguishable
-from \texttt{bird\_mod2} (figure \ref{fig:bird_mod2}) so we do not
+The fitted model for \texttt{bird\_modGI} is visually indistinguishable
+from \texttt{bird\_modGS} (figure \ref{fig:bird_modGS}) so we do not
 illustrate it here.
 
-\subsubsection{Models without global smoothers (models 4 and
-5)}\label{models-without-global-smoothers-models-4-and-5}
+\subsubsection{\texorpdfstring{Models without global smoothers (models
+\emph{S} and
+\emph{I})}{Models without global smoothers (models S and I)}}\label{models-without-global-smoothers-models-s-and-i}
 
 We can modify the above models to exclude the global term (which is
 generally faster; see section V). When we do not model the global term,
 we are allowing each factor to be different, though there may be some
 similarities in the shape of the functions.
 
-\paragraph{Model 4:}\label{model-4}
+\paragraph{\texorpdfstring{Model \emph{S}:}{Model S:}}\label{model-s}
 
-Model 4 (shared smoothers) is simply model 2 without the global
-smoother; this type of model takes the form:
+Model \emph{S} (shared smoothers) is simply model \emph{GS} without the
+global smoother; this type of model takes the form:
 \texttt{y\textasciitilde{}s(x,\ fac,\ bs="fs")} or
 \texttt{y\textasciitilde{}te(x1,\ x2,\ fac,\ bs=c("tp",\ "tp",\ "re")}
 in \texttt{mgcv}. This model assumes all groups have the same
 smoothness, but that the individual shapes of the smooth terms are not
 related. Here we just show how to code these models; plotting them works
-in the same way as for models 1-3 above, the plots for these datasets
-are very similar to the plots for model 2. This will not always be the
-case; if in a given study there are very few data points in each
-grouping level (relative to the strength of the functional relationship
-of interest), estimates from model 4 will typically be much more
-variable than from model 2, as there is no way for the model to share
-information on function shape between grouping levels without the global
-smoother. See section V on computational issues for more on how to
-choose between different models.
+in the same way as for models \emph{G},\emph{GS}, and \emph{GI} above,
+the plots for these datasets are very similar to the plots for model
+\emph{GS}. This will not always be the case; if in a given study there
+are very few data points in each grouping level (relative to the
+strength of the functional relationship of interest), estimates from
+model \emph{S} will typically be much more variable than from model
+\emph{GS}, as there is no way for the model to share information on
+function shape between grouping levels without the global smoother. See
+section V on computational issues for more on how to choose between
+different models.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{CO2_mod4 <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(}\KeywordTok{log}\NormalTok{(uptake) }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), Plant_uo, }\DataTypeTok{k=}\DecValTok{5}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"fs"}\NormalTok{, }\DataTypeTok{m=}\DecValTok{2}\NormalTok{),}
+\NormalTok{CO2_modS <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(}\KeywordTok{log}\NormalTok{(uptake) }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), Plant_uo, }\DataTypeTok{k=}\DecValTok{5}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"fs"}\NormalTok{, }\DataTypeTok{m=}\DecValTok{2}\NormalTok{),}
                 \DataTypeTok{data=}\NormalTok{CO2, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{)}
 
-\NormalTok{bird_mod4 <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\KeywordTok{t2}\NormalTok{(week, latitude, species, }\DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{, }\StringTok{"re"}\NormalTok{),}
+\NormalTok{bird_modS <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\KeywordTok{t2}\NormalTok{(week, latitude, species, }\DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{, }\StringTok{"re"}\NormalTok{),}
                             \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{, }\DecValTok{6}\NormalTok{), }\DataTypeTok{m=}\KeywordTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{)),}
                  \DataTypeTok{data=}\NormalTok{bird_move, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{, }\DataTypeTok{family=}\StringTok{"poisson"}\NormalTok{,}
                  \DataTypeTok{knots =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{week =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{52}\NormalTok{)))}
 \end{Highlighting}
 \end{Shaded}
 
-\paragraph{Model 5:}\label{model-5}
+\paragraph{\texorpdfstring{Model \emph{I}:}{Model I:}}\label{model-i}
 
-Model 5 is simply model 3 without the first term:
+Model \emph{I} is simply model \emph{GI} without the first term:
 \texttt{y\textasciitilde{}fac+s(x,\ by=fac)} or
 \texttt{y\textasciitilde{}fac+te(x1,x2,\ by=fac)} (as above, plots are
-very similar to model 3).
+very similar to model \emph{GI}).
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{CO2_mod5 <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(}\KeywordTok{log}\NormalTok{(uptake) }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), }\DataTypeTok{by=}\NormalTok{Plant_uo, }\DataTypeTok{k=}\DecValTok{5}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"tp"}\NormalTok{, }\DataTypeTok{m=}\DecValTok{2}\NormalTok{) }\OperatorTok{+}
+\NormalTok{CO2_modI <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(}\KeywordTok{log}\NormalTok{(uptake) }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), }\DataTypeTok{by=}\NormalTok{Plant_uo, }\DataTypeTok{k=}\DecValTok{5}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"tp"}\NormalTok{, }\DataTypeTok{m=}\DecValTok{2}\NormalTok{) }\OperatorTok{+}
 \StringTok{                              }\KeywordTok{s}\NormalTok{(Plant_uo, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{, }\DataTypeTok{k=}\DecValTok{12}\NormalTok{),}
                 \DataTypeTok{data=}\NormalTok{ CO2, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{)}
 
 
-\NormalTok{bird_mod5 <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\NormalTok{species }\OperatorTok{+}\StringTok{ }
+\NormalTok{bird_modI <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\NormalTok{species }\OperatorTok{+}\StringTok{ }
 \StringTok{                   }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{by=}\NormalTok{species, }\DataTypeTok{bs=} \KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{), }
                       \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\DecValTok{2}\NormalTok{),}
                  \DataTypeTok{data=}\NormalTok{bird_move, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{, }\DataTypeTok{family=}\StringTok{"poisson"}\NormalTok{,}
@@ -1031,16 +1058,17 @@ very similar to model 3).
 specifications}\label{comparing-different-hgam-specifications}
 
 These models can be compared using standard model comparison tools.
-Model 2 and model 3 will generally be nested in model 1 (depending on
-how each model is specified) so comparisons using generalized likelihood
-ratio tests (GLRTs) may be used to test if groupwise smoothers are
-necessary. However, we do not currently recommend this method. There is
-not sufficient theory on how accurate parametric p-values are for
-comparing these models; there is uncertainty about what degrees of
-freedom to assign to models with varying smoothness, and slightly
-different model specifications may not result in nested models. (See
-Wood (2017a) Section 6.12.4 and \texttt{?mgcv::anova.gam} for more
-discussion on using GLRTs to compare GAMs.)
+Model \emph{GS} and model \emph{GI} will generally be nested in model
+\emph{G} (depending on how each model is specified) so comparisons using
+generalized likelihood ratio tests (GLRTs) may be used to test if
+groupwise smoothers are necessary. However, we do not currently
+recommend this method. There is not sufficient theory on how accurate
+parametric p-values are for comparing these models; there is uncertainty
+about what degrees of freedom to assign to models with varying
+smoothness, and slightly different model specifications may not result
+in nested models. (See Wood (2017a) Section 6.12.4 and
+\texttt{?mgcv::anova.gam} for more discussion on using GLRTs to compare
+GAMs.)
 
 Comparing models based on AIC is a more robust approach to comparing the
 different model structures. There is well-developed theory of how to
@@ -1049,24 +1077,25 @@ estimating the model complexity penalty for AIC (Wood, Pya \& Säfken,
 2016). We demonstrate this approach in Table \ref{tab:AIC_table_kable}.
 Using AIC, there is strong support for including among-group functional
 variability for both the CO2 dataset and the \texttt{bird\_move} dataset
-(compare models 1 versus models 2-5). For the CO2 dataset (Table
-\ref{tab:AIC_table_kable}A), there is relatively strong evidence that
-there is more inter-group variability in smoothness than model 2 allows,
-and weaker evidence that model 4 or 5 (separate smoothers for all
-plants) show the best fit.
+(compare models \emph{G} versus all other models). For the CO2 dataset
+(Table \ref{tab:AIC_table_kable}A), there is relatively strong evidence
+that there is more inter-group variability in smoothness than model
+\emph{GS} allows, and weaker evidence that model \emph{S} or \emph{I}
+(separate smoothers for all plants) show the best fit.
 
 For the \texttt{bird\_move} dataset (Table \ref{tab:AIC_table_kable}B),
-model 2 (global smoother plus group-level smoothers with a shared
-penalty) gives the best fit for all models including a global smooth
-(which is good as we simulated the data from a model with this
-structure!). However, model 4 (without a global term) still fits this
-data better than model 2 based on AIC. This highlights an issue with AIC
-for selecting between models with and without a global smooth: as it is
-possible to fully recreate the global term by just allowing each
-group-level smoother to have a similiar shape to one another (that is,
-the global term is totally concurve with the group-level smoothers; see
-section V) model selection criteria such as AIC may indicate that the
-extra parameters required to fit the global smoother are unnecessary.
+model \emph{GS} (global smoother plus group-level smoothers with a
+shared penalty) gives the best fit for all models including a global
+smooth (which is good as we simulated the data from a model with this
+structure!). However, model \emph{S} (without a global term) still fits
+this data better than model \emph{GS} based on AIC. This highlights an
+issue with AIC for selecting between models with and without a global
+smooth: as it is possible to fully recreate the global term by just
+allowing each group-level smoother to have a similiar shape to one
+another (that is, the global term is totally concurve with the
+group-level smoothers; see section V) model selection criteria such as
+AIC may indicate that the extra parameters required to fit the global
+smoother are unnecessary.
 
 \begin{table}
 
@@ -1085,10 +1114,10 @@ Model & df & AIC & deltaAIC\\
 \hspace{1em}CO2\_mod5 & 56 & -220 & 0\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. bird\_move models}}\\
-\hspace{1em}bird\_mod1 & 51 & 3374 & 1819\\
-\hspace{1em}bird\_mod2 & 141 & 1560 & 6\\
-\hspace{1em}bird\_mod3 & 208 & 1682 & 127\\
-\hspace{1em}bird\_mod4 & 130 & 1555 & 0\\
+\hspace{1em}bird\_mod1 & 51 & 3374 & 1820\\
+\hspace{1em}bird\_mod2 & 140 & 1554 & 0\\
+\hspace{1em}bird\_mod3 & 208 & 1682 & 128\\
+\hspace{1em}bird\_mod4 & 130 & 1555 & 1\\
 \hspace{1em}bird\_mod5 & 200 & 1634 & 80\\
 \bottomrule
 \end{tabular}
@@ -1098,20 +1127,21 @@ Given this issue with selecting global terms, we strongly recommend not
 selecting models based purely on AIC. Instead, model selection should be
 based on expert subject knowledge about the system, computational time,
 and most importantly, the inferential goals of the study. Table
-\ref{tab:AIC_table_kable}A indicates that models 4 and 5 (which do not
-have a global function) fit the \texttt{CO2} data better than models
-with a global function, and that model 4 fits the \texttt{bird\_move}
-data better than model 2. However, it is the shape of the global
-function that we are actually interested in here, as models 4 and 5
-cannot be used to predict the concentration-uptake relationship for
-plants that are not part of the training set, or the average migration
-path for birds. The same consideration holds when choosing between model
-2 and 3: while model 3 fits the \texttt{CO2} data better than model 2
-(as measured by AIC), model 2 can be used to simulate functional
-variation for unobserved group levels, whereas this is not possible
-within the framework of model 3. The next section works through two
-examples to show how to choose between different models, and section V
-discusses these and other model fitting issues in more depth.
+\ref{tab:AIC_table_kable}A indicates that models \emph{S} and \emph{I}
+(which do not have a global function) fit the \texttt{CO2} data better
+than models with a global function, and that model \emph{S} fits the
+\texttt{bird\_move} data better than model \emph{GS}. However, it is the
+shape of the global function that we are actually interested in here, as
+models \emph{S} and \emph{I} cannot be used to predict the
+concentration-uptake relationship for plants that are not part of the
+training set, or the average migration path for birds. The same
+consideration holds when choosing between model \emph{GS} and \emph{GI}:
+while model \emph{GI} fits the \texttt{CO2} data better than model
+\emph{GS} (as measured by AIC), model \emph{GS} can be used to simulate
+functional variation for unobserved group levels, whereas this is not
+possible within the framework of model \emph{GI}. The next section works
+through two examples to show how to choose between different models, and
+section V discusses these and other model fitting issues in more depth.
 
 It also is important to recognize that AIC, like any function of the
 data, is a random variable and should be expected to have some sampling
@@ -1171,43 +1201,35 @@ minimum possible sample size)\footnote{A more appropriate model for this
   not currently have a left-censored family. The \textbf{brms} package,
   for Bayesian model fitting, can fit a left-censored Gamma
   distribution, so it would be possible to fit this model using that
-  software. We discuss using HGAMs in \textbf{brms} in section V.}. To
-evaluate how well each model fit new data (not used to fit the model),
-we calculated the total deviance of the out-of-sample data that we had
-previously held out.\\
-The deviance is equal to two times the sum of the difference between the
-log-likelihood of the out-of-sample data (as predicted by each model)
-and a saturated model, that has one predictor for each data point, all
-multipled by the scale parameter for the family of interest, and can be
-interpreted similiarly to the residual sum of squares for a simple
-linear regression (Wood, 2017a, p. 109).
+  software. We discuss using HGAMs in \textbf{brms} in section V.}.
 
 First, we demonstrate how to model community-level variability in
 seasonality, by regressing scaled density on day of year, with
 species-specific curves. As we are not interested here in average
-seasonal dynamics, we will focus on models 4 and 5 (if we wanted to
-estimate the seasonal dynamics for rarer species, adding a global smooth
-term might be useful, so we could borrow information from the more
-common species). As the data are seasonal, we use cyclic smoothers as
-the basis for seasonal dynamics. Therefore we need to specify start and
-end points for our cycles using the \texttt{knots} argument to
-\texttt{gam}, as well as specify that this is smoother type to the
-factor-smooth interaction term using the \texttt{xt} argument (the
-\texttt{xt} argument is how any extra information that a smoother might
-need is supplied; see \texttt{?mgcv::s} for more information). Note that
-we also include a random effect smoother for both \texttt{taxon} and
-\texttt{taxon:year\_f}, where \texttt{year\_f} is just \texttt{year}
-transformed into a factor variable, to deal with the fact that average
-zooplankton densities can show large year-to-year variation. The
-argument \texttt{drop.unused.levels=FALSE} is also included so the
-\texttt{gam} function does not drop the year factor levels corresponding
-to those in the held-out test data set.
+seasonal dynamics, we will focus on models \emph{S} and \emph{I} (if we
+wanted to estimate the seasonal dynamics for rarer species, adding a
+global smooth term might be useful, so we could borrow information from
+the more common species). As the data are seasonal, we use cyclic
+smoothers as the basis for seasonal dynamics. Therefore we need to
+specify start and end points for our cycles using the \texttt{knots}
+argument to \texttt{gam}, as well as specify that this is smoother type
+to the factor-smooth interaction term using the \texttt{xt} argument
+(the \texttt{xt} argument is how any extra information that a smoother
+might need is supplied; see \texttt{?mgcv::s} for more information).
+Note that we also include a random effect smoother for both
+\texttt{taxon} and \texttt{taxon:year\_f}, where \texttt{year\_f} is
+just \texttt{year} transformed into a factor variable, to deal with the
+fact that average zooplankton densities can show large year-to-year
+variation. The argument \texttt{drop.unused.levels=FALSE} is also
+included so the \texttt{gam} function does not drop the year factor
+levels corresponding to those in the held-out test data set.
 
-\subsubsection{Model 4:}\label{model-4-1}
+\subsubsection{\texorpdfstring{Model
+\emph{S}:}{Model S:}}\label{model-s-1}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{zoo_comm_mod4 <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(density_adj }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(day, taxon,}
+\NormalTok{zoo_comm_modS <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(density_adj }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(day, taxon,}
                                      \DataTypeTok{bs=}\StringTok{"fs"}\NormalTok{,}
                                      \DataTypeTok{k=}\DecValTok{10}\NormalTok{,}
                                      \DataTypeTok{xt=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{))}\OperatorTok{+}
@@ -1220,13 +1242,14 @@ to those in the held-out test data set.
 \end{Highlighting}
 \end{Shaded}
 
-\subsubsection{Model 5:}\label{model-5-1}
+\subsubsection{\texorpdfstring{Model
+\emph{I}:}{Model I:}}\label{model-i-1}
 
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{# Note that  s(taxon, bs="re") has to be explicitly included here, as the }
 \CommentTok{# day  by taxon smoother does not include an intercept}
-\NormalTok{zoo_comm_mod5 <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(density_adj }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(day, }\DataTypeTok{by=}\NormalTok{taxon,}
+\NormalTok{zoo_comm_modI <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(density_adj }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(day, }\DataTypeTok{by=}\NormalTok{taxon,}
                                      \DataTypeTok{k=}\DecValTok{10}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{) }\OperatorTok{+}\StringTok{ }
 \StringTok{                                   }\KeywordTok{s}\NormalTok{(taxon, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{) }\OperatorTok{+}
 \StringTok{                                   }\KeywordTok{s}\NormalTok{(taxon, year_f, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{),}
@@ -1243,19 +1266,17 @@ to determine if any of the fitted models adequately describe patterns in
 the data (i.e.~goodness of fit testing). The \textbf{mgcv} package
 provides tools to facilitate this process, using the \texttt{gam.check}
 function. This function creates a set of standard diagnostic plots: a QQ
-plot of the deviance residuals (see Wood (2017a)) compared to their
-theoretical expectation for the chosen family, a plot of response versus
-fitted values, a histogram of residuals, and a plot of residuals versus
-fitted values. It also conducts a test for each smooth term to determine
-if the number of degrees of freedom (\texttt{k}) for each smooth is
-adequate (see \texttt{?mgcv::gam.check} for details on how that test
-works). The code for checking model 4 and 5 for the community
-zooplankton model is given as:
+plot, a plot of response versus fitted values, a histogram of residuals,
+and a plot of residuals versus fitted values. It also conducts a test
+for each smooth term to determine if the number of degrees of freedom
+(\texttt{k}) for each smooth is adequate (see \texttt{?mgcv::gam.check}
+for details on how that test works). The code for checking model
+\emph{S} and \emph{I} for the community zooplankton model is given as:
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\KeywordTok{gam.check}\NormalTok{(zoo_comm_mod4)}
-\KeywordTok{gam.check}\NormalTok{(zoo_comm_mod5)}
+\KeywordTok{gam.check}\NormalTok{(zoo_comm_modS)}
+\KeywordTok{gam.check}\NormalTok{(zoo_comm_modI)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1263,26 +1284,26 @@ For the sake of brevity, and as fitted versus response plots are
 generally less useful for non-normally distributed data (as it can be
 difficult to visually assess if the observed data shows more
 heteroskedasticity than expected for a specified distribution) we have
-plotted QQ plots and fitted-versus residual plots for model 5; the
-results for model 4 are virtually indistinguishable to the naked eye.
-These plots (Figure \ref{fig:zoo_comm_diag_plot}) indicate that the
-Gamma distribution seems to fit the observed data well except at low
-values, where the deviance residuals are larger than predicted by the
-theoretical quantiles (Figure \ref{fig:zoo_comm_diag_plot} left). There
-also does not seem to be a pattern in the residual versus fitted values
-(Figure \ref{fig:zoo_comm_diag_plot} right), except for a line of
+plotted QQ plots and fitted-versus residual plots for model \emph{I};
+the results for model \emph{S} are virtually indistinguishable to the
+naked eye. These plots (Figure \ref{fig:zoo_comm_diag_plot}) indicate
+that the Gamma distribution seems to fit the observed data well except
+at low values, where the deviance residuals are larger than predicted by
+the theoretical quantiles (Figure \ref{fig:zoo_comm_diag_plot} left).
+There also does not seem to be a pattern in the residual versus fitted
+values (Figure \ref{fig:zoo_comm_diag_plot} right), except for a line of
 residuals at the lowest values, which correspond to all of those
 observations where a given taxon was absent from the sample. The
 \texttt{k.check} test shows that the default maximum degrees of freedom
-for the smoothers used in model 5 are sufficient for all species, as the
-effective degrees of freedom (edf) for all estimated smoothers are well
-below their maximum possible value (\texttt{k\textquotesingle{}}), and
-the p-value for the observed k-index (which measures pattern in the
-residuals) is not significant:
+for the smoothers used in model \emph{I} are sufficient for all species,
+as the effective degrees of freedom (edf) for all estimated smoothers
+are well below their maximum possible value
+(\texttt{k\textquotesingle{}}), and the p-value for the observed k-index
+(which measures pattern in the residuals) is not significant:
 
 \begin{table}
 
-\caption{\label{tab:zoo_comm_check_k_kable}Results from running \texttt{k.check} on \texttt{zoo\_comm\_mod5}.}
+\caption{\label{tab:zoo_comm_check_k_kable}Results from running \texttt{k.check} on \texttt{zoo\_comm\_modI}.}
 \centering
 \begin{tabular}[t]{lrrrr}
 \toprule
@@ -1322,24 +1343,24 @@ autocorrelation.
 \begin{figure}
 \centering
 \includegraphics{../figures/zoo_comm_diag-1.pdf}
-\caption{\label{fig:zoo_comm_diag_plot} Diagnostic plots for model 5
-fitted to zooplankton community data in Lake Mendota. Top row: QQ plots
-plus the 1-1 line. Bottom row: deviance residuals versus fitted values
-(on the link scale).}
+\caption{\label{fig:zoo_comm_diag_plot} Diagnostic plots for model
+\emph{I} fitted to zooplankton community data in Lake Mendota. Top row:
+QQ plots plus the 1-1 line. Bottom row: deviance residuals versus fitted
+values (on the link scale).}
 \end{figure}
 
-Differences between models 4 (shared smoothness between taxa) and 5
-(different smoothness for each taxa) seem to be driven by the low
+Differences between models \emph{S} (shared smoothness between taxa) and
+5 (different smoothness for each taxa) seem to be driven by the low
 seasonality of \emph{L. siciloides} relative to the other species, and
-how this is captured by the more flexible model 5 (Figure
+how this is captured by the more flexible model \emph{I} (Figure
 \ref{fig:zoo_comp}). Still, both models show very similar fits to the
-training data. Model 4 is somewhat better at predicting out-of-sample
-fits for all taxa (Table \ref{tab:zoo_comm_outofsample_kable}), and both
-models show significant predictive improvement compared to the
-intercept-only model for all species except \emph{K. cochlearis} (Table
-\ref{tab:zoo_comm_outofsample_kable}). This may be evidence that the two
-seasonal maxima that both models detected are spurious (Figure
-\ref{fig:zoo_comp}).
+training data. Model \emph{S} is slightly better at predicting out of
+sample fits for all taxa except \emph{M. edax} (Table
+\ref{tab:zoo_comm_outofsample_kable}). Even though \emph{L. siciloides}
+showed weak seasonal dynamics, Model \emph{S} and \emph{I} still did a
+better job of predicting the density of this species out of sample
+compared to a simple model with only a species-specific intercept (Table
+\ref{tab:zoo_comm_outofsample_kable}).
 
 \begin{figure}
 \centering
@@ -1347,44 +1368,46 @@ seasonal maxima that both models detected are spurious (Figure
 \caption{\label{fig:zoo_comp}Species-specific seasonal dynamics for the
 eight zooplankon species tracked in Lake Mendota. Black points indicate
 individual plankton observations. Lines indicate predicted average
-values for model 4 (black) and model 5 (red). Ribbons indicate \(\pm\) 2
-standard errors around the mean.}
+values for model \emph{S} (black) and model \emph{I} (red). Ribbons
+indicate \(\pm\) 2 standard errors around the mean.}
 \end{figure}
 
 \begin{table}
 
-\caption{\label{tab:zoo_comm_outofsample_kable}Out-of-sample predictive ability for model 4 and 5 applied to the zooplankton community dataset. Deviance values represent the total deviance of model predictions from observations for out-of-sample data. 'Intercept only' results are for a null model with only taxon-level random effect intercepts included.}
+\caption{\label{tab:zoo_comm_outofsample_kable}Out-of-sample predictive ability for model *S* and 5 applied to the zooplankton community dataset. RMSE values represent the square root of the average squared difference between model predictions and observations for test data.  Intercept only results are for a null model with only year and year-by taxon random effect intercepts included.}
 \centering
 \begin{tabular}[t]{llll}
 \toprule
-\multicolumn{1}{c}{ } & \multicolumn{3}{c}{\Large{${\text{Total deviance of out-of-sample data}}\atop{(\text{10 000 individuals}\cdot m^{-2})}$}} \\
+\multicolumn{1}{c}{ } & \multicolumn{3}{c}{\Large{${\text{Total RMSE of held out data}}\atop{(\text{10 000 individuals}\cdot m^{-2})}$}} \\
 \cmidrule(l{2pt}r{2pt}){2-4}
-taxon & Intercept only & Model 4 & Model 5\\
+taxon & Intercept only & Model S & Model I\\
 \midrule
-\em{C. sphaericus} & 715 & 482 & 495\\
-Calanoid copepods & 346 & 220 & 223\\
-Cyclopoid copepods & 569 & 381 & 386\\
-\em{D. mendotae} & 353 & 264 & 268\\
-\em{D. thomasi} & 486 & 333 & 337\\
+\em{C. sphaericus} & 20.9 & 20 & 20.1\\
+Calanoid copepods & 12.1 & 10.9 & 10.9\\
+Cyclopoid copepods & 109 & 104 & 105\\
+\em{D. mendotae} & 3.03 & 2.79 & 2.82\\
+\em{D. thomasi} & 29.5 & 30.8 & 31.8\\
 \addlinespace
-\em{K. cochlearis} & 486 & 2260 & 2340\\
-\em{L. siciloides} & 132 & 116 & 126\\
-\em{M. edax} & 270 & 138 & 139\\
+\em{K. cochlearis} & 94.8 & 95.7 & 95.6\\
+\em{L. siciloides} & 6.12 & 5.5 & 5.86\\
+\em{M. edax} & 2.27 & 1.95 & 1.94\\
 \bottomrule
 \end{tabular}
 \end{table}
 
 Next, we look at how to fit inter-lake variability in dynamics for just
-\emph{Daphnia mendotae}. Here, we will compare models 1, 2, and 3 to
-determine if a single global function is appropriate for all four lakes,
-or if we can more effectively model variation between lakes with a
-shared smoother and lake-specific smoothers.
+\emph{Daphnia mendotae}. Here, we will compare models \emph{G},
+\emph{GS}, and \emph{GI} to determine if a single global function is
+appropriate for all four lakes, or if we can more effectively model
+variation between lakes with a shared smoother and lake-specific
+smoothers.
 
-\subsubsection{Model 1:}\label{model-1}
+\subsubsection{\texorpdfstring{Model
+\emph{G}:}{Model G:}}\label{model-g}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{zoo_daph_mod1 <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(density_adj }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(day, }\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{)}\OperatorTok{+}
+\NormalTok{zoo_daph_modG <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(density_adj }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(day, }\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{)}\OperatorTok{+}
 \StringTok{                       }\KeywordTok{s}\NormalTok{(lake, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{) }\OperatorTok{+}\StringTok{ }
 \StringTok{                       }\KeywordTok{s}\NormalTok{(lake, year_f,}\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{),}
                      \DataTypeTok{data=}\NormalTok{daphnia_train,}
@@ -1395,11 +1418,12 @@ shared smoother and lake-specific smoothers.
 \end{Highlighting}
 \end{Shaded}
 
-\subsubsection{Model 2:}\label{model-2}
+\subsubsection{\texorpdfstring{Model
+\emph{GS}:}{Model GS:}}\label{model-gs}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{zoo_daph_mod2 <-}
+\NormalTok{zoo_daph_modGS <-}
 \StringTok{  }\KeywordTok{gam}\NormalTok{(density_adj }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(day, }\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{) }\OperatorTok{+}\StringTok{ }
 \StringTok{        }\KeywordTok{s}\NormalTok{(day, lake, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"fs"}\NormalTok{, }\DataTypeTok{xt=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{)) }\OperatorTok{+}\StringTok{ }
 \StringTok{        }\KeywordTok{s}\NormalTok{(lake, year_f,}\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{),}
@@ -1411,11 +1435,12 @@ shared smoother and lake-specific smoothers.
 \end{Highlighting}
 \end{Shaded}
 
-\subsubsection{Model 3:}\label{model-3}
+\subsubsection{\texorpdfstring{Model
+\emph{GI}:}{Model GI:}}\label{model-gi}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{zoo_daph_mod3 <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(density_adj}\OperatorTok{~}\KeywordTok{s}\NormalTok{(day, }\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{) }\OperatorTok{+}
+\NormalTok{zoo_daph_modGI <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(density_adj}\OperatorTok{~}\KeywordTok{s}\NormalTok{(day, }\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{) }\OperatorTok{+}
 \StringTok{                             }\KeywordTok{s}\NormalTok{(day, }\DataTypeTok{by=}\NormalTok{lake, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{)}\OperatorTok{+}
 \StringTok{                             }\KeywordTok{s}\NormalTok{(lake, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{) }\OperatorTok{+}\StringTok{ }
 \StringTok{                             }\KeywordTok{s}\NormalTok{(lake, year_f,}\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{),}
@@ -1429,53 +1454,53 @@ shared smoother and lake-specific smoothers.
 
 We will exclude the \texttt{gam.check} diagnostic plots and results, as
 they do not indicate any issues with model fit. The AIC values indicate
-that both model 2 (1093.71) and 3 (1085.7) are better fits than model 1
-(1097.62), but models 3 fits somewhat better than model 2.\footnote{When
-  comparing models via AIC, we use the standard rule of thumb from
-  Burnham \& Anderson (1998), where models that differ by 2 units or
-  less from the lowest AIC model have substantial support, and those
-  differing by more than 4 units having less support.} There does not
-seem to be a large amount of inter-lake variability (the effective
-degrees of freedom per lake are low in models 2 \& 3). Plots for all
-three models (Figure \ref{fig:daph_smooth}) show that Mendota, Monona,
-and Kegonsa lakes are very close to the average and to one another for
-both models, but Waubesa shows evidence of a more pronounced spring
-bloom and lower winter abundances.
+that both model \emph{GS} (1093.71) and \emph{GI} (1085.7) are better
+fits than model \emph{G} (1097.62), but models \emph{GI} fits somewhat
+better than model \emph{GS}.\footnote{When comparing models via AIC, we
+  use the standard rule of thumb from Burnham \& Anderson (1998), where
+  models that differ by 2 units or less from the lowest AIC model have
+  substantial support, and those differing by more than 4 units having
+  less support.} There does not seem to be a large amount of inter-lake
+variability (the effective degrees of freedom per lake are low in models
+\emph{GS} \& \emph{GI}). Plots for all three models (Figure
+\ref{fig:daph_smooth}) show that Mendota, Monona, and Kegonsa lakes are
+very close to the average and to one another for both models, but
+Waubesa shows evidence of a more pronounced spring bloom and lower
+winter abundances.
 
 \begin{figure}
 \centering
 \includegraphics{../figures/zoo_daph_plot-1.pdf}
 \caption{\label{fig:daph_smooth}Raw data (points) and fitted models
-(lines) for \textit{D. mendota} data. Green: model 1 (no inter-lake
-variation in dynamics); orange: model 2 (interlake variation with
-similar smoothness); purple: model 3 (varying smoothness among lakes).
-Shaded bands are drawn at \(\pm\) 2 standard errors around each model.}
+(lines) for \textit{D. mendota} data. Green: model \emph{G} (no
+inter-lake variation in dynamics); orange: model \emph{GS} (interlake
+variation with similar smoothness); purple: model \emph{GI} (varying
+smoothness among lakes). Shaded bands are drawn at \(\pm\) 2 standard
+errors around each model.}
 \end{figure}
 
-Model 3 is able to predict as well as model 1 or 2 (Table
-\ref{tab:zoo_daph_outofsample_kable}), indicating that allowing for
-inter-lake variation in seasonal dynamics improved model prediction.
-None of the models did well in terms of predicting Lake Kegonsa or Lake
-Waubesa dynamics out-of-sample compared to a simple model with only a
-lake-specific intercept and no intra-annual variability,but all three
-models predicted dynamics in Lake Mendota and Lake Menona significantly
-better than the intercept-only model (Table
-\ref{tab:zoo_daph_outofsample_kable}).
+Model \emph{GI} is able to predict as well as model \emph{G} or
+\emph{GS} (Table \ref{tab:zoo_daph_outofsample_kable}), indicating that
+allowing for inter-lake variation in seasonal dynamics improved model
+prediction. None of the models did well in terms of predicting Lake
+Kegonsa or Lake Waubesa dynamics out of sample compared to a simple
+model with only a lake-specific intercept and no intra-annual
+variability (Table \ref{tab:zoo_daph_outofsample_kable}).
 
 \begin{table}
 
-\caption{\label{tab:zoo_daph_outofsample_kable}Out-of-sample predictive ability for model 1-3 applied to the \textit{D. mendotae} dataset. Deviance values represent the total deviance of model predictions from observations for out-of-sample data. 'Intercept only' results are for a null model with only lake-level random effect intercepts included}
+\caption{\label{tab:zoo_daph_outofsample_kable}Out-of-sample predictive ability for model *G*,*GS*, and *GI* applied to the \textit{D. mendotae} dataset. RMSE values represent the average squared difference between model predictions and observations for held-out data.}
 \centering
 \begin{tabular}[t]{lllll}
 \toprule
-\multicolumn{1}{c}{ } & \multicolumn{4}{c}{\Large{${\text{Total deviance of out-of-sample data}}\atop{(\text{10 000 individuals}\cdot m^{-2})}$}} \\
+\multicolumn{1}{c}{ } & \multicolumn{4}{c}{\Large{${\text{Total RMSE of held out data}}\atop{(\text{10 000 individuals}\cdot m^{-2})}$}} \\
 \cmidrule(l{2pt}r{2pt}){2-5}
-Lake & Intercept only & Model 1 & Model 2 & Model 3\\
+Lake & Intercept only & Model G & Model GS & Model GI\\
 \midrule
-Kegonsa & 96 & 92 & 89 & 86\\
-Mendota & 352 & 258 & 257 & 257\\
-Menona & 348 & 300 & 294 & 290\\
-Waubesa & 113 & 176 & 164 & 157\\
+Kegonsa & 2.1 & 2.1 & 2.1 & 2\\
+Mendota & 3 & 2.7 & 2.7 & 2.7\\
+Menona & 3 & 3 & 2.9 & 2.9\\
+Waubesa & 7 & 7.2 & 7.2 & 7.1\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1485,17 +1510,17 @@ Waubesa & 113 & 176 & 164 & 157\\
 \section{V: Computational and statistical issues when fitting
 HGAMs}\label{v-computational-and-statistical-issues-when-fitting-hgams}
 
-Which of the five model formulations should you choose for a given data
-set? There are two major trade-offs to consider. The first is the
-bias-variance trade-off: more complex models can account for more
-fluctuations in the data, but also tend to give more variable
-predictions, and can overfit. The second trade-off is model complexity
-versus computational cost: more complex models can include more
-potential sources of variation and give more information about a given
-data set, but will generally take more time and computational resources
-to fit and debug. We discuss both of these trade-offs in this section.
-We also discuss how to extend the HGAM framework to fit more complex
-models.
+Which of the five model formulations (figure \ref{fig:models}) should
+you choose for a given data set? There are two major trade-offs to
+consider. The first is the bias-variance trade-off: more complex models
+can account for more fluctuations in the data, but also tend to give
+more variable predictions, and can overfit. The second trade-off is
+model complexity versus computational cost: more complex models can
+include more potential sources of variation and give more information
+about a given data set, but will generally take more time and
+computational resources to fit and debug. We discuss both of these
+trade-offs in this section. We also discuss how to extend the HGAM
+framework to fit more complex models.
 
 \subsection{Bias-variance trade-offs}\label{bias-variance-trade-offs}
 
@@ -1530,44 +1555,45 @@ effectively predict new data.
 
 The bias-variance trade-off comes into play with HGAMs when choosing
 whether to fit separate penalties for each group level or assign a
-common penalty for all group levels (i.e., deciding between models 2 \&
-3 or models 4 \& 5). If the functional relationships we are trying to
-estimate for different group levels actually vary in how wiggly they
-are, setting the penalty for all group-level smoothers equal (models 2
-\& 4) will either lead to overly variable estimates for the least
-variable group levels, over-smoothed (biased) estimates for the most
-wiggly terms, or a mixture of these two, depending on the fitting
-criteria.
+common penalty for all group levels (i.e., deciding between models
+\emph{GS} \& \emph{GI} or models \emph{S} \& \emph{I}). If the
+functional relationships we are trying to estimate for different group
+levels actually vary in how wiggly they are, setting the penalty for all
+group-level smoothers equal (models \emph{GS} \& \emph{S}) will either
+lead to overly variable estimates for the least variable group levels,
+over-smoothed (biased) estimates for the most wiggly terms, or a mixture
+of these two, depending on the fitting criteria.
 
 We developed a simple numerical experiment to determine whether
 \textbf{mgcv}'s fitting criteria tend to set estimated smoothness
 penalties high or low in the presence of among-group variability in
-smoothness when fitting model 2 or 4 HGAMs. We simulated data from five
-different groups, with all groups having the same levels of the
-covariate \(x\), ranging from 0 to \(2\pi\). For each group, the true
-function relating \(x\) to the response, \(y\), was a sine wave, but the
-frequency varied from 0.25 (equal to half a cycle across the range of
-\(x\)) to 4 (corresponding to 4 full cycles across the range). We added
-normally distributed error to all \(y\)-values, with a standard
-deviation of 0.2. We then fit both model 4 (where all curves were
-assumed to be equally smooth) and model 5 (with varying smoothness) to
-the entire data set, using REML criteria to estimate penalties. For this
-example (Fig. \ref{fig:var_pen}a), requiring equal smoothness for all
-group levels resulted in \textbf{mgcv} underestimating the penalty for
-the lowest frequency (most smooth) terms, but accurately estimating the
-true smoothness of the highest frequency terms as measured by the
-squared second derivative of the smooth fit versus that of the true
-function (Fig. \ref{fig:var_pen}b). This implies that assuming equal
-smoothness will result in underestimating the true smoothness of
-low-variability terms, and thus lead to more variable estimates of these
-terms. If this is a potential issue, we recommend fitting both models 4
-and 5 and using standard model evaluation criteria (e.g., AIC) to
-determine if there is evidence for among-group variability in
-smoothness. For instance, the AIC for model 4 fit to this data is -178,
-whereas it is -211 for model 5, implying a improvement in fit by
-allowing smoothness to vary. However, it may be the case that there are
-too few data points per group to estimate separate smoothness levels, in
-which case model 2 or model 4 may still be the better option even in the
+smoothness when fitting model \emph{GS} or \emph{S} HGAMs. We simulated
+data from five different groups, with all groups having the same levels
+of the covariate \(x\), ranging from 0 to \(2\pi\). For each group, the
+true function relating \(x\) to the response, \(y\), was a sine wave,
+but the frequency varied from 0.25 (equal to half a cycle across the
+range of \(x\)) to 4 (corresponding to 4 full cycles across the range).
+We added normally distributed error to all \(y\)-values, with a standard
+deviation of 0.2. We then fit both model \emph{S} (where all curves were
+assumed to be equally smooth) and model \emph{I} (with varying
+smoothness) to the entire data set, using REML criteria to estimate
+penalties. For this example (Fig. \ref{fig:var_pen}a), requiring equal
+smoothness for all group levels resulted in \textbf{mgcv}
+underestimating the penalty for the lowest frequency (most smooth)
+terms, but accurately estimating the true smoothness of the highest
+frequency terms as measured by the squared second derivative of the
+smooth fit versus that of the true function (Fig. \ref{fig:var_pen}b).
+This implies that assuming equal smoothness will result in
+underestimating the true smoothness of low-variability terms, and thus
+lead to more variable estimates of these terms. If this is a potential
+issue, we recommend fitting both models \emph{S} and \emph{I} and using
+standard model evaluation criteria (e.g., AIC) to determine if there is
+evidence for among-group variability in smoothness. For instance, the
+AIC for model \emph{S} fit to this data is -178, whereas it is -211 for
+model \emph{I}, implying a improvement in fit by allowing smoothness to
+vary. However, it may be the case that there are too few data points per
+group to estimate separate smoothness levels, in which case model
+\emph{GS} or model \emph{S} may still be the better option even in the
 face of varying smoothness.
 
 The ideal case would be to assume that among-group penalties follow
@@ -1583,36 +1609,39 @@ to fit this type of model has not been well studied.
 \centering
 \includegraphics{../figures/single_smooth_bias_plot-1.pdf}
 \caption{\label{fig:var_pen} a) Illustration of bias that can arise from
-assuming equal smoothness for all group levels (model 4, red line)
-versus allowing for intergroup variation in smoothness (model 5, red
-line) when the true function (black line) shows substantial variation in
-smoothness between groups. b) Estimated wiggliness (as measured by the
-integral of the squared 2nd derivative) of the true function for each
-group level versus that for the functions estimated by model 4 (red) and
-model 5 (blue), indicating substantial undersmoothing for
-low-variability curves by model 4.}
+assuming equal smoothness for all group levels (model \emph{S}, red
+line) versus allowing for intergroup variation in smoothness (model
+\emph{I}, red line) when the true function (black line) shows
+substantial variation in smoothness between groups. b) Estimated
+wiggliness (as measured by the integral of the squared 2nd derivative)
+of the true function for each group level versus that for the functions
+estimated by model \emph{S} (red) and model \emph{I} (blue), indicating
+substantial undersmoothing for low-variability curves by model
+\emph{S}.}
 \end{figure}
 
 It may seem there is also a bias-variance trade-off between choosing to
-use a single global smoother (model 1) or a global smoother plus
-group-level terms (models 2 and 3). In model 1, all the data is used to
-estimate a single smooth term, and thus should have lower variance than
-models 2 and 3, but higher bias for any given group in the presence of
-inter-group functional variability. However, in practice, this trade-off
-will be handled via penalization; if there are no average differences
-between functional responses, \textbf{mgcv} will penalize the
-group-specific functions toward zero, and thus toward the global model.
-The choice between using model 1 versus models 2 and 3 should generally
-be driven by computational costs. Model 1 is typically much faster to
-fit than models 2 and 3, even in the absence of among-group differences.
-If there is no need to estimate inter-group variability, model 1 will
-typically be more efficient.
+use a single global smoother (model \emph{G}) or a global smoother plus
+group-level terms (models \emph{GS} and \emph{GI}). In model \emph{G},
+all the data is used to estimate a single smooth term, and thus should
+have lower variance than models \emph{GS} and \emph{GI}, but higher bias
+for any given group in the presence of inter-group functional
+variability. However, in practice, this trade-off will be handled via
+penalization; if there are no average differences between functional
+responses, \textbf{mgcv} will penalize the group-specific functions
+toward zero, and thus toward the global model. The choice between using
+model \emph{G} versus models \emph{GS} and \emph{GI} should generally be
+driven by computational costs. Model \emph{G} is typically much faster
+to fit than models \emph{GS} and \emph{GI}, even in the absence of
+among-group differences. If there is no need to estimate inter-group
+variability, model \emph{G} will typically be more efficient.
 
-A similar issue exists when choosing between models 2 and 3 and models 4
-and 5. If all group levels have very different functional shapes, the
-global term will get penalized toward zero in models 2 and 3, so they
-will reduce to models 4 and 5. The choice to include a global term
-should be made based on scientific considerations (is the global term of
+A similar issue exists when choosing between models \emph{GS} and
+\emph{GI} and models \emph{S} and \emph{I}. If all group levels have
+very different functional shapes, the global term will get penalized
+toward zero in models \emph{GS} and \emph{GI}, so they will reduce to
+models \emph{S} and \emph{I}. The choice to include a global term should
+be made based on scientific considerations (is the global term of
 interest?) and computational considerations.
 
 \subsection{Complexity-computation
@@ -1634,18 +1663,20 @@ criteria used to estimate parameters.
 
 The most straightforward factor that will affect the amount of
 computational resources is the number of parameters in the model. Adding
-group-level smoothers (moving from model 1 to 2-5) means that there will
-be more regression parameters to estimate. For a dataset with \(g\)
-different groups and \(n\) data points, fitting a model with just a
-global smoother, \texttt{y\textasciitilde{}s(x,k=k)} will require \(k\)
-coefficients, and takes \(\mathcal{O}(nk^2)\) operations to evaluate.
-Fitting the same data using a group-level smoother (model 4,
+group-level smoothers (moving from model \emph{G} to the other models)
+means that there will be more regression parameters to estimate. For a
+dataset with \(g\) different groups and \(n\) data points, fitting a
+model with just a global smoother, \texttt{y\textasciitilde{}s(x,k=k)}
+will require \(k\) coefficients, and takes \(\mathcal{O}(nk^2)\)
+operations to evaluate. Fitting the same data using a group-level
+smoother (model \emph{S},
 \texttt{y\textasciitilde{}s(x,fac,bs="fs",k=k)}) will require
 \(\mathcal{O}(nk^2g^2)\) operations to evaluate. In effect, adding a
 group-level smoother will increase computational cost by an order of the
 number of groups squared. The effect of this is visible in the examples
 we fit in section III. Table \ref{tab:comp_time_kable} compares the
-relative time it takes to compute model 1 versus the other models.
+relative time it takes to compute model \emph{G} versus the other
+models.
 
 One way to deal with this issue would be to reduce the number of basis
 functions used when fitting group-level smoothers when the number of
@@ -1654,29 +1685,32 @@ sense to use more computationally-efficient basis functions when fitting
 large data sets, such as P-splines (Wood, 2017b) or cubic splines. Thin
 plate splines entail greater computational costs (Wood, 2017a).
 
-Including a global smoother (models 2 and 3 compared to models 4 and 5)
-will not generally substantially affect the number of coefficients that
-need to be estimated (Table \ref{tab:comp_time_kable}). Adding a global
-term will add at most \texttt{k} extra terms. It can be substantially
-less than that, as \textbf{mgcv} drops basis functions from co-linear
-smoothers to ensure that the model matrix is full rank.
+Including a global smoother (models \emph{GS} and \emph{GI} compared to
+models \emph{S} and \emph{I}) will not generally substantially affect
+the number of coefficients that need to be estimated (Table
+\ref{tab:comp_time_kable}). Adding a global term will add at most
+\texttt{k} extra terms. It can be substantially less than that, as
+\textbf{mgcv} drops basis functions from co-linear smoothers to ensure
+that the model matrix is full rank.
 
-Adding additional smoothing parameters (moving from model 2 to 3, or
-moving from model 4 to 5) is more costly than increasing the number of
-coefficients to estimate, as estimating smoothing parameters is
-computationally intensive (Wood, 2011). This means that models 2 and 4
-will generally be substantially faster than 3 and 5 when the number of
-groups is large, as models 3 and 5 fit a separate set of penalties for
+Adding additional smoothing parameters (moving from model \emph{GS} to
+\emph{GI}, or moving from model \emph{S} to \emph{I}) is more costly
+than increasing the number of coefficients to estimate, as estimating
+smoothing parameters is computationally intensive (Wood, 2011). This
+means that models \emph{GS} and \emph{S} will generally be substantially
+faster than \emph{GI} and \emph{I} when the number of groups is large,
+as models \emph{GI} and \emph{I} fit a separate set of penalties for
 each group level. The effect of this is visible in comparing the time it
-takes to fit model 2 to model 3 (which has a smoother for each group) or
-models 4 and 5 for the example data (Table \ref{tab:comp_time_kable}).
-Note that this will not hold in all cases. For instance, model 5 takes
-less time to fit the bird movement data than model 4 does (Table
+takes to fit model \emph{GS} to model \emph{GI} (which has a smoother
+for each group) or models \emph{S} and \emph{I} for the example data
+(Table \ref{tab:comp_time_kable}). Note that this will not hold in all
+cases. For instance, model \emph{I} takes less time to fit the bird
+movement data than model \emph{S} does (Table
 \ref{tab:comp_time_kable}B).
 
 \begin{table}
 
-\caption{\label{tab:comp_time_kable}Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model 1 takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smoothers is the total number of unique penalty values estimated by the model.}
+\caption{\label{tab:comp_time_kable}Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model *G* takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smoothers is the total number of unique penalty values estimated by the model.}
 \centering
 \begin{tabular}[t]{lrrr}
 \toprule
@@ -1686,18 +1720,18 @@ model & relative time & coefficients & penalties\\
 \midrule
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{A. CO2 data}}\\
-\hspace{1em}1 & 1 & 17 & 2\\
-\hspace{1em}2 & 9 & 65 & 3\\
-\hspace{1em}3 & 16 & 65 & 14\\
-\hspace{1em}4 & 5 & 61 & 3\\
-\hspace{1em}5 & 17 & 61 & 13\\
+\hspace{1em}G & 1 & 17 & 2\\
+\hspace{1em}GS & 5 & 65 & 14\\
+\hspace{1em}GI & 3 & 65 & 3\\
+\hspace{1em}S & 6 & 61 & 13\\
+\hspace{1em}I & 2 & 61 & 3\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. bird movement data}}\\
-\hspace{1em}1 & 1 & 90 & 2\\
-\hspace{1em}2 & 170 & 540 & 5\\
-\hspace{1em}3 & 380 & 624 & 14\\
-\hspace{1em}4 & 130 & 541 & 3\\
-\hspace{1em}5 & 70 & 535 & 12\\
+\hspace{1em}G & 1 & 90 & 2\\
+\hspace{1em}GS & 330 & 624 & 14\\
+\hspace{1em}GI & 150 & 540 & 5\\
+\hspace{1em}S & 62 & 535 & 12\\
+\hspace{1em}I & 120 & 541 & 3\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1723,10 +1757,11 @@ computation time. Second, when using \texttt{bam()}'s default fREML
 this first bins continuous covariates into a smaller number of discrete
 values before estimating the model, substantially reducing the amount of
 computation needed (Wood et al. (2017); see \texttt{?mgcv::bam} for more
-details). Setting up models 1-5 in \texttt{bam()} uses the same code as
-we have previously covered; the only difference is that you use the
-\texttt{bam()} instead of \texttt{gam()} function, and have the
-additional option of discretizing your covariates.
+details). Setting up the five model types (figure \ref{fig:models}) in
+\texttt{bam()} uses the same code as we have previously covered; the
+only difference is that you use the \texttt{bam()} instead of
+\texttt{gam()} function, and have the additional option of discretizing
+your covariates.
 
 \texttt{bam()} has a larger computational overhead than \texttt{gam()},
 so for small numbers of groups, it can be slower than \texttt{gam()}
@@ -1786,12 +1821,12 @@ All models were run on a single core.}
 
 Both \texttt{gamm()} and \texttt{gamm4()} require a few changes to model
 code. First, there are a few limitations on how you are able to specify
-models 1-5 in both frameworks. Factor-smoother interaction
-(\texttt{bs="fs"}) basis setup works in both \texttt{gamm()} and
-\texttt{gamm4()}. However, as the \textbf{nlme} package does not support
-crossed random effects, it is not possible to have two factor-smoother
-interaction terms for the same grouping variable in \texttt{gamm()}
-models (e.g.,
+the different model types (figure \ref{fig:models}) in both frameworks.
+Factor-smoother interaction (\texttt{bs="fs"}) basis setup works in both
+\texttt{gamm()} and \texttt{gamm4()}. However, as the \textbf{nlme}
+package does not support crossed random effects, it is not possible to
+have two factor-smoother interaction terms for the same grouping
+variable in \texttt{gamm()} models (e.g.,
 \texttt{y\textasciitilde{}s(x1,\ grp,\ bs="fs")+s(x2,\ grp,\ bs="fs")}.
 These type of crossed random effects are allowed in \textbf{gamm4}. The
 use of \texttt{te()} terms are not possible in \textbf{gamm4}, due to
@@ -1803,11 +1838,11 @@ used to generate these terms, as it creates tensor products with only a
 single penalty for each basis function (see \texttt{?mgcv::t2} for
 details on these smoothers, and Wood, Scheipl \& Faraway (2013) for the
 theoretical basis behind this type of tensor product). For instance,
-model 2 for the bird movement data we discussed in section III would
-need to be coded as:
+model \emph{GS} for the bird movement data we discussed in section III
+would need to be coded as:
 
 \begin{verbatim}
-bird_mod4_gamm4 <-
+bird_modS_gamm4 <-
   gamm4(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
                    k=c(10, 10, 6), m=2),
         data=bird_move, family="poisson")
@@ -1830,29 +1865,30 @@ categorical and multinomial distributions.
 smoothers}\label{estimation-issues-when-fitting-both-global-and-groupwise-smoothers}
 
 When fitting models with separate global and groupwise smoothers (models
-2 and 3), one issue to be aware of is concurvity between the global
-smoother and groupwise terms. Concurvity measures how well one smooth
-term can be approximated by some combination of the other smooth terms
-in the model (see \texttt{?mgcv::concurvity} for details). For models 2
-and 3, the global term is entirely concurved with the groupwise
-smoothers. This is because, in the absence of the global smooth term, it
-would be possible to recreate that average effect by shifting all the
-groupwise smoothers so they were centered around the global mean. In
-practical terms, this has the consequence of increasing uncertainty
-around the global mean relative to a model with only a global smoother.
-In some cases, it can result in the estimated global smoother being
-close to flat, even in simulated examples with a known strong global
-effect. This concurvity issue may also increase the time it takes to fit
-these models (for example, compare the time it takes to fit models 3 and
-5 in Table \ref{tab:comp_time_kable}). These models can still be
-estimated because of penalty terms; all of the methods we have discussed
-for fitting model 2 (factor-smoother terms or random effect tensor
-products) automatically create a penalty for the null space of the
-group-level terms, so that only the global term has its own unpenalized
-null space. Both the REML and ML criteria work to balance penalties
-between nested smooth terms (this is why nested random effects can be
-fitted). We have observed that \textbf{mgcv} still occasionally finds
-solutions with simulated data where the global term is over-smoothed.
+\emph{GS} and \emph{GI}), one issue to be aware of is concurvity between
+the global smoother and groupwise terms. Concurvity measures how well
+one smooth term can be approximated by some combination of the other
+smooth terms in the model (see \texttt{?mgcv::concurvity} for details).
+For models \emph{GS} and \emph{GI}, the global term is entirely
+concurved with the groupwise smoothers. This is because, in the absence
+of the global smooth term, it would be possible to recreate that average
+effect by shifting all the groupwise smoothers so they were centered
+around the global mean. In practical terms, this has the consequence of
+increasing uncertainty around the global mean relative to a model with
+only a global smoother. In some cases, it can result in the estimated
+global smoother being close to flat, even in simulated examples with a
+known strong global effect. This concurvity issue may also increase the
+time it takes to fit these models (for example, compare the time it
+takes to fit models \emph{GI} and \emph{I} in Table
+\ref{tab:comp_time_kable}). These models can still be estimated because
+of penalty terms; all of the methods we have discussed for fitting model
+\emph{GS} (factor-smoother terms or random effect tensor products)
+automatically create a penalty for the null space of the group-level
+terms, so that only the global term has its own unpenalized null space.
+Both the REML and ML criteria work to balance penalties between nested
+smooth terms (this is why nested random effects can be fitted). We have
+observed that \textbf{mgcv} still occasionally finds solutions with
+simulated data where the global term is over-smoothed.
 
 To avoid this issue, we recommend both careful choice of basis and
 setting model degrees of freedom so that groupwise terms are either
@@ -1860,29 +1896,29 @@ slightly less flexible than the global term or have a smaller null
 space. In the examples in section III, we used smoothers with an
 unpenalized null space (standard thin plate splines) for the global
 smoother and ones with no null space for the groupwise terms\footnote{For
-  model 2 both the factor-smoother, and tensor products of random effect
-  (``re'') and other smooth terms do not have a penalized nullspace by
-  construction (they are full rank), as noted above. For model 3
-  groupwise terms, we used basis types that had a penalty added to the
-  nullspace, so called ``shrinkage'' methods: \texttt{bs="ts"},
-  \texttt{"cs"}, or \texttt{"ps"} have this property.}. When using thin
-plate splines, it may also help to use splines with a lower order of
-derivative penalized in the groupwise smoothers than the global
-smoothers, as lower-order ``tp'' splines have fewer basis functions in
-the null space. For example, we used \texttt{m=2} (penalizing squared
-second derivatives) for the global smoother, and \texttt{m=1}
-(penalizing squared first derivatives) for groupwise smoothers in models
-2 and 3. Another option is to use a lower number of basis functions
-(\texttt{k}) for groupwise relative to global terms. This will reduce
-the maximum flexibility possible in the groupwise terms. We do caution
-that these are just rules of thumb. In cases where an accurately
-estimated global smoother is essential, we recommend either fitting
-model 1 or using specialized functional regression software such as the
-\texttt{fosr} function in the \emph{refund} package (Scheipl, Staicu \&
-Greven, 2014), which allows the user to enforce constraints on the
-groupwise smoothers so that they always sum to zero at any given point
-(avoiding the collinearity issue). Also, see below for more information
-on functional regression.
+  model \emph{GS} both the factor-smoother, and tensor products of
+  random effect (``re'') and other smooth terms do not have a penalized
+  nullspace by construction (they are full rank), as noted above. For
+  model \emph{GI} groupwise terms, we used basis types that had a
+  penalty added to the nullspace, so called ``shrinkage'' methods:
+  \texttt{bs="ts"}, \texttt{"cs"}, or \texttt{"ps"} have this property.}.
+When using thin plate splines, it may also help to use splines with a
+lower order of derivative penalized in the groupwise smoothers than the
+global smoothers, as lower-order ``tp'' splines have fewer basis
+functions in the null space. For example, we used \texttt{m=2}
+(penalizing squared second derivatives) for the global smoother, and
+\texttt{m=1} (penalizing squared first derivatives) for groupwise
+smoothers in models \emph{GS} and \emph{GI}. Another option is to use a
+lower number of basis functions (\texttt{k}) for groupwise relative to
+global terms. This will reduce the maximum flexibility possible in the
+groupwise terms. We do caution that these are just rules of thumb. In
+cases where an accurately estimated global smoother is essential, we
+recommend either fitting model \emph{G} or using specialized functional
+regression software such as the \texttt{fosr} function in the
+\emph{refund} package (Scheipl, Staicu \& Greven, 2014), which allows
+the user to enforce constraints on the groupwise smoothers so that they
+always sum to zero at any given point (avoiding the collinearity issue).
+Also, see below for more information on functional regression.
 
 \subsection{A brief foray into the land of
 Bayes}\label{a-brief-foray-into-the-land-of-bayes}
