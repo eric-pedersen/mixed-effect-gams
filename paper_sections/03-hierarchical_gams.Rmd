@@ -93,9 +93,7 @@ This is a common GAM structure, with a single smooth term for each variable. Spe
 
 ```{r co2_mod1, echo=FALSE, fig.width=6, fig.height=3, dev.args=list(pointsize=10), fig.cap="\\label{fig:co2_mod1}**mgcv** plotting output for model 1 applied to the CO2 dataset. Left shows the smoother of $\\log_e$ concentration and right plot shows a quantile-quantile plot of the random effects against Gaussian quantiles, used to check the appropriateness of the normal random effect assumption. Numbers in the vertical axis of the left figure and the title of the right give the effective degrees of freedom of the smoothers."}
 <<co2_mod1_unrun>>
-
-## plot(CO2_mod1, pages=1, seWithMean=TRUE)
-draw(CO2_mod1, inc_mean = TRUE)
+draw(CO2_mod1)
 ```
 
 Figure \ref{fig:co2_mod1} illustrates **mgcv**'s default plotting out for `CO2_mod1`: the left panel shows the estimated smoother for concentration, and the right shows a quantile-quantile plot of the estimated random effects vs Gaussian quantiles, which can be used to check our model.
@@ -205,8 +203,7 @@ CO2_mod2 <- gam(log(uptake) ~ s(log(conc), k=5, m=2) +
 ```
 
 ```{r co2_mod2_plot, fig.width=6, fig.height=3, dev.args=list(pointsize=10), out.width="\\linewidth", echo=FALSE, fig.cap="\\label{fig:co2_mod2}Global function (left) and group-specific deviations from the global function (right) for \\texttt{CO2\\_mod2}"}
-## plot(CO2_mod2, page=1, seWithMean=TRUE)
-draw(CO2_mod2, inc_mean = TRUE)
+draw(CO2_mod2)
 ```
 
 Figure \ref{fig:co2_mod2} shows the fitted smoothers for `CO2_mod2`. The plots of group-specific smoothers indicate that plants differ not only in average log-uptake (which would correspond to each plant having a straight line at different levels for the group-level smoother), but differ slightly in the shape of their functional responses. Figure \ref{fig:co2_mod2_pred} shows how the global and group-specific smoothers combine to predict uptake rates for individual plants.  We see that, unlike in the single global smoother case above, none of the curves deviate from the data systematically.
@@ -302,42 +299,43 @@ CO2_mod3 <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                   s(Plant_uo, bs="re", k=12),
                 data=CO2, method="REML")
 
-op <- par(mfrow=c(2, 3), mar =c(4, 4, 1, 1))
-CO_mod3_ylim = c(-0.3,0.3)
-plot(CO2_mod3, scale=0, 
-     select=1, 
-     ylab="Global smoother", 
-     seWithMean=TRUE)
-plot(CO2_mod3, 
-     scale=0, 
-     select=14, 
-     ylab="Intercept",
-     main=NA)
-plot(CO2_mod3, 
-     scale=0, 
-     select=3,  
-     ylab="Plant Qn1", 
-     seWithMean=TRUE,
-     ylim = CO_mod3_ylim)
-plot(CO2_mod3, 
-     scale=0, 
-     select=5,  
-     ylab="Plant Qc1",     
-     seWithMean=TRUE,
-     ylim = CO_mod3_ylim)
-plot(CO2_mod3, 
-     scale=0, 
-     select=10, 
-     ylab="Plant Mn1",     
-     seWithMean=TRUE,
-     ylim = CO_mod3_ylim)
-plot(CO2_mod3, 
-     scale=0, 
-     select=13, 
-     ylab="Plant Mc1",
-     seWithMean=TRUE,
-     ylim = CO_mod3_ylim)
-par(op)
+draw(CO2_mod3, select = c(1,14,3,5,10,13), scales = "fixed")
+## op <- par(mfrow=c(2, 3), mar =c(4, 4, 1, 1))
+## CO_mod3_ylim = c(-0.3,0.3)
+## plot(CO2_mod3, scale=0, 
+##      select=1, 
+##      ylab="Global smoother", 
+##      seWithMean=TRUE)
+## plot(CO2_mod3, 
+##      scale=0, 
+##      select=14, 
+##      ylab="Intercept",
+##      main=NA)
+## plot(CO2_mod3, 
+##      scale=0, 
+##      select=3,  
+##      ylab="Plant Qn1", 
+##      seWithMean=TRUE,
+##      ylim = CO_mod3_ylim)
+## plot(CO2_mod3, 
+##      scale=0, 
+##      select=5,  
+##      ylab="Plant Qc1",     
+##      seWithMean=TRUE,
+##      ylim = CO_mod3_ylim)
+## plot(CO2_mod3, 
+##      scale=0, 
+##      select=10, 
+##      ylab="Plant Mn1",     
+##      seWithMean=TRUE,
+##      ylim = CO_mod3_ylim)
+## plot(CO2_mod3, 
+##      scale=0, 
+##      select=13, 
+##      ylab="Plant Mc1",
+##      seWithMean=TRUE,
+##      ylim = CO_mod3_ylim)
+## par(op)
 ```
 
 Figure \ref{fig:co2_mod3} shows a subsample of the group-specific smoothers from this model. It is apparent from this that some groups (e.g. `Qc1`) have very similar shapes to the global smoother (differing only in intercept), others do differ from the global trend, with higher uptake at low concentrations and lower uptake at higher concentrations (e.g. `Mc1`, `Qn1`), or the reverse pattern (e.g. `Mn1`).
