@@ -160,8 +160,6 @@ Note that in `bird_mod1` we have specified week 0 and week 52 as the endpoints, 
 #mgcv gam plot for the two-dimensional tensor product smoother for bird_mod1.
 #scheme=2 displays the color scheme (rather than mgcv's default, which only
 #shows contour lines)
-#plot(bird_mod1, pages=1, scheme=2, rug=FALSE)
-#box()
 draw(bird_mod1)
 ```
 
@@ -300,42 +298,6 @@ CO2_mod3 <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                 data=CO2, method="REML")
 
 draw(CO2_mod3, select = c(1,14,3,5,10,13), scales = "fixed")
-## op <- par(mfrow=c(2, 3), mar =c(4, 4, 1, 1))
-## CO_mod3_ylim = c(-0.3,0.3)
-## plot(CO2_mod3, scale=0, 
-##      select=1, 
-##      ylab="Global smoother", 
-##      seWithMean=TRUE)
-## plot(CO2_mod3, 
-##      scale=0, 
-##      select=14, 
-##      ylab="Intercept",
-##      main=NA)
-## plot(CO2_mod3, 
-##      scale=0, 
-##      select=3,  
-##      ylab="Plant Qn1", 
-##      seWithMean=TRUE,
-##      ylim = CO_mod3_ylim)
-## plot(CO2_mod3, 
-##      scale=0, 
-##      select=5,  
-##      ylab="Plant Qc1",     
-##      seWithMean=TRUE,
-##      ylim = CO_mod3_ylim)
-## plot(CO2_mod3, 
-##      scale=0, 
-##      select=10, 
-##      ylab="Plant Mn1",     
-##      seWithMean=TRUE,
-##      ylim = CO_mod3_ylim)
-## plot(CO2_mod3, 
-##      scale=0, 
-##      select=13, 
-##      ylab="Plant Mc1",
-##      seWithMean=TRUE,
-##      ylim = CO_mod3_ylim)
-## par(op)
 ```
 
 Figure \ref{fig:co2_mod3} shows a subsample of the group-specific smoothers from this model. It is apparent from this that some groups (e.g. `Qc1`) have very similar shapes to the global smoother (differing only in intercept), others do differ from the global trend, with higher uptake at low concentrations and lower uptake at higher concentrations (e.g. `Mc1`, `Qn1`), or the reverse pattern (e.g. `Mn1`).
@@ -403,7 +365,7 @@ For the `bird_move` dataset (Table \ref{tab:AIC_table_kable}B), model 2 (global 
 
 ```{r AIC_table, echo=FALSE,  fig.width=4, fig.height=6, message=FALSE, warning=FALSE, cache=TRUE}
 
-AIC_table = AIC(CO2_mod1,CO2_mod2, CO2_mod3, CO2_mod4, CO2_mod5,
+AIC_table <- AIC(CO2_mod1,CO2_mod2, CO2_mod3, CO2_mod4, CO2_mod5,
              bird_mod1, bird_mod2, bird_mod3, bird_mod4, bird_mod5)%>%
   rownames_to_column(var= "Model")%>%
   mutate(data_source = rep(c("CO2","bird_data"), each =5))%>%
