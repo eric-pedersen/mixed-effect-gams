@@ -210,29 +210,29 @@ bird_vis_plot <- ggplot(dplyr::filter(bird_move, count > 0),
 
 plot_grid(CO2_vis_plot, bird_vis_plot, nrow=1, labels=c("a","b"),
           align = "hv", axis = "lrtb")
-CO2_mod1 <- gam(log(uptake) ~ s(log(conc), k=5, bs="tp") +
+CO2_modG <- gam(log(uptake) ~ s(log(conc), k=5, bs="tp") +
                   s(Plant_uo, k=12, bs="re"),
                 data=CO2, method="REML", family="gaussian")
 
-plot(CO2_mod1, pages=1, seWithMean=TRUE)
+plot(CO2_modG, pages=1, seWithMean=TRUE)
 
 # setup prediction data
-CO2_mod1_pred <- with(CO2,
+CO2_modG_pred <- with(CO2,
                       expand.grid(conc=seq(min(conc), max(conc), length=100),
                                   Plant_uo=levels(Plant_uo)))
 
 # make the prediction, add this and a column of standard errors to the prediction
 # data.frame. Predictions are on the log scale.
-CO2_mod1_pred <- cbind(CO2_mod1_pred,
-                       predict(CO2_mod1, CO2_mod1_pred, se.fit=TRUE, type="response"))
+CO2_modG_pred <- cbind(CO2_modG_pred,
+                       predict(CO2_modG, CO2_modG_pred, se.fit=TRUE, type="response"))
 
 # make the plot. Note here the use of the exp() function to back-transform the
 # predictions (which are for log-uptake) to the original scale
 ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
   facet_wrap(~Plant_uo) +
   geom_ribbon(aes(ymin=exp(fit - 2*se.fit), ymax=exp(fit + 2*se.fit), x=conc),
-              data=CO2_mod1_pred, alpha=0.3, inherit.aes=FALSE) +
-  geom_line(aes(y=exp(fit)), data=CO2_mod1_pred) +
+              data=CO2_modG_pred, alpha=0.3, inherit.aes=FALSE) +
+  geom_line(aes(y=exp(fit)), data=CO2_modG_pred) +
   geom_point() +
   labs(x=expression(CO[2] ~ concentration ~ (mL ~ L^{-1})),
        y=expression(CO[2] ~ uptake ~ (mu*mol ~ m^{-2})))
@@ -240,47 +240,47 @@ ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
 ## # k (number of basis functions) as single values, which would assign the same
 ## # basis and k to each marginal value, or pass them as vectors, one value for each
 ## # distinct marginal smoother (see ?mgcv::te for details)
-bird_mod1 <- gam(count ~ te(week, latitude, bs=c("cc", "tp"), k=c(10, 10)),
+bird_modG <- gam(count ~ te(week, latitude, bs=c("cc", "tp"), k=c(10, 10)),
                  data=bird_move, method="REML", family="poisson",
                  knots = list(week = c(0, 52)))
-#mgcv gam plot for the two-dimensional tensor product smoother for bird_mod1.
+#mgcv gam plot for the two-dimensional tensor product smoother for bird_modG.
 #scheme=2 displays the color scheme (rather than mgcv's default, which only
 #shows contour lines)
-plot(bird_mod1, pages=1, scheme=2, rug=FALSE)
+plot(bird_modG, pages=1, scheme=2, rug=FALSE)
 box()
 #add the predicted values from the model to bird_move
-bird_move <- transform(bird_move, mod1 = predict(bird_mod1, type="response"))
+bird_move <- transform(bird_move, modG = predict(bird_modG, type="response"))
 
-ggplot(bird_move, aes(x=mod1, y=count)) +
+ggplot(bird_move, aes(x=modG, y=count)) +
   facet_wrap(~species) +
   geom_point(alpha=0.1) +
   geom_abline() +
   labs(x="Predicted count", y= "Observed count")
-CO2_mod2 <- gam(log(uptake) ~ s(log(conc), k=5, m=2) + 
+CO2_modGS <- gam(log(uptake) ~ s(log(conc), k=5, m=2) + 
                   s(log(conc), Plant_uo, k=5,  bs="fs", m=2),
                 data=CO2, method="REML")
-plot(CO2_mod2, page=1, seWithMean=TRUE)
-CO2_mod2_pred <- predict(CO2_mod2, se.fit=TRUE)
-CO2 <- transform(CO2, mod2 = CO2_mod2_pred$fit, mod2_se = CO2_mod2_pred$se.fit)
+plot(CO2_modGS, page=1, seWithMean=TRUE)
+CO2_modGS_pred <- predict(CO2_modGS, se.fit=TRUE)
+CO2 <- transform(CO2, modGS = CO2_modGS_pred$fit, modGS_se = CO2_modGS_pred$se.fit)
 
 ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
   facet_wrap(~Plant_uo) +
-  geom_ribbon(aes(ymin=exp(mod2-2*mod2_se),
-                  ymax=exp(mod2+2*mod2_se)), alpha=0.25) +
-  geom_line(aes(y=exp(mod2))) +
+  geom_ribbon(aes(ymin=exp(modGS-2*modGS_se),
+                  ymax=exp(modGS+2*modGS_se)), alpha=0.25) +
+  geom_line(aes(y=exp(modGS))) +
   geom_point() +
   labs(x=expression(CO[2] ~ concentration ~ (mL ~ L^{-1})),
        y=expression(CO[2] ~ uptake ~ (mu*mol ~ m^{-2})))
-bird_mod2 <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
+bird_modGS <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
                             k=c(10, 10), m=2) +
                    t2(week, latitude, species, bs=c("cc", "tp", "re"),
                       k=c(10, 10, 6), m=2, full=TRUE),
                  data=bird_move, method="REML", family="poisson", 
                  knots = list(week = c(0, 52)))
-bird_move <- transform(bird_move, mod2 = predict(bird_mod2, type="response"))
+bird_move <- transform(bird_move, modGS = predict(bird_modGS, type="response"))
 
-bird_mod2_indiv <- ggplot(data=bird_move, 
-                          aes(x=week, y=latitude, fill=mod2,color=mod2)) +
+bird_modGS_indiv <- ggplot(data=bird_move, 
+                          aes(x=week, y=latitude, fill=modGS,color=modGS)) +
   geom_tile(size=0.25) +
   facet_wrap(~ species, ncol=6) +
   scale_fill_viridis("Count") +
@@ -290,86 +290,86 @@ bird_mod2_indiv <- ggplot(data=bird_move,
   labs(x = "Week", y = "Latitude") +
   theme(legend.position="right")
 
-bird_mod2_indiv_fit <- ggplot(data=bird_move, aes(x=mod2, y=count)) +
+bird_modGS_indiv_fit <- ggplot(data=bird_move, aes(x=modGS, y=count)) +
   facet_wrap(~ species, ncol=6) +
   geom_point(alpha=0.1) +
   geom_abline() +
-  labs(x="Predicted count (model 2)", y= "Observed count")
+  labs(x="Predicted count (model *GS*)", y= "Observed count")
 
-plot_grid(bird_mod2_indiv, bird_mod2_indiv_fit, ncol=1, align="vh", axis = "lrtb",
+plot_grid(bird_modGS_indiv, bird_modGS_indiv_fit, ncol=1, align="vh", axis = "lrtb",
           labels=c("a","b"), rel_heights= c(1,1))
-## CO2_mod3 <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
+## CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
 ##                   s(log(conc), by=Plant_uo, k=5, m=1, bs="tp") +
 ##                   s(Plant_uo, bs="re", k=12),
 ##                 data=CO2, method="REML")
-CO2_mod3 <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
+CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                   s(log(conc), by= Plant_uo, k=5, m=1, bs="tp") +
                   s(Plant_uo, bs="re", k=12),
                 data=CO2, method="REML")
 
 op <- par(mfrow=c(2, 3), mar =c(4, 4, 1, 1))
-CO_mod3_ylim = c(-0.3,0.3)
-plot(CO2_mod3, scale=0, 
+CO_modGI_ylim = c(-0.3,0.3)
+plot(CO2_modGI, scale=0, 
      select=1, 
      ylab="Global smoother", 
      seWithMean=TRUE)
-plot(CO2_mod3, 
+plot(CO2_modGI, 
      scale=0, 
      select=14, 
      ylab="Intercept",
      main=NA)
-plot(CO2_mod3, 
+plot(CO2_modGI, 
      scale=0, 
      select=3,  
      ylab="Plant Qn1", 
      seWithMean=TRUE,
-     ylim = CO_mod3_ylim)
-plot(CO2_mod3, 
+     ylim = CO_modGI_ylim)
+plot(CO2_modGI, 
      scale=0, 
      select=5,  
      ylab="Plant Qc1",     
      seWithMean=TRUE,
-     ylim = CO_mod3_ylim)
-plot(CO2_mod3, 
+     ylim = CO_modGI_ylim)
+plot(CO2_modGI, 
      scale=0, 
      select=10, 
      ylab="Plant Mn1",     
      seWithMean=TRUE,
-     ylim = CO_mod3_ylim)
-plot(CO2_mod3, 
+     ylim = CO_modGI_ylim)
+plot(CO2_modGI, 
      scale=0, 
      select=13, 
      ylab="Plant Mc1",
      seWithMean=TRUE,
-     ylim = CO_mod3_ylim)
+     ylim = CO_modGI_ylim)
 par(op)
-bird_mod3 <- gam(count ~ species +
+bird_modGI <- gam(count ~ species +
                    te(week, latitude, bs=c("cc", "tp"),
                       k=c(10, 10), m=2) +
                    te(week, latitude, by=species, bs= c("cc", "tp"),
                       k=c(10, 10), m=1),
                  data=bird_move, method="REML", family="poisson",
                  knots = list(week = c(0, 52)))
-CO2_mod4 <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5, bs="fs", m=2),
+CO2_modS <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5, bs="fs", m=2),
                 data=CO2, method="REML")
 
-bird_mod4 <- gam(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
+bird_modS <- gam(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
                             k=c(10, 10, 6), m=c(2, 2, 2)),
                  data=bird_move, method="REML", family="poisson",
                  knots = list(week = c(0, 52)))
-CO2_mod5 <- gam(log(uptake) ~ s(log(conc), by=Plant_uo, k=5, bs="tp", m=2) +
+CO2_modI <- gam(log(uptake) ~ s(log(conc), by=Plant_uo, k=5, bs="tp", m=2) +
                               s(Plant_uo, bs="re", k=12),
                 data= CO2, method="REML")
 
 
-bird_mod5 <- gam(count ~ species + 
+bird_modI <- gam(count ~ species + 
                    te(week, latitude, by=species, bs= c("cc", "tp"), 
                       k=c(10, 10), m=2),
                  data=bird_move, method="REML", family="poisson",
                  knots = list(week = c(0, 52)))
 
-AIC_table = AIC(CO2_mod1,CO2_mod2, CO2_mod3, CO2_mod4, CO2_mod5,
-             bird_mod1, bird_mod2, bird_mod3, bird_mod4, bird_mod5)%>%
+AIC_table = AIC(CO2_modG,CO2_modGS, CO2_modGI, CO2_modS, CO2_modI,
+             bird_modG, bird_modGS, bird_modGI, bird_modS, bird_modI)%>%
   rownames_to_column(var= "Model")%>%
   mutate(data_source = rep(c("CO2","bird_data"), each =5))%>%
   group_by(data_source)%>%
@@ -405,7 +405,7 @@ daphnia_test  <- subset(zooplankton, year%%2==1 & taxon=="D. mendotae")
 #This function calculates the root-mean-squared-error for out-of-sample data
 get_RMSE <- function(fit, obs) sqrt(mean((fit-obs)^2))
 
-zoo_comm_mod4 <- gam(density_adj ~ s(day, taxon,
+zoo_comm_modS <- gam(density_adj ~ s(day, taxon,
                                      bs="fs",
                                      k=10,
                                      xt=list(bs="cc"))+
@@ -417,7 +417,7 @@ zoo_comm_mod4 <- gam(density_adj ~ s(day, taxon,
                      drop.unused.levels = FALSE)
 # Note that  s(taxon, bs="re") has to be explicitly included here, as the 
 # day  by taxon smoother does not include an intercept
-zoo_comm_mod5 <- gam(density_adj ~ s(day, by=taxon,
+zoo_comm_modI <- gam(density_adj ~ s(day, by=taxon,
                                      k=10, bs="cc") + 
                                    s(taxon, bs="re") +
                                    s(taxon, year_f, bs="re"),
@@ -426,15 +426,15 @@ zoo_comm_mod5 <- gam(density_adj ~ s(day, by=taxon,
                      family = Gamma(link ="log"), 
                      method = "REML",
                      drop.unused.levels = FALSE)
-## gam.check(zoo_comm_mod4)
-## gam.check(zoo_comm_mod5)
+## gam.check(zoo_comm_modS)
+## gam.check(zoo_comm_modI)
 ## #individual components of gam.check: the results for k.check
-## round(k.check(zoo_comm_mod5),2)
+## round(k.check(zoo_comm_modI),2)
 #individual components of gam.check: residual plots
 par(mfrow= c(1,2))
-qq.gam(zoo_comm_mod4)
-plot(log(fitted(zoo_comm_mod5)), 
-     residuals.gam(zoo_comm_mod5,type = "deviance"), 
+qq.gam(zoo_comm_modS)
+plot(log(fitted(zoo_comm_modI)), 
+     residuals.gam(zoo_comm_modI,type = "deviance"), 
      xlab = "linear predictor",
      ylab = "residuals")
 #Create synthetic data to use to compare predictions
@@ -446,26 +446,29 @@ zoo_plot_data <- expand.grid(day = 1:365,
 #term indicates that predictions should be made excluding the effect of the
 #taxon by year random effect (effectively setting making predictions averaging
 #over year-taxon effects).
-zoo_mod4_fit <- predict(zoo_comm_mod4, 
+zoo_modS_fit <- predict(zoo_comm_modS, 
                         zoo_plot_data, 
                         se.fit = TRUE, 
                         exclude = "s(taxon,year_f)")
-zoo_mod5_fit <- predict(zoo_comm_mod5, 
+zoo_modI_fit <- predict(zoo_comm_modI, 
                         zoo_plot_data, 
                         se.fit = TRUE, 
                         exclude = "s(taxon,year_f)")
 
-zoo_plot_data$mod4_fit <- as.numeric(zoo_mod4_fit$fit)
-zoo_plot_data$mod5_fit <- as.numeric(zoo_mod5_fit$fit)
+zoo_plot_data$modS_fit <- as.numeric(zoo_modS_fit$fit)
+zoo_plot_data$modI_fit <- as.numeric(zoo_modI_fit$fit)
 
-zoo_plot_data <- gather(zoo_plot_data, model, fit, mod4_fit, mod5_fit)
-zoo_plot_data <- mutate(zoo_plot_data, se= c(as.numeric(zoo_mod4_fit$se.fit),
-                                             as.numeric(zoo_mod5_fit$se.fit)),
+zoo_plot_data <- gather(zoo_plot_data, model, fit, modS_fit, modI_fit)
+zoo_plot_data <- mutate(zoo_plot_data, se= c(as.numeric(zoo_modS_fit$se.fit),
+                                             as.numeric(zoo_modI_fit$se.fit)),
                         upper = exp(fit + (2 * se)),
                         lower = exp(fit - (2 * se)),
                         fit   = exp(fit))
 
 #Plot the model output, with means plus standard deviations for each model.
+zoo_plot_model_labels = paste("Model", c("S","I"))
+zoo_plot_model_labels = factor(zoo_plot_model_labels, levels = zoo_plot_model_labels)
+
 zoo_plot <- ggplot(zoo_plot_data) +
   facet_wrap(~taxon, nrow = 4,scales = "free_y")+
   geom_ribbon(aes(x=day,
@@ -478,9 +481,9 @@ zoo_plot <- ggplot(zoo_plot_data) +
   labs(y = expression(atop(Population~density,("10 000"~individuals~m^{-2}))), 
        x = "Day of Year") +
     scale_fill_brewer(name = "", palette = "Dark2",
-                      labels = paste("Model", 4:5)) +
+                      labels = zoo_plot_model_labels) +
     scale_colour_brewer(name = "",
-                        palette = "Dark2", labels = paste("Model", 4:5))+
+                        palette = "Dark2", labels = zoo_plot_model_labels)+
   theme(legend.position = "top")
 
 zoo_plot
@@ -501,24 +504,24 @@ zoo_comm_mod0 <- gam(density_adj ~ s(taxon,bs="re"),
 zoo_test_summary = zoo_test %>%
   mutate(
     mod0 = predict(zoo_comm_mod0, ., type="response"),
-    mod4 = predict(zoo_comm_mod4, ., type="response"),
-    mod5 = predict(zoo_comm_mod5, ., type="response"))%>%
+    modS = predict(zoo_comm_modS, ., type="response"),
+    modI = predict(zoo_comm_modI, ., type="response"))%>%
   group_by(taxon)%>%
   summarise(
     `Intercept only` = format(get_RMSE(mod0, density_adj), 
                               scientific = FALSE, 
                               digits=3),
-    `Model 4` = format(get_RMSE(mod4, density_adj), 
+    `Model S` = format(get_RMSE(modS, density_adj), 
                        scientific = FALSE, 
                        digits=3),
-    `Model 5` = format(get_RMSE(mod5, density_adj), 
+    `Model I` = format(get_RMSE(modI, density_adj), 
                        scientific = FALSE, 
                        digits=3))%>%
   #need to specify this to ensure that species names are italized in the table
   mutate(taxon = cell_spec(taxon, 
                            italic = c(TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,TRUE,TRUE))) 
 
-zoo_daph_mod1 <- gam(density_adj ~ s(day, bs="cc", k=10)+
+zoo_daph_modG <- gam(density_adj ~ s(day, bs="cc", k=10)+
                        s(lake, bs="re") + 
                        s(lake, year_f,bs="re"),
                      data=daphnia_train,
@@ -526,7 +529,7 @@ zoo_daph_mod1 <- gam(density_adj ~ s(day, bs="cc", k=10)+
                      family=Gamma(link ="log"),
                      method="REML",
                      drop.unused.levels = FALSE)
-zoo_daph_mod2 <-
+zoo_daph_modGS <-
   gam(density_adj ~ s(day, bs="cc", k=10) + 
         s(day, lake, k=10, bs="fs", xt=list(bs="cc")) + 
         s(lake, year_f,bs="re"),
@@ -535,7 +538,7 @@ zoo_daph_mod2 <-
       family=Gamma(link ="log"),
       drop.unused.levels = FALSE,
       method="REML")
-zoo_daph_mod3 <- gam(density_adj~s(day, bs="cc", k=10) +
+zoo_daph_modGI <- gam(density_adj~s(day, bs="cc", k=10) +
                              s(day, by=lake, k=10, bs="cc")+
                              s(lake, bs="re") + 
                              s(lake, year_f,bs="re"),
@@ -553,38 +556,40 @@ daph_plot_data <- expand.grid(day = 1:365,
 #term indicates that predictions should be made excluding the effect of the
 #taxon by year random effect (effectively setting making predictions averaging
 #over year-taxon effects).
-daph_mod1_fit <- predict(zoo_daph_mod1, 
+daph_modG_fit <- predict(zoo_daph_modG, 
                          newdata = daph_plot_data, 
                          se.fit = TRUE, 
                          exclude = "s(lake,year_f)")
-daph_mod2_fit <- predict(zoo_daph_mod2, 
+daph_modGS_fit <- predict(zoo_daph_modGS, 
                          newdata = daph_plot_data, 
                          se.fit = TRUE, 
                          exclude = "s(lake,year_f)")
-daph_mod3_fit <- predict(zoo_daph_mod3, 
+daph_modGI_fit <- predict(zoo_daph_modGI, 
                          newdata = daph_plot_data, 
                          se.fit = TRUE, 
                          exclude = "s(lake,year_f)")
 
-daph_plot_data$mod1_fit <- as.numeric(daph_mod1_fit$fit)
-daph_plot_data$mod2_fit <- as.numeric(daph_mod2_fit$fit)
-daph_plot_data$mod3_fit <- as.numeric(daph_mod3_fit$fit)
+daph_plot_data$modG_fit <- as.numeric(daph_modG_fit$fit)
+daph_plot_data$modGS_fit <- as.numeric(daph_modGS_fit$fit)
+daph_plot_data$modGI_fit <- as.numeric(daph_modGI_fit$fit)
 
 daph_plot_data <- gather(daph_plot_data, 
                          key = model, 
                          value = fit, 
-                         mod1_fit, 
-                         mod2_fit, 
-                         mod3_fit)
+                         modG_fit, 
+                         modGS_fit, 
+                         modGI_fit)
 
 daph_plot_data <- mutate(daph_plot_data, 
-                         se = c(as.numeric(daph_mod1_fit$se.fit),
-                                as.numeric(daph_mod2_fit$se.fit),
-                                as.numeric(daph_mod3_fit$se.fit)),
+                         se = c(as.numeric(daph_modG_fit$se.fit),
+                                as.numeric(daph_modGS_fit$se.fit),
+                                as.numeric(daph_modGI_fit$se.fit)),
                          upper = exp(fit + (2 * se)),
                          lower = exp(fit - (2 * se)),
                          fit   = exp(fit))
 
+daph_plot_model_labels = paste("Model", c("G","GS","GI"))
+daph_plot_model_labels = factor(daph_plot_model_labels, levels= daph_plot_model_labels)
 
 daph_plot <- ggplot(daph_plot_data, aes(x=day))+
   facet_wrap(~lake, nrow = 2)+
@@ -598,9 +603,9 @@ daph_plot <- ggplot(daph_plot_data, aes(x=day))+
        x = "Day of Year") +
   scale_x_continuous(expand = c(0,0))+
     scale_fill_brewer(name = "", palette = "Dark2",
-                      labels = paste("Model", 1:3)) +
+                      labels = daph_plot_model_labels) +
     scale_colour_brewer(name = "",
-                        palette = "Dark2", labels = paste("Model", 1:3))
+                        palette = "Dark2", labels = daph_plot_model_labels)
 
 
 daph_plot
@@ -620,17 +625,17 @@ zoo_daph_mod0 <- gam(density_adj~s(lake, bs="re"),
 daph_test_summary <- daphnia_test %>%
   mutate(#get out-of-sample predicted fits
     mod0 = as.numeric(predict(zoo_daph_mod0,.,type="response")),
-    mod1 = as.numeric(predict(zoo_daph_mod1,.,type="response")),
-    mod2 = as.numeric(predict(zoo_daph_mod2,.,type="response")),
-    mod3 = as.numeric(predict(zoo_daph_mod3,.,type="response")))%>%
+    modG = as.numeric(predict(zoo_daph_modG,.,type="response")),
+    modGS = as.numeric(predict(zoo_daph_modGS,.,type="response")),
+    modGI = as.numeric(predict(zoo_daph_modGI,.,type="response")))%>%
   group_by(lake)%>%
   summarise(`Intercept only` = format(get_RMSE(mod0, density_adj), 
                                       scientific = FALSE, digits=2),
-            `Model 1` = format(get_RMSE(mod1, density_adj), 
+            `Model G` = format(get_RMSE(modG, density_adj), 
                                scientific = FALSE, digits=2),
-            `Model 2` = format(get_RMSE(mod2, density_adj), 
+            `Model GS` = format(get_RMSE(modGS, density_adj), 
                                scientific = FALSE, digits=2),
-            `Model 3` = format(get_RMSE(mod3, density_adj), 
+            `Model GI` = format(get_RMSE(modGI, density_adj), 
                                scientific = FALSE, digits=2))%>%
   rename(Lake = lake)
 
@@ -653,11 +658,11 @@ dat = crossing(x = seq(0,2*pi,length=150),freq = freq_vals)%>%
          grp = paste("frequency = ",freq,sep= ""),
          grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")))
 
-#Fit a type-4 function (shared smoothness) for the test data
-mod1 = bam(y~s(x,k=30,grp, bs="fs"), data=dat)
+#Fit model S (shared smoothness) for the test data
+modG = bam(y~s(x,k=30,grp, bs="fs"), data=dat)
 
-#Fit a type-5 function (differing smoothness) for the test data
-mod2 = bam(y~s(x,k=30,by=grp)+s(grp,bs="re"), data=dat)
+#Fit a model I function (differing smoothness) for the test data
+modGS = bam(y~s(x,k=30,by=grp)+s(grp,bs="re"), data=dat)
 
 #Extract fitted values for each model for all the test data
 overfit_predict_data = crossing(x = seq(0,2*pi,length=500), 
@@ -665,17 +670,17 @@ overfit_predict_data = crossing(x = seq(0,2*pi,length=500),
   mutate(grp = paste("frequency = ",freq,sep= ""),
          grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")),
          y = sin(freq*x))%>%
-  mutate(fit1 = as.numeric(predict(mod1,newdata = .,type = "response")),
-         fit2 = as.numeric(predict(mod2,newdata = .,type="response")))
+  mutate(fit1 = as.numeric(predict(modG,newdata = .,type = "response")),
+         fit2 = as.numeric(predict(modGS,newdata = .,type="response")))
 
 #turn this into long-format data for plotting, and to make it easier to
 #calculate derivatives
 overfit_predict_data_long = overfit_predict_data %>%
   gather(model, value, y, fit1, fit2)%>%
-  mutate(model = recode(model, y = "true value",fit1 = "model 4 fit",
-                        fit2 = "model 5 fit"),
-         model = factor(model, levels=  c("true value","model 4 fit",
-                                          "model 5 fit")))
+  mutate(model = recode(model, y = "true value",fit1 = "model S fit",
+                        fit2 = "model I fit"),
+         model = factor(model, levels=  c("true value","model S fit",
+                                          "model I fit")))
 
 #estimate 2nd derivatives of each curve, then for each curve calculate the sum
 #of squared 2nd derivatives of the true curve and the predictions for both
@@ -691,10 +696,10 @@ deriv_est_data = overfit_predict_data%>%
   ungroup()%>%
   mutate(sqr_2nd_deriv = -freq^3*(sin(4*pi*freq)-4*pi*freq)/4)%>%
   gather(key=model,value = obs_sqr_deriv,fit1_int,fit2_int)%>%
-  mutate(model = factor(ifelse(model=="fit1_int", "model 4 fit",
-                               "model 5 fit"),
-                        levels = c("model 4 fit",
-                                   "model 5 fit")))
+  mutate(model = factor(ifelse(model=="fit1_int", "model S fit",
+                               "model I fit"),
+                        levels = c("model S fit",
+                                   "model I fit")))
 
 #The derivative plots
 deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv, 
@@ -743,16 +748,17 @@ get_n_iter = function(model) model$outer.info$iter
 get_n_out_iter = function(model) model$iter
 
 #combine results into a single table
-comp_resources = crossing(model_number = c("1","2","3","4","5"),
+comp_resources = crossing(model_number = c("G","GS","GI","S","I"),
                           data_source = factor(c("CO2","bird_move"),
                                                levels = c("CO2","bird_move")),
                           time = 0, n_smooths = 0,
-                          n_coef = 0)
+                          n_coef = 0)%>%
+  mutate(model_number = factor(model_number, levels = c("G","GS","GI","S","I")))
 
 
 #Fit each model to the example data sets, and calculate run time for them
 comp_resources[1,"time"] = system.time(
-  CO2_mod1 <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
+  CO2_modG <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
                                 s(Plant_uo, k =12,  bs="re"),
                   data= CO2,
                   method="REML",
@@ -760,7 +766,7 @@ comp_resources[1,"time"] = system.time(
   )[3]
 
 comp_resources[2,"time"] = system.time(
-  bird_mod1 <- gam(count ~ te(week,latitude, bs= c("cc", "tp"), k=c(10,10)),
+  bird_modG <- gam(count ~ te(week,latitude, bs= c("cc", "tp"), k=c(10,10)),
                    data= bird_move, 
                    method="REML", 
                    family= poisson,
@@ -768,7 +774,7 @@ comp_resources[2,"time"] = system.time(
   )[3]
 
 comp_resources[3,"time"] = system.time(
-  CO2_mod2 <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
+  CO2_modGS <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
                                 s(log(conc), Plant_uo, k=5, bs="fs",m=1),
                   data= CO2,
                   method="REML",
@@ -777,7 +783,7 @@ comp_resources[3,"time"] = system.time(
 
 
 comp_resources[4,"time"] = system.time(
-  bird_mod2 <- gam(count ~ te(week,latitude, bs= c("cc", "tp"),
+  bird_modGS <- gam(count ~ te(week,latitude, bs= c("cc", "tp"),
                               k=c(10,10),m=c(2,2))+
                            te(week,latitude,species, bs= c("cc", "tp","re"),
                               k=c(10,10,6),m = c(1,1,1)),
@@ -789,7 +795,7 @@ comp_resources[4,"time"] = system.time(
 
 
 comp_resources[5,"time"] = system.time(
-  CO2_mod3 <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
+  CO2_modGI <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
                                 s(log(conc),by= Plant_uo, k =5,  bs="ts",m=1)+
                                 s(Plant_uo,bs="re",k=12),
                   data= CO2,
@@ -799,7 +805,7 @@ comp_resources[5,"time"] = system.time(
 
 
 comp_resources[6,"time"] = system.time(
-  bird_mod3 <- gam(count ~ te(week,latitude, bs= c("cc", "tp"),
+  bird_modGI <- gam(count ~ te(week,latitude, bs= c("cc", "tp"),
                               k=c(10,10),m=c(2,2)) +
                            te(week,latitude, bs= c("cc", "tp"),
                               k=c(10,10),m=c(1,1),by= species),
@@ -810,7 +816,7 @@ comp_resources[6,"time"] = system.time(
 
 
 comp_resources[7,"time"] = system.time(
-  CO2_mod4 <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5,  bs="fs",m=2),
+  CO2_modS <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5,  bs="fs",m=2),
                   data= CO2,
                   method="REML",
                   control = list(keepData=TRUE))
@@ -818,7 +824,7 @@ comp_resources[7,"time"] = system.time(
 
 
 comp_resources[8,"time"] = system.time(
-  bird_mod4 <- gam(count ~ te(week,latitude,species, bs= c("cc", "tp","re"),
+  bird_modS <- gam(count ~ te(week,latitude,species, bs= c("cc", "tp","re"),
                               k=c(10,10,6),m = 2),
                    data= bird_move, 
                    method="REML", 
@@ -828,7 +834,7 @@ comp_resources[8,"time"] = system.time(
 
 
 comp_resources[9,"time"] = system.time(
-  CO2_mod5 <- gam(log(uptake) ~ s(log(conc),by= Plant_uo, k =5,  bs="tp",m=2) +
+  CO2_modI <- gam(log(uptake) ~ s(log(conc),by= Plant_uo, k =5,  bs="tp",m=2) +
                                 s(Plant_uo,bs="re",k=12),
                   data= CO2,
                   method="REML",
@@ -836,7 +842,7 @@ comp_resources[9,"time"] = system.time(
 )[3]
 
 comp_resources[10,"time"] = system.time(
-  bird_mod5 <- gam(count ~ te(week,latitude,by=species, bs= c("cc", "tp"),
+  bird_modI <- gam(count ~ te(week,latitude,by=species, bs= c("cc", "tp"),
                               k=c(10,10),m = 2),
                    data= bird_move, 
                    method="REML", 
@@ -845,9 +851,9 @@ comp_resources[10,"time"] = system.time(
 )[3]
 
 #combine all fitted models into a list
-comp_resources$model = list(CO2_mod1, bird_mod1, CO2_mod2, bird_mod2,
-                            CO2_mod3, bird_mod3,CO2_mod4, bird_mod4,
-                            CO2_mod5, bird_mod5)
+comp_resources$model = list(CO2_modG, bird_modG, CO2_modGS, bird_modGS,
+                            CO2_modGI, bird_modGI,CO2_modS, bird_modS,
+                            CO2_modI, bird_modI)
 
 #Extract all of the information on computer time and resources needed for each
 #model
@@ -867,7 +873,7 @@ comp_resources_table =comp_resources %>%
             `penalties` = n_smooths
             )%>%
   group_by(data_source) %>%
-  mutate(#scales processing time relative to model 1
+  mutate(#scales processing time relative to model *G*
          `relative time` = `relative time`/`relative time`[1],
          #rounds to illustrate differences in timing.
          `relative time` = ifelse(`relative time`<10, 
