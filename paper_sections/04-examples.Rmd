@@ -240,10 +240,10 @@ zoo_test_summary = zoo_test %>%
 
 kable(zoo_test_summary, 
       format = table_out_format, 
-      caption="Out-of-sample predictive ability for model *S* and *I* applied to the zooplankton community dataset. Deviance values represent the total deviance of model predictions from observations for out-of-sample data. 'Intercept only' results are for a null model with only taxon-level random effect intercepts included.", 
+      caption="Out-of-sample predictive ability for model \\textit{S} and \\textit{I} applied to the zooplankton community dataset. Deviance values represent the total deviance of model predictions from observations for out-of-sample data. 'Intercept only' results are for a null model with only taxon-level random effect intercepts included.", 
       booktabs = TRUE,
       escape = FALSE)%>%
-  add_header_above(c(" " = 1, "\\\\Large{${\\\\text{Total deviance of out-of-sample data}}\\\\atop{(\\\\text{10 000 individuals}\\\\cdot m^{-2})}$}" = 3),
+  add_header_above(c(" " = 1, "Total deviance of out-of-sample data" = 3),
                    escape = FALSE)%>%
   kable_styling(full_width = FALSE) %>%
   row_spec(2:3,italic = FALSE) %>%
@@ -367,7 +367,7 @@ daph_plot <- ggplot(daph_plot_data, aes(x=day))+
 daph_plot
 ```
 
-Model 3 is able to predict as well as model *G* or *GS* (Table \ref{tab:zoo_daph_outofsample_kable}), indicating that allowing for inter-lake variation in seasonal dynamics improved model prediction. None of the models did well in terms of predicting Lake Kegonsa or Lake Waubesa dynamics out-of-sample compared to a simple model with only a lake-specific intercept and no intra-annual variability,but all three models predicted dynamics in Lake Mendota and Lake Menona significantly better than the intercept-only model (Table \ref{tab:zoo_daph_outofsample_kable}). 
+Model *GI* is able to predict as well or better than model *G* or *GS* for all lakes (Table \ref{tab:zoo_daph_outofsample_kable}), indicating that allowing for inter-lake variation in seasonal dynamics improved model prediction. None of the models did well in terms of predicting Lake Kegonsa or Lake Waubesa dynamics out-of-sample compared to a simple model with only a lake-specific intercept and no intra-annual variability, but all three models predicted dynamics in Lake Mendota and Lake Menona significantly better than the intercept-only model (Table \ref{tab:zoo_daph_outofsample_kable}). 
 
 ```{r zoo_daph_outofsample, echo=FALSE, message=FALSE,  cache=TRUE}
 # we need to compare how well this model fits with a null model. here we'll use an
@@ -402,7 +402,7 @@ daph_test_summary <- daphnia_test %>%
 ```
 
 ```{r zoo_daph_outofsample_kable, echo=FALSE, message=FALSE, dependson=-1,  cache=TRUE, purl = FALSE}
-kable(daph_test_summary,format = table_out_format, caption="Out-of-sample predictive ability for model *G*,*GS*, and *GI* applied to the \\textit{D. mendotae} dataset. Deviance values represent the total deviance of model predictions from observations for out-of-sample data. 'Intercept only' results are for a null model with only lake-level random effect intercepts included", booktabs = TRUE)%>%
-  add_header_above(c(" " = 1, "\\\\Large{${\\\\text{Total deviance of out-of-sample data}}\\\\atop{(\\\\text{10 000 individuals}\\\\cdot m^{-2})}$}" = 4),escape = FALSE)%>%
+kable(daph_test_summary,format = table_out_format, caption="Out-of-sample predictive ability for model \\textit{G}, \\textit{GS}, and \\textit{GI} applied to the \\textit{D. mendotae} dataset. Deviance values represent the total deviance of model predictions from observations for out-of-sample data. 'Intercept only' results are for a null model with only lake-level random effect intercepts included.", booktabs = TRUE)%>%
+  add_header_above(c(" " = 1, "Total deviance of out-of-sample data" = 4),escape = FALSE)%>%
   kable_styling(full_width = FALSE)
 ```
