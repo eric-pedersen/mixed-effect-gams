@@ -1095,28 +1095,28 @@ group-level smoothers; see section V) model selection criteria such as
 AIC may indicate that the extra parameters required to fit the global
 smoother are unnecessary.
 
-\begin{table}
+\begin{table}[t]
 
 \caption{\label{tab:AIC_table_kable}AIC table comparing model fits for example datasets}
 \centering
-\begin{tabular}[t]{lrrr}
+\begin{tabular}{lrrr}
 \toprule
 Model & df & AIC & deltaAIC\\
 \midrule
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{A. CO2 models}}\\
-\hspace{1em}CO2\_mod1 & 17 & -119 & 101\\
-\hspace{1em}CO2\_mod2 & 39 & -199 & 22\\
-\hspace{1em}CO2\_mod3 & 42 & -216 & 4\\
-\hspace{1em}CO2\_mod4 & 53 & -219 & 1\\
-\hspace{1em}CO2\_mod5 & 56 & -220 & 0\\
+\hspace{1em}CO2\_modG & 17 & -119 & 101\\
+\hspace{1em}CO2\_modGS & 39 & -199 & 22\\
+\hspace{1em}CO2\_modGI & 42 & -216 & 4\\
+\hspace{1em}CO2\_modS & 53 & -219 & 1\\
+\hspace{1em}CO2\_modI & 56 & -220 & 0\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. bird\_move models}}\\
-\hspace{1em}bird\_mod1 & 51 & 3374 & 1820\\
-\hspace{1em}bird\_mod2 & 140 & 1554 & 0\\
-\hspace{1em}bird\_mod3 & 208 & 1682 & 128\\
-\hspace{1em}bird\_mod4 & 130 & 1555 & 1\\
-\hspace{1em}bird\_mod5 & 200 & 1634 & 80\\
+\hspace{1em}bird\_modG & 51 & 3374 & 1820\\
+\hspace{1em}bird\_modGS & 140 & 1554 & 0\\
+\hspace{1em}bird\_modGI & 208 & 1682 & 128\\
+\hspace{1em}bird\_modS & 130 & 1555 & 1\\
+\hspace{1em}bird\_modI & 200 & 1634 & 80\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1719,17 +1719,17 @@ model & relative time & coefficients & penalties\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{A. CO2 data}}\\
 \hspace{1em}G & 1 & 17 & 2\\
-\hspace{1em}GS & 6 & 65 & 14\\
-\hspace{1em}GI & 4 & 65 & 3\\
-\hspace{1em}S & 7 & 61 & 13\\
-\hspace{1em}I & 2 & 61 & 3\\
+\hspace{1em}GS & 12 & 65 & 14\\
+\hspace{1em}GI & 6 & 65 & 3\\
+\hspace{1em}S & 11 & 61 & 13\\
+\hspace{1em}I & 3 & 61 & 3\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. bird movement data}}\\
 \hspace{1em}G & 1 & 90 & 2\\
-\hspace{1em}GS & 330 & 624 & 14\\
-\hspace{1em}GI & 160 & 540 & 5\\
-\hspace{1em}S & 58 & 535 & 12\\
-\hspace{1em}I & 110 & 541 & 3\\
+\hspace{1em}GS & 360 & 624 & 14\\
+\hspace{1em}GI & 190 & 540 & 5\\
+\hspace{1em}S & 68 & 535 & 12\\
+\hspace{1em}I & 130 & 541 & 3\\
 \bottomrule
 \end{tabular}
 \end{table}
