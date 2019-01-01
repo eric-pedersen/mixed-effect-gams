@@ -185,6 +185,8 @@ zoo_plot <- ggplot(zoo_plot_data) +
                   fill = model),
               alpha=0.2)+
   geom_point(data= zoo_train, aes(x = day, y = density_adj),size=0.1)+
+  geom_point(data= zoo_test, aes(x = day, y = density_adj),
+             size=0.1,col="grey")+
   geom_line(aes(x = day, y = fit, color = model))+
   labs(y = expression(atop(Population~density,("10 000"~individuals~m^{-2}))), 
        x = "Day of Year") +
@@ -352,6 +354,8 @@ daph_plot <- ggplot(daph_plot_data, aes(x=day))+
   geom_ribbon(aes(x = day, ymin = lower, ymax = upper, fill = model), 
                 alpha = 0.2) +
   geom_point(data= daphnia_train, aes(x = day, y = density_adj),size=0.1)+
+  geom_point(data= daphnia_test, aes(x = day, y = density_adj),
+             size=0.1,col="grey")+
   geom_line(aes(x = day, y = fit, colour = model)) +
 
   labs(y = expression(atop(Population~density,
