@@ -402,9 +402,18 @@ zoo_test  <- subset(zooplankton, year%%2==1 & lake=="Mendota")
 daphnia_train <- subset(zooplankton, year%%2==0 & taxon=="D. mendotae")
 daphnia_test  <- subset(zooplankton, year%%2==1 & taxon=="D. mendotae")
 
-#This function calculates the root-mean-squared-error for out-of-sample data
-get_RMSE <- function(fit, obs) sqrt(mean((fit-obs)^2))
-
+#This function calculates the deviance of out-of-sample data,
+#conditional on their mean predicted value from the model
+get_deviance <- function(model, y_pred, y_obs, weights = NULL){
+  stopifnot(length(y_obs)==length(y_pred))
+  #We don't use the weights term in this paper, but it can be useful if
+  #how well the model matters more for some sample points than others
+  if(is.null(weights)) weights = rep(1, times= length(y_obs))
+  #this uses the deviance residual function from the model family to
+  #calculate deviances for individual points
+  dev_residuals = model$family$dev.resids(y_obs, y_pred, weights)
+  return(sum(dev_residuals))
+}
 zoo_comm_modS <- gam(density_adj ~ s(day, taxon,
                                      bs="fs",
                                      k=10,
@@ -432,7 +441,7 @@ zoo_comm_modI <- gam(density_adj ~ s(day, by=taxon,
 ## round(k.check(zoo_comm_modI),2)
 #individual components of gam.check: residual plots
 par(mfrow= c(1,2))
-qq.gam(zoo_comm_modS)
+qq.gam(zoo_comm_modI, rep = 250)
 plot(log(fitted(zoo_comm_modI)), 
      residuals.gam(zoo_comm_modI,type = "deviance"), 
      xlab = "linear predictor",
@@ -477,6 +486,8 @@ zoo_plot <- ggplot(zoo_plot_data) +
                   fill = model),
               alpha=0.2)+
   geom_point(data= zoo_train, aes(x = day, y = density_adj),size=0.1)+
+  geom_point(data= zoo_test, aes(x = day, y = density_adj),
+             size=0.1,col="grey")+
   geom_line(aes(x = day, y = fit, color = model))+
   labs(y = expression(atop(Population~density,("10 000"~individuals~m^{-2}))), 
        x = "Day of Year") +
@@ -488,7 +499,7 @@ zoo_plot <- ggplot(zoo_plot_data) +
 
 zoo_plot
 
-#Getting the out of sample predictions for both models:
+#Getting the out-of-sample predictions for both models:
 
 # we need to compare how well this model fits with a null model. here we'll use an
 # intercept-only model
@@ -508,13 +519,13 @@ zoo_test_summary = zoo_test %>%
     modI = predict(zoo_comm_modI, ., type="response"))%>%
   group_by(taxon)%>%
   summarise(
-    `Intercept only` = format(get_RMSE(mod0, density_adj), 
+    `Intercept only` = format(get_deviance(zoo_comm_mod0, mod0, density_adj), 
                               scientific = FALSE, 
                               digits=3),
-    `Model S` = format(get_RMSE(modS, density_adj), 
+    `Model S` = format(get_deviance(zoo_comm_modS, modS, density_adj), 
                        scientific = FALSE, 
                        digits=3),
-    `Model I` = format(get_RMSE(modI, density_adj), 
+    `Model I` = format(get_deviance(zoo_comm_modI, modI, density_adj), 
                        scientific = FALSE, 
                        digits=3))%>%
   #need to specify this to ensure that species names are italized in the table
@@ -554,7 +565,7 @@ daph_plot_data <- expand.grid(day = 1:365,
 
 #extract predicted values and standard errors for both models. the exclude = "s(taxon,year_f)" 
 #term indicates that predictions should be made excluding the effect of the
-#taxon by year random effect (effectively setting making predictions averaging
+#taxon-by-year random effect (effectively making predictions averaging
 #over year-taxon effects).
 daph_modG_fit <- predict(zoo_daph_modG, 
                          newdata = daph_plot_data, 
@@ -596,6 +607,8 @@ daph_plot <- ggplot(daph_plot_data, aes(x=day))+
   geom_ribbon(aes(x = day, ymin = lower, ymax = upper, fill = model), 
                 alpha = 0.2) +
   geom_point(data= daphnia_train, aes(x = day, y = density_adj),size=0.1)+
+  geom_point(data= daphnia_test, aes(x = day, y = density_adj),
+             size=0.1,col="grey")+
   geom_line(aes(x = day, y = fit, colour = model)) +
 
   labs(y = expression(atop(Population~density,
@@ -629,13 +642,13 @@ daph_test_summary <- daphnia_test %>%
     modGS = as.numeric(predict(zoo_daph_modGS,.,type="response")),
     modGI = as.numeric(predict(zoo_daph_modGI,.,type="response")))%>%
   group_by(lake)%>%
-  summarise(`Intercept only` = format(get_RMSE(mod0, density_adj), 
+  summarise(`Intercept only` = format(get_deviance(zoo_daph_mod0, mod0, density_adj), 
                                       scientific = FALSE, digits=2),
-            `Model G` = format(get_RMSE(modG, density_adj), 
+            `Model G` = format(get_deviance(zoo_daph_modG, modG, density_adj), 
                                scientific = FALSE, digits=2),
-            `Model GS` = format(get_RMSE(modGS, density_adj), 
+            `Model GS` = format(get_deviance(zoo_daph_modGS, modGS, density_adj), 
                                scientific = FALSE, digits=2),
-            `Model GI` = format(get_RMSE(modGI, density_adj), 
+            `Model GI` = format(get_deviance(zoo_daph_modGI, modGI, density_adj), 
                                scientific = FALSE, digits=2))%>%
   rename(Lake = lake)
 
