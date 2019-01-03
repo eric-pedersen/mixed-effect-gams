@@ -141,7 +141,6 @@ It is possible to set up this type of varying penalty model in flexible Bayesian
 when we assume a given regression coefficient is equal to zero (and thus exclude it from a model).
 
 ```{r single_smooth_bias_plot, echo=FALSE, fig.width=7, fig.height=7, message=FALSE, warning=FALSE, cache=TRUE, fig.cap="\\label{fig:var_pen} a) Illustration of bias that can arise from assuming equal smoothness for all group levels (model *S*, red line) versus allowing for intergroup variation in smoothness (model *I*, red line) when the true function (black line) shows substantial variation in smoothness between groups. b) Estimated wiggliness (as measured by the integral of the squared 2nd derivative) of the true function for each group level versus that for the functions estimated by model *S* (red) and model *I* (blue), indicating substantial undersmoothing for low-variability curves by model *S*.", dependson= -1}
-library(latex2exp)
 
 # Uses the Tex function from the latex2exp package to create a math label for 
 # the facets. Based off code from

@@ -39,6 +39,7 @@ library(docxtools)
 library(knitr)
 library(tibble)
 library(dplyr)
+library(latex2exp)
 
 #Set the default theme for ggplot objects to theme_bw()
 theme_set(theme_bw())
