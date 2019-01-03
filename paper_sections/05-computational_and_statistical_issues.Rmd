@@ -119,32 +119,6 @@ deriv_est_data = biasvar_predict_fit %>%
                         levels = c("model S fit",
                                    "model I fit")))
 
-#The derivative plots
-deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv, 
-                                              y= obs_sqr_deriv,
-                                              color= model))+
-  facet_grid(.~noise)+
-  geom_point()+
-  scale_y_log10("Estimated wiggliness\nof fitted curves")+
-  scale_x_log10("Wiggliness of true curve")+
-  scale_color_brewer(name=NULL,palette= "Set1")+
-  geom_abline(color="black")+
-  theme(legend.position = "top")
-
-fit_colors = c("black",RColorBrewer::brewer.pal(3, "Set1")[1:2])
-
-overfit_vis_plot = ggplot(data=biasvar_predict_fit_summary,
-                          aes(x=x,y= value,color=model))+
-  facet_grid(noise~grp)+
-  geom_line(data=filter(biasvar_predict_fit_long,
-                        rep==1,
-                        model=="true value"),
-            color= "black",
-            size=1.2)+
-  geom_line(data=filter(biasvar_predict_fit_long,rep%in%1:4),
-            aes(group=paste(rep,model)))+
-  scale_color_manual(values=fit_colors)+
-  theme(legend.position = "top")
 ```
 
 We developed a simple numerical experiment to determine whether **mgcv**'s fitting
@@ -170,9 +144,43 @@ It is possible to set up this type of varying penalty model in flexible Bayesian
 when we assume a given regression coefficient is equal to zero (and thus exclude it from a model).
 
 ```{r single_smooth_bias_plot, echo=FALSE, fig.width=8, fig.height=8, message=FALSE, warning=FALSE, cache=TRUE, fig.cap="\\label{fig:var_pen} a) Illustration of bias that can arise from assuming equal smoothness for all group levels (model *S*, red line) versus allowing for intergroup variation in smoothness (model *I*, red line) when the true function (black line) shows substantial variation in smoothness between groups. b) Estimated wiggliness (as measured by the integral of the squared 2nd derivative) of the true function for each group level versus that for the functions estimated by model *S* (red) and model *I* (blue), indicating substantial undersmoothing for low-variability curves by model *S*.", dependson= -1}
+
+#The derivative plots
+deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv, 
+                                              y= pmax(obs_sqr_deriv,1e-6),
+                                              color= model))+
+  facet_grid(.~noise)+
+  geom_point()+
+  scale_y_log10("Estimated wiggliness\nof fitted curves",
+                limits = c(1e-6,5e+3),expand=c(0,0.1),
+                breaks= c(1e-6, 1e-3, 1e+0, 1e+3), 
+                labels = c("<= 1e-6","1e-3","1e+0","1e+3"))+
+  scale_x_log10("Wiggliness of true curve", 
+                breaks= c(1e-3, 1e+0, 1e+3), 
+                labels = c("1e-3","1e+0","1e+3"))+
+  scale_color_brewer(name=NULL,palette= "Set1")+
+  geom_abline(color="black")+
+  theme(legend.position = "none")
+
+fit_colors = c("black",RColorBrewer::brewer.pal(3, "Set1")[1:2])
+
+overfit_vis_plot = ggplot(data=biasvar_predict_fit_summary,
+                          aes(x=x,y= value,color=model))+
+  facet_grid(grp~noise)+
+  geom_line(data=filter(biasvar_predict_fit_long,
+                        rep==1,
+                        model=="true value"),
+            color= "black",
+            size=1.2)+
+  geom_line(data=filter(biasvar_predict_fit_long,rep%in%1:4),
+            aes(group=paste(rep,model)))+
+  scale_color_manual(name = "",values=fit_colors)+
+  theme(legend.position = "top",strip.text.y = element_blank())
+
 #Plot the overfit graphs together.
 cowplot::plot_grid(overfit_vis_plot, deriv_plot, ncol=1, labels="auto",
-                   align="hv", axis="lrtb")
+                   align="hv", axis="lrtb",
+                   rel_heights = c(1,0.6))
 ```
 
 It may seem there is also a bias-variance trade-off between choosing to use a single global smoother (model *G*) or a global smoother plus group-level terms (models *GS* and *GI*).
