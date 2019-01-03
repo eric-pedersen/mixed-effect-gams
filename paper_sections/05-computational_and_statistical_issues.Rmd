@@ -80,10 +80,7 @@ biasvar_predict_fit = biasvar_fit %>%
                                newdata = biasvar_predict_data,
                                type="response")))%>%
   unnest(fitS, fitI) %>%
-  bind_cols(crossing(noise=noise_levels, rep= 1:n_reps,biasvar_predict_data))%>%
-  mutate(noise = paste0("noise Std. Dev. = ", noise),
-         noise = factor(noise, 
-                        levels = paste0("noise Std. Dev. = ",noise_levels)))
+  bind_cols(crossing(noise=noise_levels, rep= 1:n_reps,biasvar_predict_data))
 
 #turn this into long-format data for plotting, and to make it easier to
 #calculate derivatives
@@ -144,12 +141,20 @@ It is possible to set up this type of varying penalty model in flexible Bayesian
 when we assume a given regression coefficient is equal to zero (and thus exclude it from a model).
 
 ```{r single_smooth_bias_plot, echo=FALSE, fig.width=7, fig.height=8, message=FALSE, warning=FALSE, cache=TRUE, fig.cap="\\label{fig:var_pen} a) Illustration of bias that can arise from assuming equal smoothness for all group levels (model *S*, red line) versus allowing for intergroup variation in smoothness (model *I*, red line) when the true function (black line) shows substantial variation in smoothness between groups. b) Estimated wiggliness (as measured by the integral of the squared 2nd derivative) of the true function for each group level versus that for the functions estimated by model *S* (red) and model *I* (blue), indicating substantial undersmoothing for low-variability curves by model *S*.", dependson= -1}
+library(latex2exp)
+
+# Uses the Tex function from the latex2exp package to create a math label for 
+# the facets. Based off code from
+# https://sahirbhatnagar.com/blog/2016/facet_wrap_labels/
+noise_labeller <- function(string) 
+    TeX(paste("$noise \\; \\sigma = $", string)) 
 
 #The derivative plots
 deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv, 
                                               y= pmax(obs_sqr_deriv,1e-6),
                                               color= model))+
-  facet_grid(.~noise)+
+  facet_grid(.~noise, labeller = as_labeller(noise_labeller,
+                                               default = label_parsed))+
   geom_point(position = position_dodge(width =0.3))+
   scale_y_log10("Estimated wiggliness\nof fitted curves",
                 limits = c(1e-6,5e+3),expand=c(0,0.1),
@@ -167,7 +172,8 @@ fit_colors = c("black",RColorBrewer::brewer.pal(3, "Set1")[1:2])
 
 overfit_vis_plot = ggplot(data=biasvar_predict_fit_summary,
                           aes(x=x,y= value,color=model))+
-  facet_grid(grp~noise)+
+  facet_grid(grp~noise, labeller = as_labeller(noise_labeller,
+                                               default = label_parsed))+
   geom_line(data=filter(biasvar_predict_fit_long,
                         rep==1,
                         model=="true value"),
