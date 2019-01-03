@@ -43,15 +43,15 @@ calc_2nd_deriv = function(x,y){
 
 #Generate true regression functions that differ in their frequencies. 
 #Higher frequencies correspond to more variable functions. 
-freq_vals = c(1/4,1/2,1,2,4)
-n_reps = 20
+freq_vals = c(1/2,1,2,4)
+n_reps = 25
 noise_levels = c(0.5,1,2)
 biasvar_data = crossing(noise = noise_levels,
                         rep = 1:n_reps,
                         x = seq(0,2*pi,length=150),
                         freq = freq_vals
                )%>%
-  mutate(y = sin(freq*x) +rnorm(n(), 0, noise),
+  mutate(y = cos(freq*x) +rnorm(n(), 0, noise),
          grp = paste("frequency = ",freq,sep= ""),
          grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")))
 
@@ -69,7 +69,7 @@ biasvar_predict_data = crossing(x = seq(0,2*pi,length=500),
                                 freq = freq_vals)%>%
   mutate(grp = paste("frequency = ",freq,sep= ""),
          grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")),
-         y = sin(freq*x))
+         y = cos(freq*x))
 
 biasvar_predict_fit = biasvar_fit %>%
   group_by(noise,rep)%>%
@@ -109,7 +109,7 @@ deriv_est_data = biasvar_predict_fit %>%
                                            na.rm = TRUE),
             fitI_int = sum(fitI_deriv^2*(x-lag(x)),na.rm = TRUE))%>%
   ungroup()%>%
-  mutate(sqr_2nd_deriv = -freq^3*(sin(4*pi*freq)-4*pi*freq)/4)%>%
+  mutate(sqr_2nd_deriv = freq^3*(sin(4*pi*freq)+4*pi*freq)/4)%>%
   gather(key=model,value = obs_sqr_deriv,fitS_int,fitI_int)%>%
   mutate(model = factor(ifelse(model=="fitS_int", "model S fit",
                                "model I fit"),
