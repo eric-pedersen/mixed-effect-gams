@@ -111,7 +111,6 @@ with mgcv}
 \usepackage{longtable}
 \usepackage{array}
 \usepackage{multirow}
-\usepackage[table]{xcolor}
 \usepackage{wrapfig}
 \usepackage{float}
 \usepackage{colortbl}
@@ -142,7 +141,6 @@ with mgcv}
 \usepackage{longtable}
 \usepackage{array}
 \usepackage{multirow}
-\usepackage[table]{xcolor}
 \usepackage{wrapfig}
 \usepackage{float}
 \usepackage{colortbl}
@@ -1097,28 +1095,28 @@ group-level smoothers; see section V) model selection criteria such as
 AIC may indicate that the extra parameters required to fit the global
 smoother are unnecessary.
 
-\begin{table}
+\begin{table}[t]
 
 \caption{\label{tab:AIC_table_kable}AIC table comparing model fits for example datasets}
 \centering
-\begin{tabular}[t]{lrrr}
+\begin{tabular}{lrrr}
 \toprule
 Model & df & AIC & deltaAIC\\
 \midrule
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{A. CO2 models}}\\
-\hspace{1em}CO2\_mod1 & 17 & -119 & 101\\
-\hspace{1em}CO2\_mod2 & 39 & -199 & 22\\
-\hspace{1em}CO2\_mod3 & 42 & -216 & 4\\
-\hspace{1em}CO2\_mod4 & 53 & -219 & 1\\
-\hspace{1em}CO2\_mod5 & 56 & -220 & 0\\
+\hspace{1em}CO2\_modG & 17 & -119 & 101\\
+\hspace{1em}CO2\_modGS & 39 & -199 & 22\\
+\hspace{1em}CO2\_modGI & 42 & -216 & 4\\
+\hspace{1em}CO2\_modS & 53 & -219 & 1\\
+\hspace{1em}CO2\_modI & 56 & -220 & 0\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. bird\_move models}}\\
-\hspace{1em}bird\_mod1 & 51 & 3374 & 1820\\
-\hspace{1em}bird\_mod2 & 140 & 1554 & 0\\
-\hspace{1em}bird\_mod3 & 208 & 1682 & 128\\
-\hspace{1em}bird\_mod4 & 130 & 1555 & 1\\
-\hspace{1em}bird\_mod5 & 200 & 1634 & 80\\
+\hspace{1em}bird\_modG & 51 & 3374 & 1820\\
+\hspace{1em}bird\_modGS & 140 & 1554 & 0\\
+\hspace{1em}bird\_modGI & 208 & 1682 & 128\\
+\hspace{1em}bird\_modS & 130 & 1555 & 1\\
+\hspace{1em}bird\_modI & 200 & 1634 & 80\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1301,11 +1299,11 @@ are well below their maximum possible value
 (\texttt{k\textquotesingle{}}), and the p-value for the observed k-index
 (which measures pattern in the residuals) is not significant:
 
-\begin{table}
+\begin{table}[t]
 
 \caption{\label{tab:zoo_comm_check_k_kable}Results from running \texttt{k.check} on \texttt{zoo\_comm\_modI}.}
 \centering
-\begin{tabular}[t]{lrrrr}
+\begin{tabular}{lrrrr}
 \toprule
   & k' & edf & k-index & p-value\\
 \midrule
@@ -1372,11 +1370,11 @@ values for model \emph{S} (black) and model \emph{I} (red). Ribbons
 indicate \(\pm\) 2 standard errors around the mean.}
 \end{figure}
 
-\begin{table}
+\begin{table}[t]
 
 \caption{\label{tab:zoo_comm_outofsample_kable}Out-of-sample predictive ability for model *S* and 5 applied to the zooplankton community dataset. RMSE values represent the square root of the average squared difference between model predictions and observations for test data.  Intercept only results are for a null model with only year and year-by taxon random effect intercepts included.}
 \centering
-\begin{tabular}[t]{llll}
+\begin{tabular}{llll}
 \toprule
 \multicolumn{1}{c}{ } & \multicolumn{3}{c}{\Large{${\text{Total RMSE of held out data}}\atop{(\text{10 000 individuals}\cdot m^{-2})}$}} \\
 \cmidrule(l{2pt}r{2pt}){2-4}
@@ -1487,11 +1485,11 @@ Kegonsa or Lake Waubesa dynamics out of sample compared to a simple
 model with only a lake-specific intercept and no intra-annual
 variability (Table \ref{tab:zoo_daph_outofsample_kable}).
 
-\begin{table}
+\begin{table}[t]
 
 \caption{\label{tab:zoo_daph_outofsample_kable}Out-of-sample predictive ability for model *G*,*GS*, and *GI* applied to the \textit{D. mendotae} dataset. RMSE values represent the average squared difference between model predictions and observations for held-out data.}
 \centering
-\begin{tabular}[t]{lllll}
+\begin{tabular}{lllll}
 \toprule
 \multicolumn{1}{c}{ } & \multicolumn{4}{c}{\Large{${\text{Total RMSE of held out data}}\atop{(\text{10 000 individuals}\cdot m^{-2})}$}} \\
 \cmidrule(l{2pt}r{2pt}){2-5}
@@ -1588,13 +1586,11 @@ underestimating the true smoothness of low-variability terms, and thus
 lead to more variable estimates of these terms. If this is a potential
 issue, we recommend fitting both models \emph{S} and \emph{I} and using
 standard model evaluation criteria (e.g., AIC) to determine if there is
-evidence for among-group variability in smoothness. For instance, the
-AIC for model \emph{S} fit to this data is -178, whereas it is -211 for
-model \emph{I}, implying a improvement in fit by allowing smoothness to
-vary. However, it may be the case that there are too few data points per
-group to estimate separate smoothness levels, in which case model
-\emph{GS} or model \emph{S} may still be the better option even in the
-face of varying smoothness.
+evidence for among-group variability in smoothness. However, it may be
+the case that there are too few data points per group to estimate
+separate smoothness levels, in which case model \emph{GS} or model
+\emph{S} may still be the better option even in the face of varying
+smoothness.
 
 The ideal case would be to assume that among-group penalties follow
 their own distribution (estimated from the data), to allow variation in
@@ -1602,8 +1598,11 @@ smoothness while still getting the benefit of pooling information on
 smoothness between groups. This is currently not implemented in
 \textbf{mgcv}. It is possible to set up this type of varying penalty
 model in flexible Bayesian modelling software such as \emph{Stan} (see
-below for a discussion of how to fit HGAMs using these tools), but how
-to fit this type of model has not been well studied.
+below for a discussion of how to fit HGAMs using these tools), where
+inter-group variation in smoothing penalties could be modelled with a
+hierarchical prior. However, to the best of our knowledge, how to fit
+this type of model has not been well studied in either the Bayesian or
+frequentist literature.
 
 \begin{figure}
 \centering
@@ -1708,11 +1707,11 @@ cases. For instance, model \emph{I} takes less time to fit the bird
 movement data than model \emph{S} does (Table
 \ref{tab:comp_time_kable}B).
 
-\begin{table}
+\begin{table}[t]
 
 \caption{\label{tab:comp_time_kable}Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model *G* takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smoothers is the total number of unique penalty values estimated by the model.}
 \centering
-\begin{tabular}[t]{lrrr}
+\begin{tabular}{lrrr}
 \toprule
 \multicolumn{1}{c}{ } & \multicolumn{1}{c}{ } & \multicolumn{2}{c}{\# of terms} \\
 \cmidrule(l{2pt}r{2pt}){3-4}
@@ -1721,17 +1720,17 @@ model & relative time & coefficients & penalties\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{A. CO2 data}}\\
 \hspace{1em}G & 1 & 17 & 2\\
-\hspace{1em}GS & 5 & 65 & 14\\
+\hspace{1em}GS & 12 & 65 & 14\\
 \hspace{1em}GI & 3 & 65 & 3\\
-\hspace{1em}S & 6 & 61 & 13\\
+\hspace{1em}S & 12 & 61 & 13\\
 \hspace{1em}I & 2 & 61 & 3\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. bird movement data}}\\
 \hspace{1em}G & 1 & 90 & 2\\
-\hspace{1em}GS & 330 & 624 & 14\\
-\hspace{1em}GI & 150 & 540 & 5\\
-\hspace{1em}S & 62 & 535 & 12\\
-\hspace{1em}I & 120 & 541 & 3\\
+\hspace{1em}GS & 490 & 624 & 14\\
+\hspace{1em}GI & 290 & 540 & 5\\
+\hspace{1em}S & 150 & 535 & 12\\
+\hspace{1em}I & 160 & 541 & 3\\
 \bottomrule
 \end{tabular}
 \end{table}

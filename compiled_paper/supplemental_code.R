@@ -13,6 +13,7 @@ library(docxtools)
 library(knitr)
 library(tibble)
 library(dplyr)
+library(latex2exp)
 
 #Set the default theme for ggplot objects to theme_bw()
 theme_set(theme_bw())
@@ -432,7 +433,7 @@ zoo_comm_modI <- gam(density_adj ~ s(day, by=taxon,
 ## round(k.check(zoo_comm_modI),2)
 #individual components of gam.check: residual plots
 par(mfrow= c(1,2))
-qq.gam(zoo_comm_modS)
+qq.gam(zoo_comm_modI, rep = 250)
 plot(log(fitted(zoo_comm_modI)), 
      residuals.gam(zoo_comm_modI,type = "deviance"), 
      xlab = "linear predictor",
@@ -652,77 +653,136 @@ calc_2nd_deriv = function(x,y){
 
 #Generate true regression functions that differ in their frequencies. 
 #Higher frequencies correspond to more variable functions. 
-freq_vals = c(1/4,1/2,1,2,4)
-dat = crossing(x = seq(0,2*pi,length=150),freq = freq_vals)%>%
-  mutate(y = sin(freq*x) +rnorm(n(), 0, 0.2),
+freq_vals = c(1/2,1,2,4)
+n_reps = 25
+noise_levels = c(0.5,1,2)
+biasvar_data = crossing(noise = noise_levels,
+                        rep = 1:n_reps,
+                        x = seq(0,2*pi,length=150),
+                        freq = freq_vals
+               )%>%
+  mutate(y = cos(freq*x) +rnorm(n(), 0, noise),
          grp = paste("frequency = ",freq,sep= ""),
          grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")))
 
-#Fit model S (shared smoothness) for the test data
-modG = bam(y~s(x,k=30,grp, bs="fs"), data=dat)
-
-#Fit a model I function (differing smoothness) for the test data
-modGS = bam(y~s(x,k=30,by=grp)+s(grp,bs="re"), data=dat)
+biasvar_fit = biasvar_data %>%
+  group_by(noise,rep)%>%
+  do(
+    #Fit model S (shared smoothness) for the test data
+    modS = bam(y~s(x,k=30,grp, bs="fs"), data=.),
+    #Fit a model I function (differing smoothness) for the test data
+    modI = bam(y~s(x,k=30,by=grp)+s(grp,bs="re"), data=.)
+    )
 
 #Extract fitted values for each model for all the test data
-overfit_predict_data = crossing(x = seq(0,2*pi,length=500), 
+biasvar_predict_data = crossing(x = seq(0,2*pi,length=500), 
                                 freq = freq_vals)%>%
   mutate(grp = paste("frequency = ",freq,sep= ""),
          grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")),
-         y = sin(freq*x))%>%
-  mutate(fit1 = as.numeric(predict(modG,newdata = .,type = "response")),
-         fit2 = as.numeric(predict(modGS,newdata = .,type="response")))
+         y = cos(freq*x))
+
+biasvar_predict_fit = biasvar_fit %>%
+  group_by(noise,rep)%>%
+  do(fitS = as.numeric(predict(.$modS[[1]],
+                               newdata = biasvar_predict_data,
+                               type = "response")),
+     fitI = as.numeric(predict(.$modI[[1]],
+                               newdata = biasvar_predict_data,
+                               type="response")))%>%
+  unnest(fitS, fitI) %>%
+  bind_cols(crossing(noise=noise_levels, rep= 1:n_reps,biasvar_predict_data))
 
 #turn this into long-format data for plotting, and to make it easier to
 #calculate derivatives
-overfit_predict_data_long = overfit_predict_data %>%
-  gather(model, value, y, fit1, fit2)%>%
-  mutate(model = recode(model, y = "true value",fit1 = "model S fit",
-                        fit2 = "model I fit"),
+biasvar_predict_fit_long = biasvar_predict_fit %>%
+  gather(model, value, y, fitS, fitI)%>%
+  mutate(model = recode(model, y = "true value",fitS = "model S fit",
+                        fitI = "model I fit"),
          model = factor(model, levels=  c("true value","model S fit",
                                           "model I fit")))
 
+biasvar_predict_fit_summary = biasvar_predict_fit_long %>%
+  group_by(noise,grp,model, x)%>%
+  summarize(lower = min(value),
+            upper = max(value),
+            value = mean(value)
+            )
 #estimate 2nd derivatives of each curve, then for each curve calculate the sum
 #of squared 2nd derivatives of the true curve and the predictions for both
 #models.
-deriv_est_data = overfit_predict_data%>%
-  group_by(grp)%>%
+deriv_est_data = biasvar_predict_fit %>%
+  group_by(grp, rep,noise)%>%
   arrange(grp, x)%>%
-  mutate(fit1_deriv = calc_2nd_deriv(x,fit1),
-         fit2_deriv = calc_2nd_deriv(x,fit2))%>%
-  summarize(freq = freq[1], fit1_int = sum(fit1_deriv^2*(x-lag(x)),
+  mutate(fitS_deriv = calc_2nd_deriv(x,fitS),
+         fitI_deriv = calc_2nd_deriv(x,fitI))%>%
+  summarize(freq = freq[1], fitS_int = sum(fitS_deriv^2*(x-lag(x)),
                                            na.rm = TRUE),
-            fit2_int = sum(fit2_deriv^2*(x-lag(x)),na.rm = TRUE))%>%
+            fitI_int = sum(fitI_deriv^2*(x-lag(x)),na.rm = TRUE))%>%
   ungroup()%>%
-  mutate(sqr_2nd_deriv = -freq^3*(sin(4*pi*freq)-4*pi*freq)/4)%>%
-  gather(key=model,value = obs_sqr_deriv,fit1_int,fit2_int)%>%
-  mutate(model = factor(ifelse(model=="fit1_int", "model S fit",
+  mutate(sqr_2nd_deriv = freq^3*(sin(4*pi*freq)+4*pi*freq)/4)%>%
+  gather(key=model,value = obs_sqr_deriv,fitS_int,fitI_int)%>%
+  mutate(model = factor(ifelse(model=="fitS_int", "model S fit",
                                "model I fit"),
                         levels = c("model S fit",
                                    "model I fit")))
 
+
+# Uses the Tex function from the latex2exp package to create a math label for 
+# the facets. Based off code from
+# https://sahirbhatnagar.com/blog/2016/facet_wrap_labels/
+noise_labeller <- function(string) {
+  signal_to_noise = as.numeric(string)
+  signal_to_noise = 0.5/signal_to_noise^2
+  signal_to_noise = as.character(signal_to_noise)
+  TeX(paste("$\\frac{signal}{noise}\\;= $", signal_to_noise)) 
+}
+
 #The derivative plots
 deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv, 
-                                              y= obs_sqr_deriv,
+                                              y= pmax(obs_sqr_deriv,1e-6),
                                               color= model))+
-  geom_point()+
-  scale_y_log10("Estimated wiggliness\nof fitted curves")+
-  scale_x_log10("Wiggliness of true curve")+
+  facet_grid(.~noise, labeller = as_labeller(noise_labeller,
+                                               default = label_parsed))+
+  geom_point(position = position_dodge(width =0.3))+
+  scale_y_log10("Estimated wiggliness\nof fitted curves",
+                limits = c(1e-6,5e+3),expand=c(0,0.1),
+                breaks= c(1e-6, 1e-3, 1e+0, 1e+3), 
+                labels = c("<= 1e-6","1e-3","1e+0","1e+3"))+
+  scale_x_log10("Wiggliness of true curve", 
+                breaks= c(1e-3, 1e+0, 1e+3), 
+                labels = c("1e-3","1e+0","1e+3")
+                )+
   scale_color_brewer(name=NULL,palette= "Set1")+
   geom_abline(color="black")+
-  theme(legend.position = "top")
+  theme(legend.position = c(0.1, 0.25),
+        strip.text.x = element_blank(),
+        plot.margin = unit(c(3, 5.5, 5,5, 5.5), "pt"))
 
 fit_colors = c("black",RColorBrewer::brewer.pal(3, "Set1")[1:2])
 
-overfit_vis_plot = ggplot(data=overfit_predict_data_long,
+overfit_vis_plot = ggplot(data=biasvar_predict_fit_summary,
                           aes(x=x,y= value,color=model))+
-  geom_line()+
-  scale_color_manual(values=fit_colors)+
-  facet_grid(.~grp)+
-  theme(legend.position = "top")
+  facet_grid(grp~noise, labeller = as_labeller(noise_labeller,
+                                               default = label_parsed))+
+  geom_line(data=filter(biasvar_predict_fit_long,
+                        rep==1,
+                        model=="true value"),
+            color= "black",
+            size=1.2)+
+  geom_line(data=filter(biasvar_predict_fit_long,rep%in%1:3),
+            aes(group=paste(rep,model)))+
+  scale_color_manual(name = "",values=fit_colors)+
+  scale_y_continuous("Estimated curve", breaks = c(-2,0,2))+
+  scale_x_continuous(name = "coefficent")+
+  coord_cartesian(ylim=c(-2,2))+
+  theme(legend.position = "top",
+        strip.text.y = element_blank(),
+        plot.margin = unit(c(5.5, 5.5, 2.5, 5.5), "pt"))
+
 #Plot the overfit graphs together.
 cowplot::plot_grid(overfit_vis_plot, deriv_plot, ncol=1, labels="auto",
-                   align="hv", axis="lrtb")
+                   align="hv", axis="lr",
+                   rel_heights = c(1,0.6))
 #Note: this code takes quite a long time to run! It's fitting all 10 models. Run
 #once if possible, then rely on the cached code. There's a reason it's split off
 #from the rest of the chunks of code.
