@@ -121,16 +121,26 @@ deriv_est_data = biasvar_predict_fit %>%
 We developed a simple numerical experiment to determine whether **mgcv**'s fitting
 criteria tend to set estimated smoothness penalties high or low in the presence
 of among-group variability in smoothness when fitting model *GS* or *S* HGAMs. We
-simulated data from five different groups, with all groups having the same
-levels of the covariate $x$, ranging from 0 to $2\pi$.
-For each group, the true function relating $x$ to the response, $y$, was a sine wave, but the frequency varied from 0.25 (equal to half a cycle across the range of $x$) to 4 (corresponding to 4 full cycles across the range).
-We added normally distributed error to all $y$-values, with a standard deviation of 0.2.
-We then fit both model *S* (where all curves were assumed to be equally smooth) and model *I* (with varying smoothness) to the entire data set, using REML criteria to estimate penalties.
-For this example (Fig. \ref{fig:var_pen}a), requiring equal smoothness for all group levels resulted in **mgcv** underestimating the penalty for the lowest frequency (most smooth) terms, but accurately estimating the true smoothness of the highest frequency terms as measured by the squared second derivative of the smooth fit versus that of the true function (Fig. \ref{fig:var_pen}b).
+simulated data from four different groups, with all groups having the same
+levels of the covariate $x$, equally spaced across the range from 0 to $2\pi$.
+For each group, the true function relating $x$ to the response, $y$, was a cosine wave, but the frequency varied from 0.5 (equal to half a cycle across the range of $x$) to 4 (corresponding to 4 full cycles across the range).
+As all four sin waves spanned the whole range from -1 to +1 across the range of x, and as they were all integer or half-integer frequencies, the signal for all groups had the same variance across the range of $x$, approximately equal to 0.5. 
+Therefore, the true function for all groups had the same strength of signal;
+all that varied between groups was how rapidly the signal fluctuated. 
+We added normally distributed error to all $y$-values, with three different noise levels, given by standard deviations of 0.5,1, and 2. These correspond to signal-to-noise ratios (i.e. variance of the cosine curve divided by variance of the noise) of 2, 0.5, and 0.125.
+For each noise level, we created 25 replicate data sets, to illustrate the amount of simulation-to-simulation variation in model fit. 
+We then fit both model *S* (where all curves were assumed to be equally smooth) and model *I* (with varying smoothness) to each replicate for each noise level, using REML criteria to estimate penalties.
+
+A sample of the fits for each group for three of the replicates for each model are shown in Fig. \ref{fig:var_pen}a, with model *S* in red and model *I* in blue. 
+Fig. \ref{fig:var_pen}b illustrates how well each model fared across the range of replicates at accurately estimating the true smoothness of the highest frequency terms as measured by the squared second derivative of the smooth fit versus that of the true function, with the distance to the black one-to-one line indicating the degree to which the estimated function for each group over- or under-estimated the smoothness of the true signal. 
+In general, under low noise conditions (Fig \ref{fig:var_pen}, signal-to-noise ratio of 2), model *S* tendeded to overfit the smoothest, lowest-frequency, groups, while accurately fitting the highest frequency groups. 
+Under moderate signal-to-noise ratios,  model *S* tended to over-penalize high-frequency groups and under-penalize low frequency groups, and in the lowest signal-to-noise ratio tested (0.125), model *S* tended to penalize all groups towards very smooth functions (Fig. \ref{fig:var_pen}b). 
+Curves estimated by model *I*, on the other hand, tended to accurately capture the true wiggliness of the function across the whole range of frequencies and noises, except for the lowest-frequency groups, and the highest frequency groups it the presence of high noise; 
+in both cases, model *I* tended to over-smooth (.Fig. \ref{fig:var_pen}b). 
+
 This implies that assuming equal smoothness will result in underestimating
-the true smoothness of low-variability terms, and thus lead to more variable
-estimates of these terms.
-If this is a potential issue, we recommend fitting both models *S* and *I* and using standard model evaluation criteria (e.g., AIC) to determine if there is evidence for among-group variability in smoothness.
+the true smoothness of low-variability terms in cases of high signal-to-noise, and overestimating the true smoothness of high-frequency terms in low signal-to-noise data sets. 
+If this is a potential issue, we recommend fitting both models *S* and *I* and using standard model evaluation criteria (e.g., AIC) or out-of-sample predictive accuracy (as in Section IV) to determine if there is evidence for among-group variability in smoothness.
 However, it may be the case that there are too few data points per group to estimate separate smoothness levels, in which case model *GS* or model *S* may still be the better option even in the face of varying smoothness.
 
 The ideal case would be to assume that among-group penalties follow their own distribution (estimated from the data), to allow variation in smoothness while still getting the benefit of pooling information on smoothness between groups.
@@ -140,7 +150,7 @@ It is possible to set up this type of varying penalty model in flexible Bayesian
 [^mean_note]: While this example may seem contrived, this is exactly what happens
 when we assume a given regression coefficient is equal to zero (and thus exclude it from a model).
 
-```{r single_smooth_bias_plot, echo=FALSE, fig.width=7, fig.height=7, message=FALSE, warning=FALSE, cache=TRUE, fig.cap="\\label{fig:var_pen} a) Illustration of bias that can arise from assuming equal smoothness for all group levels (model *S*, red line) versus allowing for intergroup variation in smoothness (model *I*, red line) when the true function (black line) shows substantial variation in smoothness between groups. b) Estimated wiggliness (as measured by the integral of the squared 2nd derivative) of the true function for each group level versus that for the functions estimated by model *S* (red) and model *I* (blue), indicating substantial undersmoothing for low-variability curves by model *S*.", dependson= -1}
+```{r single_smooth_bias_plot, echo=FALSE, fig.width=7, fig.height=7, message=FALSE, warning=FALSE, cache=TRUE, fig.cap="\\label{fig:var_pen} a) Illustration of bias that can arise from assuming equal smoothness for all group levels (model *S*, red lines) versus allowing for intergroup variation in smoothness (model *I*, blue lines) across a range of signal-to-noise ratios, holding the group-level signals (cosine waves) constant. The true function for each group level (black lines) shows substantial variation in smoothness between groups. b) Wiggliness (as measured by the integral of the squared 2nd derivative)  of the estimated function for each replicate for each group level for model *S* (red) and model *I* (blue), versus the true wiggliness of the function for that grouping level, with the black line indicating the one-to-one line. Points below (above) the black line indicate that a given model estimated the curve as less (more) wiggly than the true curve used to generate the data.", dependson= -1}
 
 # Uses the Tex function from the latex2exp package to create a math label for 
 # the facets. Based off code from
@@ -188,7 +198,7 @@ overfit_vis_plot = ggplot(data=biasvar_predict_fit_summary,
             aes(group=paste(rep,model)))+
   scale_color_manual(name = "",values=fit_colors)+
   scale_y_continuous("Estimated curve", breaks = c(-2,0,2))+
-  scale_x_continuous(name = "coefficent")+
+  scale_x_continuous(name = "x")+
   coord_cartesian(ylim=c(-2,2))+
   theme(legend.position = "top",
         strip.text.y = element_blank(),
