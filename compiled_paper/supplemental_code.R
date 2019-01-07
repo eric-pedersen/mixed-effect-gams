@@ -773,7 +773,7 @@ overfit_vis_plot = ggplot(data=biasvar_predict_fit_summary,
             aes(group=paste(rep,model)))+
   scale_color_manual(name = "",values=fit_colors)+
   scale_y_continuous("Estimated curve", breaks = c(-2,0,2))+
-  scale_x_continuous(name = "coefficent")+
+  scale_x_continuous(name = "x")+
   coord_cartesian(ylim=c(-2,2))+
   theme(legend.position = "top",
         strip.text.y = element_blank(),
