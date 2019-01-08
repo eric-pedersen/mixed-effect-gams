@@ -121,12 +121,13 @@ In this table, each row corresponds to a single smooth term, `k'` corresponds to
 
 ```{r zoo_comm_diag, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=6, fig.height=3, fig.cap = "\\label{fig:zoo_comm_diag_plot} Diagnostic plots for model *I* fitted to zooplankton community data in Lake Mendota. Top row: QQ plots plus the 1-1 line. Bottom row: deviance residuals versus fitted values (on the link scale)."}
 #individual components of gam.check: residual plots
-par(mfrow= c(1,2))
-qq.gam(zoo_comm_modI, rep = 250)
-plot(log(fitted(zoo_comm_modI)), 
-     residuals.gam(zoo_comm_modI,type = "deviance"), 
-     xlab = "linear predictor",
-     ylab = "residuals")
+plt1 <- qq_plot(zoo_comm_modI, method = "simulate")
+df <- data.frame(log_fitted = log(fitted(zoo_comm_modI)),
+                 residuals  = resid(zoo_comm_modI, type = "deviance"))
+plt2 <- ggplot(df, aes(x = log_fitted, y = residuals)) +
+    geom_point() +
+    labs(x = "Linear predictor", y = "Deviance residual")
+plot_grid(plt1, plt2, ncol = 2, align = "hv", axis = "lrtb")
 ```
 
 

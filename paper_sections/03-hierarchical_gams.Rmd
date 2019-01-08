@@ -94,7 +94,7 @@ This is a common GAM structure, with a single smooth term for each variable. Spe
 ```{r co2_modG, echo=FALSE, fig.width=6, fig.height=3, dev.args=list(pointsize=10), fig.cap="\\label{fig:co2_modG}**mgcv** plotting output for model *G* applied to the CO2 dataset. Left shows the smoother of $\\log_e$ concentration and right plot shows a quantile-quantile plot of the random effects against Gaussian quantiles, used to check the appropriateness of the normal random effect assumption. Numbers in the vertical axis of the left figure and the title of the right give the effective degrees of freedom of the smoothers."}
 <<co2_modG_unrun>>
 
-plot(CO2_modG, pages=1, seWithMean=TRUE)
+draw(CO2_modG)
 ```
 
 Figure \ref{fig:co2_modG} illustrates **mgcv**'s default plotting out for `CO2_modG`: the left panel shows the estimated smoother for concentration, and the right shows a quantile-quantile plot of the estimated random effects vs Gaussian quantiles, which can be used to check our model.
@@ -161,8 +161,7 @@ Note that in `bird_modG` we have specified week 0 and week 52 as the endpoints, 
 #mgcv gam plot for the two-dimensional tensor product smoother for bird_modG.
 #scheme=2 displays the color scheme (rather than mgcv's default, which only
 #shows contour lines)
-plot(bird_modG, pages=1, scheme=2, rug=FALSE)
-box()
+draw(bird_modG)
 ```
 
 Figure \ref{fig:bird_modG} shows the default plot (created by running `plot(bird_modG, pages=1, scheme=2, rug=FALSE)`) for the week-by-latitude smoother. It shows birds starting at low latitudes in the winter then migrating to high latitudes from the 10th to 20th week, staying there for 15-20 weeks, then migrating back. However, the plot also indicates a large amount of variability in the timing of migration. The source of this variability is apparent when we look at the timing of migration of each species (cf. figure \ref{fig:vis_data}b).
@@ -203,7 +202,7 @@ CO2_modGS <- gam(log(uptake) ~ s(log(conc), k=5, m=2) +
 ```
 
 ```{r co2_modGS_plot, fig.width=6, fig.height=3, dev.args=list(pointsize=10), out.width="\\linewidth", echo=FALSE, fig.cap="\\label{fig:co2_modGS}Global function (left) and group-specific deviations from the global function (right) for \\texttt{CO2\\_modGS}"}
-plot(CO2_modGS, page=1, seWithMean=TRUE)
+draw(CO2_modGS)
 ```
 
 Figure \ref{fig:co2_modGS} shows the fitted smoothers for `CO2_modGS`. The plots of group-specific smoothers indicate that plants differ not only in average log-uptake (which would correspond to each plant having a straight line at different levels for the group-level smoother), but differ slightly in the shape of their functional responses. Figure \ref{fig:co2_modGS_pred} shows how the global and group-specific smoothers combine to predict uptake rates for individual plants.  We see that, unlike in the single global smoother case above, none of the curves deviate from the data systematically.
@@ -293,48 +292,13 @@ CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                 data=CO2, method="REML")
 ```
 
-```{r modGI_CO2, fig.width=5, fig.height=3, echo=FALSE, fig.cap="\\label{fig:co2_modGI}Functional relationships for the CO2 data estimated for model *GI*. Top left: the global smoother; Top middle: species-specific random effect intercepts. The remaining plots are a selected subset of the plant-specific smoothers, indicating how the functional response of that plant differs from the global smoother. "}
+```{r modGI_CO2, fig.width=9, fig.height=5, echo=FALSE, fig.cap="\\label{fig:co2_modGI}Functional relationships for the CO2 data estimated for model *GI*. Top left: the global smoother; Top middle: species-specific random effect intercepts. The remaining plots are a selected subset of the plant-specific smoothers, indicating how the functional response of that plant differs from the global smoother. "}
 CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                   s(log(conc), by= Plant_uo, k=5, m=1, bs="tp") +
                   s(Plant_uo, bs="re", k=12),
                 data=CO2, method="REML")
 
-op <- par(mfrow=c(2, 3), mar =c(4, 4, 1, 1))
-CO_modGI_ylim = c(-0.3,0.3)
-plot(CO2_modGI, scale=0, 
-     select=1, 
-     ylab="Global smoother", 
-     seWithMean=TRUE)
-plot(CO2_modGI, 
-     scale=0, 
-     select=14, 
-     ylab="Intercept",
-     main=NA)
-plot(CO2_modGI, 
-     scale=0, 
-     select=3,  
-     ylab="Plant Qn1", 
-     seWithMean=TRUE,
-     ylim = CO_modGI_ylim)
-plot(CO2_modGI, 
-     scale=0, 
-     select=5,  
-     ylab="Plant Qc1",     
-     seWithMean=TRUE,
-     ylim = CO_modGI_ylim)
-plot(CO2_modGI, 
-     scale=0, 
-     select=10, 
-     ylab="Plant Mn1",     
-     seWithMean=TRUE,
-     ylim = CO_modGI_ylim)
-plot(CO2_modGI, 
-     scale=0, 
-     select=13, 
-     ylab="Plant Mc1",
-     seWithMean=TRUE,
-     ylim = CO_modGI_ylim)
-par(op)
+draw(CO2_modGI, select = c(1,14,3,5,10,13), scales = "fixed")
 ```
 
 Figure \ref{fig:co2_modGI} shows a subsample of the group-specific smoothers from this model. It is apparent from this that some groups (e.g. `Qc1`) have very similar shapes to the global smoother (differing only in intercept), others do differ from the global trend, with higher uptake at low concentrations and lower uptake at higher concentrations (e.g. `Mc1`, `Qn1`), or the reverse pattern (e.g. `Mn1`).
@@ -402,7 +366,7 @@ For the `bird_move` dataset (Table \ref{tab:AIC_table_kable}B), model *GS* (glob
 
 ```{r AIC_table, echo=FALSE,  fig.width=4, fig.height=6, message=FALSE, warning=FALSE, cache=TRUE}
 
-AIC_table = AIC(CO2_modG,CO2_modGS, CO2_modGI, CO2_modS, CO2_modI,
+AIC_table <- AIC(CO2_modG,CO2_modGS, CO2_modGI, CO2_modS, CO2_modI,
              bird_modG, bird_modGS, bird_modGI, bird_modS, bird_modI)%>%
   rownames_to_column(var= "Model")%>%
   mutate(data_source = rep(c("CO2","bird_data"), each =5))%>%
