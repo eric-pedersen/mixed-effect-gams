@@ -1,6 +1,8 @@
-all: main example_data md fig tex 
+all: main example_data md fig tex compare
 main: example_data md fig tex 
+compare: main
 
+run_comparison = false
 
 example_data: data/bird_move.csv data/zooplankton_example.csv
 				R --vanilla --slave -e "source('code/bird_example_data.R')"
@@ -20,4 +22,10 @@ main: paper_sections/full_document.Rmd
 				R --vanilla --slave -e "setwd('paper_sections'); library(tools); texi2pdf('full_document.tex',clean = TRUE)"
 				mv paper_sections/full_document.pdf compiled_paper/full_document.pdf 
 				mv paper_sections/full_document.tex compiled_paper/full_document.tex 
-
+				
+compare: compiled_paper/full_document.tex compiled_paper/prior_submission.tex
+        ifeq ($(run_comparison),true)
+					latexdiff --config="PICTUREENV=(?:picture|DIFnomarkup|table)[\w\d*@]*" compiled_paper/prior_submission.tex compiled_paper/full_document.tex  > compiled_paper/diff.tex
+					-pdflatex -interaction=nonstopmode compiled_paper/diff.tex -output-directory compiled_paper
+					rm compiled_paper/diff.log compiled_paper/diff.aux compiled_paper/diff.out
+        endif
