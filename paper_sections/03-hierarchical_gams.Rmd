@@ -67,7 +67,8 @@ plot_grid(CO2_vis_plot, bird_vis_plot, nrow=1, labels=c("a","b"),
           align = "hv", axis = "lrtb")
 ```
 
-Throughout the examples we use Restricted Maximum Likelihood (REML) to estimate model coefficients and smoothing parameters. We strongly recommend using either REML or marginal likelihood (ML) rather than the default GCV criteria when fitting GAMs, for the reasons outlined in @wood_fast_2011. In each case some data processing and manipulation has been done to obtain the graphics and results below. See supplemental code for details on data processing steps.
+Throughout the examples we use Restricted Maximum Likelihood (REML) to estimate model coefficients and smoothing parameters. We strongly recommend using either REML or marginal likelihood (ML) rather than the default GCV criteria when fitting GAMs, for the reasons outlined in @wood_fast_2011. In each case some data processing and manipulation has been done to obtain the graphics and results below. See supplemental code for details on data processing steps. To illustrate plots, we will be using the `draw` function from the **gratia** package; this package was developed by one of the authors [@simpson_gratia_2018] as a set of tools to extend plotting and analysis of **mgcv** models.
+While **mgcv** does have default plotting capabilities (through `plot(<model_name>)`), **gratia** expands these by creating **ggplot2** objects [@wickham_ggplot2_2016] that can be more easily extended and modified. 
 
 ### A single common (global) smoother for all observations (Model *G*)
 
@@ -91,13 +92,13 @@ CO2_modG <- gam(log(uptake) ~ s(log(conc), k=5, bs="tp") +
 
 This is a common GAM structure, with a single smooth term for each variable. Specifying the model is similar to specifying a GLM in R via `glm()`, with the addition of `s()` terms to include one-dimensional or isotropic multidimensional smoothers. The first argument to `s()` are the terms to be smoothed, the type of smoother to be used for the term is specified by the `bs` argument, and the maximum number of basis functions is specified by `k`. There are different defaults in **mgcv** for k, depending on the type of smoother chosen; here we use a tprs smoother (`bs="tp"`) for the concentration smoother, and set `k=5` as there are only 7 separate values of concentration measured, so the default `k=10` (for tprs) would be too high; further, setting `k=5` saves on computational time (see section V). The random effect smoother (`bs="re"`) that we used for the `Plant_uo` factor has a default `k` equal to the number of levels in the grouping variable (here, 12). We specified `k=12` just to make this connection apparent. 
 
-```{r co2_modG, echo=FALSE, fig.width=6, fig.height=3, dev.args=list(pointsize=10), fig.cap="\\label{fig:co2_modG}**mgcv** plotting output for model *G* applied to the CO2 dataset. Left shows the smoother of $\\log_e$ concentration and right plot shows a quantile-quantile plot of the random effects against Gaussian quantiles, used to check the appropriateness of the normal random effect assumption. Numbers in the vertical axis of the left figure and the title of the right give the effective degrees of freedom of the smoothers."}
+```{r co2_modG, echo=FALSE, fig.width=6, fig.height=3, dev.args=list(pointsize=10), fig.cap="\\label{fig:co2_modG}**gratia** plotting output for model *G* applied to the CO2 dataset. Left shows the smoother of $\\log_e$ concentration and right plot shows a quantile-quantile plot of the random effects against Gaussian quantiles, used to check the appropriateness of the normal random effect assumption. Numbers in the vertical axis of the left figure and the title of the right give the effective degrees of freedom of the smoothers."}
 <<co2_modG_unrun>>
-
+#plot the default gratia plot for the CO2 model
 draw(CO2_modG)
 ```
 
-Figure \ref{fig:co2_modG} illustrates **mgcv**'s default plotting out for `CO2_modG`: the left panel shows the estimated smoother for concentration, and the right shows a quantile-quantile plot of the estimated random effects vs Gaussian quantiles, which can be used to check our model.
+Figure \ref{fig:co2_modG} illustrates the output of **gratia**'s `draw` function for `CO2_modG`: the left panel shows the estimated smoother for concentration, and the right shows a quantile-quantile plot of the estimated random effects vs Gaussian quantiles, which can be used to check our model.
 
 Looking at the effects by term is useful, but we are often interested in fitted values or predictions from our models. Using the built in prediction functions with **mgcv**, we can estimate what the fitted function (and uncertainty around it) should look like for each level, as shown in Figure \ref{fig:co2_modG_predict} (see supplemental code for more details on how to generate these predictions).
 
@@ -158,13 +159,11 @@ Note that in `bird_modG` we have specified week 0 and week 52 as the endpoints, 
 
 
 ```{r bird_modG_plot, echo=FALSE, fig.width = 4, fig.height = 4, outwidth="\\linewidth", dev.args = list(pointsize=10), fig.cap="\\label{fig:bird_modG} Plot illustrating the average log-abundance of all bird species at each latitude for each week, with yellow colours indicating more individuals and red colours fewer."}
-#mgcv gam plot for the two-dimensional tensor product smoother for bird_modG.
-#scheme=2 displays the color scheme (rather than mgcv's default, which only
-#shows contour lines)
+#gratia draw plot for the two-dimensional tensor product smoother for bird_modG.
 draw(bird_modG)
 ```
 
-Figure \ref{fig:bird_modG} shows the default plot (created by running `plot(bird_modG, pages=1, scheme=2, rug=FALSE)`) for the week-by-latitude smoother. It shows birds starting at low latitudes in the winter then migrating to high latitudes from the 10th to 20th week, staying there for 15-20 weeks, then migrating back. However, the plot also indicates a large amount of variability in the timing of migration. The source of this variability is apparent when we look at the timing of migration of each species (cf. figure \ref{fig:vis_data}b).
+Fig, \ref{fig:bird_modG} shows the default `draw(bird_modG)` plot for the week-by-latitude smoother. It shows birds starting at low latitudes in the winter then migrating to high latitudes from the 10th to 20th week, staying there for 15-20 weeks, then migrating back. However, the plot also indicates a large amount of variability in the timing of migration. The source of this variability is apparent when we look at the timing of migration of each species (cf. figure \ref{fig:vis_data}b).
 
 All six species in figure \ref{fig:vis_data}b show relatively precise migration patterns, but they differ in the timing of when they leave their winter grounds and the amount of time they spend at their summer grounds. Averaging over all of this variation results in a relatively imprecise (diffuse) estimate of migration timing (figure \ref{fig:bird_modG}), and viewing species-specific plots of observed versus predicted values (figure \ref{fig:bird-fitted-modG}), it is apparent that the model fits some of the species better than others. This model could potentially be improved by adding inter-group variation in migration timing. The rest of this section will focus on how to model this type of variation.
 
@@ -202,6 +201,7 @@ CO2_modGS <- gam(log(uptake) ~ s(log(conc), k=5, m=2) +
 ```
 
 ```{r co2_modGS_plot, fig.width=6, fig.height=3, dev.args=list(pointsize=10), out.width="\\linewidth", echo=FALSE, fig.cap="\\label{fig:co2_modGS}Global function (left) and group-specific deviations from the global function (right) for \\texttt{CO2\\_modGS}"}
+#gratia draw() plot for CO2_modGS
 draw(CO2_modGS)
 ```
 
@@ -293,11 +293,13 @@ CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
 ```
 
 ```{r modGI_CO2, fig.width=9, fig.height=5, echo=FALSE, fig.cap="\\label{fig:co2_modGI}Functional relationships for the CO2 data estimated for model *GI*. Top left: the global smoother; Top middle: species-specific random effect intercepts. The remaining plots are a selected subset of the plant-specific smoothers, indicating how the functional response of that plant differs from the global smoother. "}
+#Fitting CO2_modGI 
 CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                   s(log(conc), by= Plant_uo, k=5, m=1, bs="tp") +
                   s(Plant_uo, bs="re", k=12),
                 data=CO2, method="REML")
 
+#plotting CO2_modGI 
 draw(CO2_modGI, select = c(1,14,3,5,10,13), scales = "fixed")
 ```
 
