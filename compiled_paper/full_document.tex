@@ -137,21 +137,6 @@ with mgcv}
 \affil[5]{Institute of Environmental Change and Society, University of Regina, Regina, SK, Canada}
 \affil[6]{Ecohealth Alliance, New York, NY, USA}
 \affil[*]{Corresponding author. Email: eric.j.pedersen@gmail.com}
-\usepackage{booktabs}
-\usepackage{longtable}
-\usepackage{array}
-\usepackage{multirow}
-\usepackage{wrapfig}
-\usepackage{float}
-\usepackage{colortbl}
-\usepackage{pdflscape}
-\usepackage{tabu}
-\usepackage{threeparttable}
-\usepackage{threeparttablex}
-\usepackage[normalem]{ulem}
-\usepackage{makecell}
-
-\usepackage{lineno} \usepackage{placeins} \linenumbers
 
 \begin{document}
 \maketitle
@@ -635,7 +620,14 @@ recommend using either REML or marginal likelihood (ML) rather than the
 default GCV criteria when fitting GAMs, for the reasons outlined in Wood
 (2011). In each case some data processing and manipulation has been done
 to obtain the graphics and results below. See supplemental code for
-details on data processing steps.
+details on data processing steps. To illustrate plots, we will be using
+the \texttt{draw} function from the \textbf{gratia} package; this
+package was developed by one of the authors (Simpson, 2018) as a set of
+tools to extend plotting and analysis of \textbf{mgcv} models. While
+\textbf{mgcv} does have default plotting capabilities (through
+\texttt{plot(\textless{}model\_name\textgreater{})}), \textbf{gratia}
+expands these by creating \textbf{ggplot2} objects (Wickham, 2016) that
+can be more easily extended and modified.
 
 \subsubsection{\texorpdfstring{A single common (global) smoother for all
 observations (Model
@@ -689,7 +681,7 @@ of levels in the grouping variable (here, 12). We specified
 \begin{figure}
 \centering
 \includegraphics{../figures/co2_modG-1.pdf}
-\caption{\label{fig:co2_modG}\textbf{mgcv} plotting output for model
+\caption{\label{fig:co2_modG}\textbf{gratia} plotting output for model
 \emph{G} applied to the CO2 dataset. Left shows the smoother of
 \(\log_e\) concentration and right plot shows a quantile-quantile plot
 of the random effects against Gaussian quantiles, used to check the
@@ -698,11 +690,11 @@ vertical axis of the left figure and the title of the right give the
 effective degrees of freedom of the smoothers.}
 \end{figure}
 
-Figure \ref{fig:co2_modG} illustrates \textbf{mgcv}'s default plotting
-out for \texttt{CO2\_modG}: the left panel shows the estimated smoother
-for concentration, and the right shows a quantile-quantile plot of the
-estimated random effects vs Gaussian quantiles, which can be used to
-check our model.
+Figure \ref{fig:co2_modG} illustrates the output of \textbf{gratia}'s
+\texttt{draw} function for \texttt{CO2\_modG}: the left panel shows the
+estimated smoother for concentration, and the right shows a
+quantile-quantile plot of the estimated random effects vs Gaussian
+quantiles, which can be used to check our model.
 
 Looking at the effects by term is useful, but we are often interested in
 fitted values or predictions from our models. Using the built in
@@ -762,14 +754,14 @@ log-abundance of all bird species at each latitude for each week, with
 yellow colours indicating more individuals and red colours fewer.}
 \end{figure}
 
-Figure \ref{fig:bird_modG} shows the default plot (created by running
-\texttt{plot(bird\_modG,\ pages=1,\ scheme=2,\ rug=FALSE)}) for the
-week-by-latitude smoother. It shows birds starting at low latitudes in
-the winter then migrating to high latitudes from the 10th to 20th week,
-staying there for 15-20 weeks, then migrating back. However, the plot
-also indicates a large amount of variability in the timing of migration.
-The source of this variability is apparent when we look at the timing of
-migration of each species (cf.~figure \ref{fig:vis_data}b).
+Fig, \ref{fig:bird_modG} shows the default \texttt{draw(bird\_modG)}
+plot for the week-by-latitude smoother. It shows birds starting at low
+latitudes in the winter then migrating to high latitudes from the 10th
+to 20th week, staying there for 15-20 weeks, then migrating back.
+However, the plot also indicates a large amount of variability in the
+timing of migration. The source of this variability is apparent when we
+look at the timing of migration of each species (cf.~figure
+\ref{fig:vis_data}b).
 
 All six species in figure \ref{fig:vis_data}b show relatively precise
 migration patterns, but they differ in the timing of when they leave
@@ -1295,20 +1287,26 @@ difficult to visually assess if the observed data shows more
 heteroskedasticity than expected for a specified distribution) we have
 plotted QQ plots and fitted-versus residual plots for model \emph{I};
 the results for model \emph{S} are virtually indistinguishable to the
-naked eye. These plots (Figure \ref{fig:zoo_comm_diag_plot}) indicate
-that the Gamma distribution seems to fit the observed data well except
-at low values, where the deviance residuals are larger than predicted by
-the theoretical quantiles (Figure \ref{fig:zoo_comm_diag_plot} left).
-There also does not seem to be a pattern in the residual versus fitted
-values (Figure \ref{fig:zoo_comm_diag_plot} right), except for a line of
-residuals at the lowest values, which correspond to all of those
-observations where a given taxon was absent from the sample. The
-\texttt{k.check} test shows that the default maximum degrees of freedom
-for the smoothers used in model \emph{I} are sufficient for all species,
-as the effective degrees of freedom (edf) for all estimated smoothers
-are well below their maximum possible value
-(\texttt{k\textquotesingle{}}), and the p-value for the observed k-index
-(which measures pattern in the residuals) is not significant:
+naked eye. We have also used alternate qq-plotting code from the
+\textbf{gratia} package (Simpson, 2018), using the \texttt{qq\_plot}
+function, as this function creates a \textbf{ggplot2} object that are
+easier to customize than the \textbf{base} plots from
+\texttt{gam.check}. The code for generating these plots is in the
+supplemental material. These plots (Figure \ref{fig:zoo_comm_diag_plot})
+indicate that the Gamma distribution seems to fit the observed data well
+except at low values, where the deviance residuals are larger than
+predicted by the theoretical quantiles (Figure
+\ref{fig:zoo_comm_diag_plot} left). There also does not seem to be a
+pattern in the residual versus fitted values (Figure
+\ref{fig:zoo_comm_diag_plot} right), except for a line of residuals at
+the lowest values, which correspond to all of those observations where a
+given taxon was absent from the sample. The \texttt{k.check} test shows
+that the default maximum degrees of freedom for the smoothers used in
+model \emph{I} are sufficient for all species, as the effective degrees
+of freedom (edf) for all estimated smoothers are well below their
+maximum possible value (\texttt{k\textquotesingle{}}), and the p-value
+for the observed k-index (which measures pattern in the residuals) is
+not significant:
 
 \begin{table}[t]
 
@@ -1353,9 +1351,11 @@ autocorrelation.
 \centering
 \includegraphics{../figures/zoo_comm_diag-1.pdf}
 \caption{\label{fig:zoo_comm_diag_plot} Diagnostic plots for model
-\emph{I} fitted to zooplankton community data in Lake Mendota. Top row:
-QQ plots plus the 1-1 line. Bottom row: deviance residuals versus fitted
-values (on the link scale).}
+\emph{I} fitted to zooplankton community data in Lake Mendota. a)
+QQ-plot of residuals (black). Red line indicates the 1-1 line and grey
+bands correspond to the expected 95\% CI for the QQ plot, assuming the
+distribution is correct. b) Deviance residuals versus fitted values (on
+the link scale).}
 \end{figure}
 
 Differences between models \emph{S} (shared smoothness between taxa) and
@@ -1467,21 +1467,44 @@ smoothers.
 \end{Highlighting}
 \end{Shaded}
 
-We will exclude the \texttt{gam.check} diagnostic plots and results, as
-they do not indicate any issues with model fit. The AIC values indicate
-that both model \emph{GS} (1093.71) and \emph{GI} (1085.7) are better
-fits than model \emph{G} (1097.62), but models \emph{GI} fits somewhat
-better than model \emph{GS}.\footnote{When comparing models via AIC, we
-  use the standard rule of thumb from Burnham \& Anderson (1998), where
-  models that differ by 2 units or less from the lowest AIC model have
-  substantial support, and those differing by more than 4 units having
-  less support.} There does not seem to be a large amount of inter-lake
-variability (the effective degrees of freedom per lake are low in models
-\emph{GS} \& \emph{GI}). Plots for all three models (Figure
-\ref{fig:daph_smooth}) show that Mendota, Monona, and Kegonsa lakes are
-very close to the average and to one another for both models, but
-Waubesa shows evidence of a more pronounced spring bloom and lower
-winter abundances.
+Diagnostic plots from \texttt{gam.check} indicate that there are no
+substantial patterns comparing residuals to fitted values (not shown),
+and QQ-plots are similiar to the those from the zooplankton community
+models; the residuals for all three models closely correspond to the
+expected (Gamma) distribution, except at small values, where the
+observed residuals are generally larger than expected (Fig.
+\ref{fig:zoo_daph_diag_plot}). As with the community data, this is
+likely an artifact of the assumption we made of assigning zero
+observations a value of 1000 (the lowest possible value), imposing an
+artifical lower bound on the observed counts. There was also some
+evidence that the largest observed values were smaller than expected
+given the theoretical distribution , but these fell within the 95\% CI
+for expected deviations from the 1-1 line (Fig.
+\ref{fig:zoo_daph_diag_plot}).
+
+\begin{figure}
+\centering
+\includegraphics{../figures/zoo_daph_diag-1.pdf}
+\caption{\label{fig:zoo_daph_diag_plot} QQ-plots for model \emph{G} (a)
+, \emph{GS} (b), and \emph{GI} (c) fitted to Daphnia data across the
+four lakes. Red line indicates the 1-1 line, black points are observed
+model residuals, and grey bands correspond to the expected 95\% CI for
+the QQ plot, assuming the distribution is correct.}
+\end{figure}
+
+The AIC values indicate that both model \emph{GS} (1093.71) and
+\emph{GI} (1085.7) are better fits than model \emph{G} (1097.62), but
+models \emph{GI} fits somewhat better than model \emph{GS}.\footnote{When
+  comparing models via AIC, we use the standard rule of thumb from
+  Burnham \& Anderson (1998), where models that differ by 2 units or
+  less from the lowest AIC model have substantial support, and those
+  differing by more than 4 units having less support.} There does not
+seem to be a large amount of inter-lake variability (the effective
+degrees of freedom per lake are low in models \emph{GS} \& \emph{GI}).
+Plots for all three models (Figure \ref{fig:daph_smooth}) show that
+Mendota, Monona, and Kegonsa lakes are very close to the average and to
+one another for both models, but Waubesa shows evidence of a more
+pronounced spring bloom and lower winter abundances.
 
 \begin{figure}
 \centering
@@ -2249,12 +2272,20 @@ Scheipl F., Staicu A-M., Greven S. 2014. Functional additive mixed
 models. \emph{Journal of Computational and Graphical Statistics}
 24:477--501.
 
+\hypertarget{ref-simpson_gratia_2018}{}
+Simpson GL. 2018. \emph{Gratia: Graceful ggplot-based graphics and other
+useful functions for gams fitted using mgcv}.
+
 \hypertarget{ref-verbyla_analysis_2002}{}
 Verbyla AP., Cullis BR., Kenward MG., Welham SJ. 1999. The analysis of
 designed experiments and longitudinal data by using smoothing splines.
 \emph{Journal of the Royal Statistical Society: Series C (Applied
 Statistics)} 48:269--311. DOI:
 \href{https://doi.org/10.1111/1467-9876.00154}{10.1111/1467-9876.00154}.
+
+\hypertarget{ref-wickham_ggplot2_2016}{}
+Wickham H. 2016. \emph{Ggplot2: Elegant graphics for data analysis}.
+Springer-Verlag New York.
 
 \hypertarget{ref-wieling_investigating_2016}{}
 Wieling M., Tomaschek F., Arnold D., Tiede M., Bröker F., Thiele S.,

@@ -215,7 +215,7 @@ plot_grid(CO2_vis_plot, bird_vis_plot, nrow=1, labels=c("a","b"),
 CO2_modG <- gam(log(uptake) ~ s(log(conc), k=5, bs="tp") +
                   s(Plant_uo, k=12, bs="re"),
                 data=CO2, method="REML", family="gaussian")
-
+#plot the default gratia plot for the CO2 model
 draw(CO2_modG)
 
 # setup prediction data
@@ -245,9 +245,7 @@ ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
 bird_modG <- gam(count ~ te(week, latitude, bs=c("cc", "tp"), k=c(10, 10)),
                  data=bird_move, method="REML", family="poisson",
                  knots = list(week = c(0, 52)))
-#mgcv gam plot for the two-dimensional tensor product smoother for bird_modG.
-#scheme=2 displays the color scheme (rather than mgcv's default, which only
-#shows contour lines)
+#gratia draw plot for the two-dimensional tensor product smoother for bird_modG.
 draw(bird_modG)
 #add the predicted values from the model to bird_move
 bird_move <- transform(bird_move, modG = predict(bird_modG, type="response"))
@@ -260,6 +258,7 @@ ggplot(bird_move, aes(x=modG, y=count)) +
 CO2_modGS <- gam(log(uptake) ~ s(log(conc), k=5, m=2) + 
                   s(log(conc), Plant_uo, k=5,  bs="fs", m=2),
                 data=CO2, method="REML")
+#gratia draw() plot for CO2_modGS
 draw(CO2_modGS)
 CO2_modGS_pred <- predict(CO2_modGS, se.fit=TRUE)
 CO2 <- transform(CO2, modGS = CO2_modGS_pred$fit, modGS_se = CO2_modGS_pred$se.fit)
@@ -303,11 +302,13 @@ plot_grid(bird_modGS_indiv, bird_modGS_indiv_fit, ncol=1, align="vh", axis = "lr
 ##                   s(log(conc), by=Plant_uo, k=5, m=1, bs="tp") +
 ##                   s(Plant_uo, bs="re", k=12),
 ##                 data=CO2, method="REML")
+#Fitting CO2_modGI 
 CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                   s(log(conc), by= Plant_uo, k=5, m=1, bs="tp") +
                   s(Plant_uo, bs="re", k=12),
                 data=CO2, method="REML")
 
+#plotting CO2_modGI 
 draw(CO2_modGI, select = c(1,14,3,5,10,13), scales = "fixed")
 bird_modGI <- gam(count ~ species +
                    te(week, latitude, bs=c("cc", "tp"),
@@ -405,14 +406,20 @@ zoo_comm_modI <- gam(density_adj ~ s(day, by=taxon,
 ## gam.check(zoo_comm_modI)
 ## #individual components of gam.check: the results for k.check
 ## round(k.check(zoo_comm_modI),2)
-#individual components of gam.check: residual plots
-plt1 <- qq_plot(zoo_comm_modI, method = "simulate")
+#Checking residuals and qqplots for GAM fits
+
+#qqplot, using gratia's qq_plot function, with simulated confidence intervals.
+#We are removing the title and subtitle to simplify the figure
+plt1 <- qq_plot(zoo_comm_modI, method = "simulate") +
+  labs(title =NULL, subtitle =NULL)
 df <- data.frame(log_fitted = log(fitted(zoo_comm_modI)),
                  residuals  = resid(zoo_comm_modI, type = "deviance"))
+
+#fitted versus deviance plot
 plt2 <- ggplot(df, aes(x = log_fitted, y = residuals)) +
     geom_point() +
     labs(x = "Linear predictor", y = "Deviance residual")
-plot_grid(plt1, plt2, ncol = 2, align = "hv", axis = "lrtb")
+plot_grid(plt1, plt2, ncol = 2, align = "hv", axis = "lrtb",labels=c("a","b"))
 #Create synthetic data to use to compare predictions
 zoo_plot_data <- expand.grid(day = 1:365, 
                              taxon = factor(levels(zoo_train$taxon)), 
@@ -525,6 +532,17 @@ zoo_daph_modGI <- gam(density_adj~s(day, bs="cc", k=10) +
                      family=Gamma(link ="log"),
                      method="REML",
                      drop.unused.levels = FALSE)
+#Checking residuals and qqplots for GAM fits
+
+#qqplot, using gratia's qq_plot function, with simulated confidence intervals
+pltG <- qq_plot(zoo_daph_modG, method = "simulate")+
+  labs(subtitle = NULL, title=NULL)
+pltGS <- qq_plot(zoo_daph_modGS, method = "simulate")+
+  labs(subtitle = NULL, title=NULL, y=NULL)
+pltGI <- qq_plot(zoo_daph_modGI, method = "simulate")+
+  labs(subtitle = NULL, title=NULL, y=NULL)
+
+plot_grid(pltG, pltGS,pltGI, ncol = 3, align = "hv", axis = "lrtb",labels=c("a","b","c"))
 #Create synthetic data to use to compare predictions
 daph_plot_data <- expand.grid(day = 1:365, 
                               lake = factor(levels(zoo_train$lake)),
