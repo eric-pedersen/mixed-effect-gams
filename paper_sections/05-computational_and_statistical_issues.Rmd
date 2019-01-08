@@ -43,103 +43,176 @@ calc_2nd_deriv = function(x,y){
 
 #Generate true regression functions that differ in their frequencies. 
 #Higher frequencies correspond to more variable functions. 
-freq_vals = c(1/4,1/2,1,2,4)
-dat = crossing(x = seq(0,2*pi,length=150),freq = freq_vals)%>%
-  mutate(y = sin(freq*x) +rnorm(n(), 0, 0.2),
+freq_vals = c(1/2,1,2,4)
+n_reps = 25
+noise_levels = c(0.5,1,2)
+biasvar_data = crossing(noise = noise_levels,
+                        rep = 1:n_reps,
+                        x = seq(0,2*pi,length=150),
+                        freq = freq_vals
+               )%>%
+  mutate(y = cos(freq*x) +rnorm(n(), 0, noise),
          grp = paste("frequency = ",freq,sep= ""),
          grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")))
 
-#Fit model S (shared smoothness) for the test data
-modG = bam(y~s(x,k=30,grp, bs="fs"), data=dat)
-
-#Fit a model I function (differing smoothness) for the test data
-modGS = bam(y~s(x,k=30,by=grp)+s(grp,bs="re"), data=dat)
+biasvar_fit = biasvar_data %>%
+  group_by(noise,rep)%>%
+  do(
+    #Fit model S (shared smoothness) for the test data
+    modS = bam(y~s(x,k=30,grp, bs="fs"), data=.),
+    #Fit a model I function (differing smoothness) for the test data
+    modI = bam(y~s(x,k=30,by=grp)+s(grp,bs="re"), data=.)
+    )
 
 #Extract fitted values for each model for all the test data
-overfit_predict_data = crossing(x = seq(0,2*pi,length=500), 
+biasvar_predict_data = crossing(x = seq(0,2*pi,length=500), 
                                 freq = freq_vals)%>%
   mutate(grp = paste("frequency = ",freq,sep= ""),
          grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")),
-         y = sin(freq*x))%>%
-  mutate(fit1 = as.numeric(predict(modG,newdata = .,type = "response")),
-         fit2 = as.numeric(predict(modGS,newdata = .,type="response")))
+         y = cos(freq*x))
+
+biasvar_predict_fit = biasvar_fit %>%
+  group_by(noise,rep)%>%
+  do(fitS = as.numeric(predict(.$modS[[1]],
+                               newdata = biasvar_predict_data,
+                               type = "response")),
+     fitI = as.numeric(predict(.$modI[[1]],
+                               newdata = biasvar_predict_data,
+                               type="response")))%>%
+  unnest(fitS, fitI) %>%
+  bind_cols(crossing(noise=noise_levels, rep= 1:n_reps,biasvar_predict_data))
 
 #turn this into long-format data for plotting, and to make it easier to
 #calculate derivatives
-overfit_predict_data_long = overfit_predict_data %>%
-  gather(model, value, y, fit1, fit2)%>%
-  mutate(model = recode(model, y = "true value",fit1 = "model S fit",
-                        fit2 = "model I fit"),
+biasvar_predict_fit_long = biasvar_predict_fit %>%
+  gather(model, value, y, fitS, fitI)%>%
+  mutate(model = recode(model, y = "true value",fitS = "model S fit",
+                        fitI = "model I fit"),
          model = factor(model, levels=  c("true value","model S fit",
                                           "model I fit")))
 
+biasvar_predict_fit_summary = biasvar_predict_fit_long %>%
+  group_by(noise,grp,model, x)%>%
+  summarize(lower = min(value),
+            upper = max(value),
+            value = mean(value)
+            )
 #estimate 2nd derivatives of each curve, then for each curve calculate the sum
 #of squared 2nd derivatives of the true curve and the predictions for both
 #models.
-deriv_est_data = overfit_predict_data%>%
-  group_by(grp)%>%
+deriv_est_data = biasvar_predict_fit %>%
+  group_by(grp, rep,noise)%>%
   arrange(grp, x)%>%
-  mutate(fit1_deriv = calc_2nd_deriv(x,fit1),
-         fit2_deriv = calc_2nd_deriv(x,fit2))%>%
-  summarize(freq = freq[1], fit1_int = sum(fit1_deriv^2*(x-lag(x)),
+  mutate(fitS_deriv = calc_2nd_deriv(x,fitS),
+         fitI_deriv = calc_2nd_deriv(x,fitI))%>%
+  summarize(freq = freq[1], fitS_int = sum(fitS_deriv^2*(x-lag(x)),
                                            na.rm = TRUE),
-            fit2_int = sum(fit2_deriv^2*(x-lag(x)),na.rm = TRUE))%>%
+            fitI_int = sum(fitI_deriv^2*(x-lag(x)),na.rm = TRUE))%>%
   ungroup()%>%
-  mutate(sqr_2nd_deriv = -freq^3*(sin(4*pi*freq)-4*pi*freq)/4)%>%
-  gather(key=model,value = obs_sqr_deriv,fit1_int,fit2_int)%>%
-  mutate(model = factor(ifelse(model=="fit1_int", "model S fit",
+  mutate(sqr_2nd_deriv = freq^3*(sin(4*pi*freq)+4*pi*freq)/4)%>%
+  gather(key=model,value = obs_sqr_deriv,fitS_int,fitI_int)%>%
+  mutate(model = factor(ifelse(model=="fitS_int", "model S fit",
                                "model I fit"),
                         levels = c("model S fit",
                                    "model I fit")))
 
-#The derivative plots
-deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv, 
-                                              y= obs_sqr_deriv,
-                                              color= model))+
-  geom_point()+
-  scale_y_log10("Estimated wiggliness\nof fitted curves")+
-  scale_x_log10("Wiggliness of true curve")+
-  scale_color_brewer(name=NULL,palette= "Set1")+
-  geom_abline(color="black")+
-  theme(legend.position = "top")
-
-fit_colors = c("black",RColorBrewer::brewer.pal(3, "Set1")[1:2])
-
-overfit_vis_plot = ggplot(data=overfit_predict_data_long,
-                          aes(x=x,y= value,color=model))+
-  geom_line()+
-  scale_color_manual(values=fit_colors)+
-  facet_grid(.~grp)+
-  theme(legend.position = "top")
 ```
 
 We developed a simple numerical experiment to determine whether **mgcv**'s fitting
 criteria tend to set estimated smoothness penalties high or low in the presence
 of among-group variability in smoothness when fitting model *GS* or *S* HGAMs. We
-simulated data from five different groups, with all groups having the same
-levels of the covariate $x$, ranging from 0 to $2\pi$.
-For each group, the true function relating $x$ to the response, $y$, was a sine wave, but the frequency varied from 0.25 (equal to half a cycle across the range of $x$) to 4 (corresponding to 4 full cycles across the range).
-We added normally distributed error to all $y$-values, with a standard deviation of 0.2.
-We then fit both model *S* (where all curves were assumed to be equally smooth) and model *I* (with varying smoothness) to the entire data set, using REML criteria to estimate penalties.
-For this example (Fig. \ref{fig:var_pen}a), requiring equal smoothness for all group levels resulted in **mgcv** underestimating the penalty for the lowest frequency (most smooth) terms, but accurately estimating the true smoothness of the highest frequency terms as measured by the squared second derivative of the smooth fit versus that of the true function (Fig. \ref{fig:var_pen}b).
+simulated data from four different groups, with all groups having the same
+levels of the covariate $x$, equally spaced across the range from 0 to $2\pi$.
+For each group, the true function relating $x$ to the response, $y$, was a cosine wave, but the frequency varied from 0.5 (equal to half a cycle across the range of $x$) to 4 (corresponding to 4 full cycles across the range).
+As all four sin waves spanned the whole range from -1 to +1 across the range of x, and as they were all integer or half-integer frequencies, the signal for all groups had the same variance across the range of $x$, approximately equal to 0.5. 
+Therefore, the true function for all groups had the same strength of signal;
+all that varied between groups was how rapidly the signal fluctuated. 
+We added normally distributed error to all $y$-values, with three different noise levels, given by standard deviations of 0.5,1, and 2. These correspond to signal-to-noise ratios (i.e. variance of the cosine curve divided by variance of the noise) of 2, 0.5, and 0.125.
+For each noise level, we created 25 replicate data sets, to illustrate the amount of simulation-to-simulation variation in model fit. 
+We then fit both model *S* (where all curves were assumed to be equally smooth) and model *I* (with varying smoothness) to each replicate for each noise level, using REML criteria to estimate penalties.
+
+A sample of the fits for each group for three of the replicates for each model are shown in Fig. \ref{fig:var_pen}a, with model *S* in red and model *I* in blue. 
+Fig. \ref{fig:var_pen}b illustrates how well each model fared across the range of replicates at accurately estimating the true smoothness of the highest frequency terms as measured by the squared second derivative of the smooth fit versus that of the true function, with the distance to the black one-to-one line indicating the degree to which the estimated function for each group over- or under-estimated the smoothness of the true signal. 
+In general, under low noise conditions (Fig \ref{fig:var_pen}, signal-to-noise ratio of 2), model *S* tendeded to overfit the smoothest, lowest-frequency, groups, while accurately fitting the highest frequency groups. 
+Under moderate signal-to-noise ratios,  model *S* tended to over-penalize high-frequency groups and under-penalize low frequency groups, and in the lowest signal-to-noise ratio tested (0.125), model *S* tended to penalize all groups towards very smooth functions (Fig. \ref{fig:var_pen}b). 
+Curves estimated by model *I*, on the other hand, tended to accurately capture the true wiggliness of the function across the whole range of frequencies and noises, except for the lowest-frequency groups, and the highest frequency groups it the presence of high noise; 
+in both cases, model *I* tended to over-smooth (.Fig. \ref{fig:var_pen}b). 
+
 This implies that assuming equal smoothness will result in underestimating
-the true smoothness of low-variability terms, and thus lead to more variable
-estimates of these terms.
-If this is a potential issue, we recommend fitting both models *S* and *I* and using standard model evaluation criteria (e.g., AIC) to determine if there is evidence for among-group variability in smoothness.
-For instance, the AIC for model *S* fit to this data is `r round(AIC(modG))`, whereas it is `r round(AIC(modGS))` for model *I*, implying a improvement in fit by allowing smoothness to vary.
+the true smoothness of low-variability terms in cases of high signal-to-noise, and overestimating the true smoothness of high-frequency terms in low signal-to-noise data sets. 
+If this is a potential issue, we recommend fitting both models *S* and *I* and using standard model evaluation criteria (e.g., AIC) or out-of-sample predictive accuracy (as in Section IV) to determine if there is evidence for among-group variability in smoothness.
 However, it may be the case that there are too few data points per group to estimate separate smoothness levels, in which case model *GS* or model *S* may still be the better option even in the face of varying smoothness.
 
 The ideal case would be to assume that among-group penalties follow their own distribution (estimated from the data), to allow variation in smoothness while still getting the benefit of pooling information on smoothness between groups.
 This is currently not implemented in  **mgcv**.
-It is possible to set up this type of varying penalty model in flexible Bayesian modelling software such as *Stan* (see below for a discussion of how to fit HGAMs using these tools), but how to fit this type of model has not been well studied. 
+It is possible to set up this type of varying penalty model in flexible Bayesian modelling software such as *Stan* (see below for a discussion of how to fit HGAMs using these tools), where inter-group variation in smoothing penalties could be modelled with a hierarchical prior. However, to the best of our knowledge, how to fit this type of model has not been well studied in either the Bayesian or frequentist literature. 
 
 [^mean_note]: While this example may seem contrived, this is exactly what happens
 when we assume a given regression coefficient is equal to zero (and thus exclude it from a model).
 
-```{r single_smooth_bias_plot, echo=FALSE, fig.width=7, fig.height=6, message=FALSE, warning=FALSE, cache=TRUE, fig.cap="\\label{fig:var_pen} a) Illustration of bias that can arise from assuming equal smoothness for all group levels (model *S*, red line) versus allowing for intergroup variation in smoothness (model *I*, red line) when the true function (black line) shows substantial variation in smoothness between groups. b) Estimated wiggliness (as measured by the integral of the squared 2nd derivative) of the true function for each group level versus that for the functions estimated by model *S* (red) and model *I* (blue), indicating substantial undersmoothing for low-variability curves by model *S*.", dependson= -1}
+```{r single_smooth_bias_plot, echo=FALSE, fig.width=7, fig.height=7, message=FALSE, warning=FALSE, cache=TRUE, fig.cap="\\label{fig:var_pen} a) Illustration of bias that can arise from assuming equal smoothness for all group levels (model *S*, red lines) versus allowing for intergroup variation in smoothness (model *I*, blue lines) across a range of signal-to-noise ratios, holding the group-level signals constant. The true function for each group level is shown in black. b) Distribution of wiggliness (as measured by the integral of the squared 2nd derivative)  of the estimated function for each replicate for each group level for model *S* (red) and model *I* (blue), versus the true wiggliness of the function for that grouping level, with the black line indicating the one-to-one line. Points below (above) the black line indicate that a given model estimated the curve as less (more) wiggly than the true curve used to generate the data. Estimated wiggliness less than $10^{-3}$ was truncated for visual clarity, as **mgcv** estimated effectively straight lines for several groups, corresponding to a wiggliness of 0, which would not appear on a log-scaled plot.", dependson= -1}
+
+# Uses the Tex function from the latex2exp package to create a math label for 
+# the facets. Based off code from
+# https://sahirbhatnagar.com/blog/2016/facet_wrap_labels/
+noise_labeller <- function(string) {
+  signal_to_noise = as.numeric(string)
+  signal_to_noise = 0.5/signal_to_noise^2
+  signal_to_noise = as.character(signal_to_noise)
+  TeX(paste("$\\frac{signal}{noise}\\;= $", signal_to_noise)) 
+}
+
+#The derivative plots
+
+deriv_min = -3
+deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv,                                                                    y= pmax(obs_sqr_deriv,10^deriv_min),
+                                              fill= model,
+                                              group=paste(sqr_2nd_deriv,model)))+
+  facet_grid(.~noise, labeller = as_labeller(noise_labeller,
+                                               default = label_parsed))+
+  geom_dotplot(binaxis = "y", stackdir = "center",binwidth = 0.125,color=NA)+
+  scale_y_log10("Fitted wiggliness",
+                limits = c(10^deriv_min,5e+3),expand=c(0,0.1),
+                breaks = c(10^deriv_min,  1e+0, 1e+3), 
+                labels = list(bquote(""<=10^.(deriv_min)),
+                              bquote(10^0), 
+                              bquote(10^3))
+                )+
+  scale_x_log10("True wiggliness", 
+                breaks= c(1e-3, 1e+0, 1e+3), 
+                labels = list(bquote(10^-3),bquote(10^0), bquote(10^3))
+                )+
+  scale_fill_brewer(name=NULL,palette= "Set1")+
+  geom_abline(color="black")+
+  theme(legend.position = c(0.1, 0.25),
+        strip.text.x = element_blank(),
+        plot.margin = unit(c(3, 5.5, 5,5, 5.5), "pt"))
+
+fit_colors = c("black",RColorBrewer::brewer.pal(3, "Set1")[1:2])
+
+overfit_vis_plot = ggplot(data=biasvar_predict_fit_summary,
+                          aes(x=x,y= value,color=model))+
+  facet_grid(grp~noise, labeller = as_labeller(noise_labeller,
+                                               default = label_parsed))+
+  geom_line(data=filter(biasvar_predict_fit_long,
+                        rep==1,
+                        model=="true value"),
+            color= "black",
+            size=0.9)+
+  geom_line(data=filter(biasvar_predict_fit_long,rep%in%1:3),
+            aes(group=paste(rep,model)))+
+  scale_color_manual(name = "",values=fit_colors)+
+  scale_y_continuous("Estimated curve", breaks = c(-2,0,2))+
+  scale_x_continuous(name = "x")+
+  coord_cartesian(ylim=c(-2,2))+
+  theme(legend.position = "top",
+        strip.text.y = element_blank(),
+        plot.margin = unit(c(5.5, 5.5, 2.5, 5.5), "pt"))
+
 #Plot the overfit graphs together.
 cowplot::plot_grid(overfit_vis_plot, deriv_plot, ncol=1, labels="auto",
-                   align="hv", axis="lrtb")
+                   align="hv", axis="lr",
+                   rel_heights = c(1,0.5))
 ```
 
 It may seem there is also a bias-variance trade-off between choosing to use a single global smoother (model *G*) or a global smoother plus group-level terms (models *GS* and *GI*).
