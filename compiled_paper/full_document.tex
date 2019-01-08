@@ -1199,7 +1199,16 @@ minimum possible sample size)\footnote{A more appropriate model for this
   not currently have a left-censored family. The \textbf{brms} package,
   for Bayesian model fitting, can fit a left-censored Gamma
   distribution, so it would be possible to fit this model using that
-  software. We discuss using HGAMs in \textbf{brms} in section V.}.
+  software. We discuss using HGAMs in \textbf{brms} in section V.}. To
+evaluate how well each model fit new data (not used to fit the model),
+we calculated the total deviance of the out-of-sample data that we had
+previously held out.\\
+The deviance is equal to two times the sum of the difference between the
+log-likelihood of the out-of-sample data (as predicted by each model)
+and a saturated model, that has one predictor for each data point, all
+multipled by the scale parameter for the family of interest, and can be
+interpreted similiarly to the residual sum of squares for a simple
+linear regression (Wood, 2017a, p. 109).
 
 First, we demonstrate how to model community-level variability in
 seasonality, by regressing scaled density on day of year, with
@@ -1264,12 +1273,14 @@ to determine if any of the fitted models adequately describe patterns in
 the data (i.e.~goodness of fit testing). The \textbf{mgcv} package
 provides tools to facilitate this process, using the \texttt{gam.check}
 function. This function creates a set of standard diagnostic plots: a QQ
-plot, a plot of response versus fitted values, a histogram of residuals,
-and a plot of residuals versus fitted values. It also conducts a test
-for each smooth term to determine if the number of degrees of freedom
-(\texttt{k}) for each smooth is adequate (see \texttt{?mgcv::gam.check}
-for details on how that test works). The code for checking model
-\emph{S} and \emph{I} for the community zooplankton model is given as:
+plot of the deviance residuals (see Wood (2017a)) compared to their
+theoretical expectation for the chosen family, a plot of response versus
+fitted values, a histogram of residuals, and a plot of residuals versus
+fitted values. It also conducts a test for each smooth term to determine
+if the number of degrees of freedom (\texttt{k}) for each smooth is
+adequate (see \texttt{?mgcv::gam.check} for details on how that test
+works). The code for checking model \emph{S} and \emph{I} for the
+community zooplankton model is given as:
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -1348,47 +1359,53 @@ values (on the link scale).}
 \end{figure}
 
 Differences between models \emph{S} (shared smoothness between taxa) and
-5 (different smoothness for each taxa) seem to be driven by the low
-seasonality of \emph{L. siciloides} relative to the other species, and
-how this is captured by the more flexible model \emph{I} (Figure
+\emph{I} (different smoothness for each taxa) seem to be driven by the
+low seasonality of \emph{L. siciloides} relative to the other species,
+and how this is captured by the more flexible model \emph{I} (Figure
 \ref{fig:zoo_comp}). Still, both models show very similar fits to the
-training data. Model \emph{S} is slightly better at predicting out of
-sample fits for all taxa except \emph{M. edax} (Table
-\ref{tab:zoo_comm_outofsample_kable}). Even though \emph{L. siciloides}
-showed weak seasonal dynamics, Model \emph{S} and \emph{I} still did a
-better job of predicting the density of this species out of sample
-compared to a simple model with only a species-specific intercept (Table
-\ref{tab:zoo_comm_outofsample_kable}).
+training data. This implies that the added complexity of different
+penalties for each species (model \emph{I}) is unnessecary here, which
+is consistent with the fact that model \emph{S} has a lower AIC (4667)
+than model \emph{I} (4677), and that model \emph{S} is somewhat better
+at predicting out-of-sample fits for all taxa than model \emph{I} (Table
+\ref{tab:zoo_comm_outofsample_kable}). Both models show significant
+predictive improvement compared to the intercept-only model for all
+species except \emph{K. cochlearis} (Table
+\ref{tab:zoo_comm_outofsample_kable}). This may be driven by changing
+timing of the spring bloom for this species between training and
+out-of-sample years (Figure \ref{fig:zoo_comp}).
 
 \begin{figure}
 \centering
 \includegraphics{../figures/zoo_comm_plot-1.pdf}
 \caption{\label{fig:zoo_comp}Species-specific seasonal dynamics for the
 eight zooplankon species tracked in Lake Mendota. Black points indicate
-individual plankton observations. Lines indicate predicted average
-values for model \emph{S} (black) and model \emph{I} (red). Ribbons
-indicate \(\pm\) 2 standard errors around the mean.}
+individual plankton observations in the training data, and grey points
+are observations in held-out years used for model validation. Lines
+indicate predicted average values for model \emph{S} (black) and model
+\emph{I} (red). Ribbons indicate \(\pm\) 2 standard errors around the
+mean.}
 \end{figure}
 
 \begin{table}[t]
 
-\caption{\label{tab:zoo_comm_outofsample_kable}Out-of-sample predictive ability for model *S* and 5 applied to the zooplankton community dataset. RMSE values represent the square root of the average squared difference between model predictions and observations for test data.  Intercept only results are for a null model with only year and year-by taxon random effect intercepts included.}
+\caption{\label{tab:zoo_comm_outofsample_kable}Out-of-sample predictive ability for model \textit{S} and \textit{I} applied to the zooplankton community dataset. Deviance values represent the total deviance of model predictions from observations for out-of-sample data. 'Intercept only' results are for a null model with only taxon-level random effect intercepts included.}
 \centering
 \begin{tabular}{llll}
 \toprule
-\multicolumn{1}{c}{ } & \multicolumn{3}{c}{\Large{${\text{Total RMSE of held out data}}\atop{(\text{10 000 individuals}\cdot m^{-2})}$}} \\
+\multicolumn{1}{c}{ } & \multicolumn{3}{c}{Total deviance of out-of-sample data} \\
 \cmidrule(l{2pt}r{2pt}){2-4}
 taxon & Intercept only & Model S & Model I\\
 \midrule
-\em{C. sphaericus} & 20.9 & 20 & 20.1\\
-Calanoid copepods & 12.1 & 10.9 & 10.9\\
-Cyclopoid copepods & 109 & 104 & 105\\
-\em{D. mendotae} & 3.03 & 2.79 & 2.82\\
-\em{D. thomasi} & 29.5 & 30.8 & 31.8\\
+\em{C. sphaericus} & 715 & 482 & 495\\
+Calanoid copepods & 346 & 220 & 223\\
+Cyclopoid copepods & 569 & 381 & 386\\
+\em{D. mendotae} & 353 & 264 & 268\\
+\em{D. thomasi} & 486 & 333 & 337\\
 \addlinespace
-\em{K. cochlearis} & 94.8 & 95.7 & 95.6\\
-\em{L. siciloides} & 6.12 & 5.5 & 5.86\\
-\em{M. edax} & 2.27 & 1.95 & 1.94\\
+\em{K. cochlearis} & 486 & 2260 & 2340\\
+\em{L. siciloides} & 132 & 116 & 126\\
+\em{M. edax} & 270 & 138 & 139\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1470,35 +1487,45 @@ winter abundances.
 \centering
 \includegraphics{../figures/zoo_daph_plot-1.pdf}
 \caption{\label{fig:daph_smooth}Raw data (points) and fitted models
-(lines) for \textit{D. mendota} data. Green: model \emph{G} (no
-inter-lake variation in dynamics); orange: model \emph{GS} (interlake
-variation with similar smoothness); purple: model \emph{GI} (varying
-smoothness among lakes). Shaded bands are drawn at \(\pm\) 2 standard
-errors around each model.}
+(lines) for \textit{D. mendota} data. Black points indicate individual
+plankton observations in the training data, and grey points are
+observations in held-out years used for model validation. Green line:
+model \emph{G} (no inter-lake variation in dynamics); orange line: model
+\emph{GS} (interlake variation with similar smoothness); purple line:
+model \emph{GI} (varying smoothness among lakes). Shaded bands are drawn
+at \(\pm\) 2 standard errors around each model.}
 \end{figure}
 
-Model \emph{GI} is able to predict as well as model \emph{G} or
-\emph{GS} (Table \ref{tab:zoo_daph_outofsample_kable}), indicating that
-allowing for inter-lake variation in seasonal dynamics improved model
-prediction. None of the models did well in terms of predicting Lake
-Kegonsa or Lake Waubesa dynamics out of sample compared to a simple
-model with only a lake-specific intercept and no intra-annual
-variability (Table \ref{tab:zoo_daph_outofsample_kable}).
+Model \emph{GI} is able to predict as well or better than model \emph{G}
+or \emph{GS} for all lakes (Table \ref{tab:zoo_daph_outofsample_kable}),
+indicating that allowing for inter-lake variation in seasonal dynamics
+improved model prediction. All three models predicted dynamics in Lake
+Mendota and Lake Menona significantly better than the intercept-only
+model (Table \ref{tab:zoo_daph_outofsample_kable}). None of the models
+did well in terms of predicting Lake Waubesa dynamics out-of-sample
+compared to a simple model with only a lake-specific intercept and no
+intra-annual variability, but this was due to the influence of a single
+very large outlier in the out-of-sample data (Figure
+\ref{fig:daph_smooth} bottom right). However, baring a more detailed
+investigation into the cause of this large value, we cannot arbitrarily
+exclude this outlier from the goodness-of-fit analysis; it may be due
+either to measurement error or a true high late-season \emph{Daphnia}
+density that our model was not able to predict.
 
 \begin{table}[t]
 
-\caption{\label{tab:zoo_daph_outofsample_kable}Out-of-sample predictive ability for model *G*,*GS*, and *GI* applied to the \textit{D. mendotae} dataset. RMSE values represent the average squared difference between model predictions and observations for held-out data.}
+\caption{\label{tab:zoo_daph_outofsample_kable}Out-of-sample predictive ability for model \textit{G}, \textit{GS}, and \textit{GI} applied to the \textit{D. mendotae} dataset. Deviance values represent the total deviance of model predictions from observations for out-of-sample data. 'Intercept only' results are for a null model with only lake-level random effect intercepts included.}
 \centering
 \begin{tabular}{lllll}
 \toprule
-\multicolumn{1}{c}{ } & \multicolumn{4}{c}{\Large{${\text{Total RMSE of held out data}}\atop{(\text{10 000 individuals}\cdot m^{-2})}$}} \\
+\multicolumn{1}{c}{ } & \multicolumn{4}{c}{Total deviance of out-of-sample data} \\
 \cmidrule(l{2pt}r{2pt}){2-5}
 Lake & Intercept only & Model G & Model GS & Model GI\\
 \midrule
-Kegonsa & 2.1 & 2.1 & 2.1 & 2\\
-Mendota & 3 & 2.7 & 2.7 & 2.7\\
-Menona & 3 & 3 & 2.9 & 2.9\\
-Waubesa & 7 & 7.2 & 7.2 & 7.1\\
+Kegonsa & 96 & 92 & 89 & 86\\
+Mendota & 352 & 258 & 257 & 257\\
+Menona & 348 & 300 & 294 & 290\\
+Waubesa & 113 & 176 & 164 & 157\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1566,33 +1593,63 @@ We developed a simple numerical experiment to determine whether
 \textbf{mgcv}'s fitting criteria tend to set estimated smoothness
 penalties high or low in the presence of among-group variability in
 smoothness when fitting model \emph{GS} or \emph{S} HGAMs. We simulated
-data from five different groups, with all groups having the same levels
-of the covariate \(x\), ranging from 0 to \(2\pi\). For each group, the
-true function relating \(x\) to the response, \(y\), was a sine wave,
-but the frequency varied from 0.25 (equal to half a cycle across the
-range of \(x\)) to 4 (corresponding to 4 full cycles across the range).
-We added normally distributed error to all \(y\)-values, with a standard
-deviation of 0.2. We then fit both model \emph{S} (where all curves were
-assumed to be equally smooth) and model \emph{I} (with varying
-smoothness) to the entire data set, using REML criteria to estimate
-penalties. For this example (Fig. \ref{fig:var_pen}a), requiring equal
-smoothness for all group levels resulted in \textbf{mgcv}
-underestimating the penalty for the lowest frequency (most smooth)
-terms, but accurately estimating the true smoothness of the highest
-frequency terms as measured by the squared second derivative of the
-smooth fit versus that of the true function (Fig. \ref{fig:var_pen}b).
+data from four different groups, with all groups having the same levels
+of the covariate \(x\), equally spaced across the range from 0 to
+\(2\pi\). For each group, the true function relating \(x\) to the
+response, \(y\), was a cosine wave, but the frequency varied from 0.5
+(equal to half a cycle across the range of \(x\)) to 4 (corresponding to
+4 full cycles across the range). As all four sin waves spanned the whole
+range from -1 to +1 across the range of x, and as they were all integer
+or half-integer frequencies, the signal for all groups had the same
+variance across the range of \(x\), approximately equal to 0.5.
+Therefore, the true function for all groups had the same strength of
+signal; all that varied between groups was how rapidly the signal
+fluctuated. We added normally distributed error to all \(y\)-values,
+with three different noise levels, given by standard deviations of
+0.5,1, and 2. These correspond to signal-to-noise ratios (i.e.~variance
+of the cosine curve divided by variance of the noise) of 2, 0.5, and
+0.125. For each noise level, we created 25 replicate data sets, to
+illustrate the amount of simulation-to-simulation variation in model
+fit. We then fit both model \emph{S} (where all curves were assumed to
+be equally smooth) and model \emph{I} (with varying smoothness) to each
+replicate for each noise level, using REML criteria to estimate
+penalties.
+
+A sample of the fits for each group for three of the replicates for each
+model are shown in Fig. \ref{fig:var_pen}a, with model \emph{S} in red
+and model \emph{I} in blue. Fig. \ref{fig:var_pen}b illustrates how well
+each model fared across the range of replicates at accurately estimating
+the true smoothness of the highest frequency terms as measured by the
+squared second derivative of the smooth fit versus that of the true
+function, with the distance to the black one-to-one line indicating the
+degree to which the estimated function for each group over- or
+under-estimated the smoothness of the true signal. In general, under low
+noise conditions (Fig \ref{fig:var_pen}, signal-to-noise ratio of 2),
+model \emph{S} tendeded to overfit the smoothest, lowest-frequency,
+groups, while accurately fitting the highest frequency groups. Under
+moderate signal-to-noise ratios, model \emph{S} tended to over-penalize
+high-frequency groups and under-penalize low frequency groups, and in
+the lowest signal-to-noise ratio tested (0.125), model \emph{S} tended
+to penalize all groups towards very smooth functions (Fig.
+\ref{fig:var_pen}b). Curves estimated by model \emph{I}, on the other
+hand, tended to accurately capture the true wiggliness of the function
+across the whole range of frequencies and noises, except for the
+lowest-frequency groups, and the highest frequency groups it the
+presence of high noise; in both cases, model \emph{I} tended to
+over-smooth (.Fig. \ref{fig:var_pen}b).
+
 This implies that assuming equal smoothness will result in
-underestimating the true smoothness of low-variability terms, and thus
-lead to more variable estimates of these terms. If this is a potential
-issue, we recommend fitting both models \emph{S} and \emph{I} and using
-standard model evaluation criteria (e.g., AIC) to determine if there is
-evidence for among-group variability in smoothness. For instance, the
-AIC for model \emph{S} fit to this data is -178, whereas it is -211 for
-model \emph{I}, implying a improvement in fit by allowing smoothness to
-vary. However, it may be the case that there are too few data points per
-group to estimate separate smoothness levels, in which case model
-\emph{GS} or model \emph{S} may still be the better option even in the
-face of varying smoothness.
+underestimating the true smoothness of low-variability terms in cases of
+high signal-to-noise, and overestimating the true smoothness of
+high-frequency terms in low signal-to-noise data sets. If this is a
+potential issue, we recommend fitting both models \emph{S} and \emph{I}
+and using standard model evaluation criteria (e.g., AIC) or
+out-of-sample predictive accuracy (as in Section IV) to determine if
+there is evidence for among-group variability in smoothness. However, it
+may be the case that there are too few data points per group to estimate
+separate smoothness levels, in which case model \emph{GS} or model
+\emph{S} may still be the better option even in the face of varying
+smoothness.
 
 The ideal case would be to assume that among-group penalties follow
 their own distribution (estimated from the data), to allow variation in
@@ -1600,22 +1657,31 @@ smoothness while still getting the benefit of pooling information on
 smoothness between groups. This is currently not implemented in
 \textbf{mgcv}. It is possible to set up this type of varying penalty
 model in flexible Bayesian modelling software such as \emph{Stan} (see
-below for a discussion of how to fit HGAMs using these tools), but how
-to fit this type of model has not been well studied.
+below for a discussion of how to fit HGAMs using these tools), where
+inter-group variation in smoothing penalties could be modelled with a
+hierarchical prior. However, to the best of our knowledge, how to fit
+this type of model has not been well studied in either the Bayesian or
+frequentist literature.
 
 \begin{figure}
 \centering
 \includegraphics{../figures/single_smooth_bias_plot-1.pdf}
 \caption{\label{fig:var_pen} a) Illustration of bias that can arise from
 assuming equal smoothness for all group levels (model \emph{S}, red
-line) versus allowing for intergroup variation in smoothness (model
-\emph{I}, red line) when the true function (black line) shows
-substantial variation in smoothness between groups. b) Estimated
-wiggliness (as measured by the integral of the squared 2nd derivative)
-of the true function for each group level versus that for the functions
-estimated by model \emph{S} (red) and model \emph{I} (blue), indicating
-substantial undersmoothing for low-variability curves by model
-\emph{S}.}
+lines) versus allowing for intergroup variation in smoothness (model
+\emph{I}, blue lines) across a range of signal-to-noise ratios, holding
+the group-level signals constant. The true function for each group level
+is shown in black. b) Distribution of wiggliness (as measured by the
+integral of the squared 2nd derivative) of the estimated function for
+each replicate for each group level for model \emph{S} (red) and model
+\emph{I} (blue), versus the true wiggliness of the function for that
+grouping level, with the black line indicating the one-to-one line.
+Points below (above) the black line indicate that a given model
+estimated the curve as less (more) wiggly than the true curve used to
+generate the data. Estimated wiggliness less than \(10^{-3}\) was
+truncated for visual clarity, as \textbf{mgcv} estimated effectively
+straight lines for several groups, corresponding to a wiggliness of 0,
+which would not appear on a log-scaled plot.}
 \end{figure}
 
 It may seem there is also a bias-variance trade-off between choosing to
@@ -1719,17 +1785,17 @@ model & relative time & coefficients & penalties\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{A. CO2 data}}\\
 \hspace{1em}G & 1 & 17 & 2\\
-\hspace{1em}GS & 12 & 65 & 14\\
-\hspace{1em}GI & 6 & 65 & 3\\
-\hspace{1em}S & 11 & 61 & 13\\
-\hspace{1em}I & 3 & 61 & 3\\
+\hspace{1em}GS & 14 & 65 & 14\\
+\hspace{1em}GI & 7 & 65 & 3\\
+\hspace{1em}S & 18 & 61 & 13\\
+\hspace{1em}I & 6 & 61 & 3\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. bird movement data}}\\
 \hspace{1em}G & 1 & 90 & 2\\
-\hspace{1em}GS & 360 & 624 & 14\\
-\hspace{1em}GI & 190 & 540 & 5\\
-\hspace{1em}S & 68 & 535 & 12\\
-\hspace{1em}I & 130 & 541 & 3\\
+\hspace{1em}GS & 320 & 624 & 14\\
+\hspace{1em}GI & 150 & 540 & 5\\
+\hspace{1em}S & 65 & 535 & 12\\
+\hspace{1em}I & 120 & 541 & 3\\
 \bottomrule
 \end{tabular}
 \end{table}
