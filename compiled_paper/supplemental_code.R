@@ -13,6 +13,7 @@ library(docxtools)
 library(knitr)
 library(tibble)
 library(dplyr)
+library('gratia')
 
 #Set the default theme for ggplot objects to theme_bw()
 theme_set(theme_bw())
@@ -214,7 +215,7 @@ CO2_modG <- gam(log(uptake) ~ s(log(conc), k=5, bs="tp") +
                   s(Plant_uo, k=12, bs="re"),
                 data=CO2, method="REML", family="gaussian")
 
-plot(CO2_modG, pages=1, seWithMean=TRUE)
+draw(CO2_modG)
 
 # setup prediction data
 CO2_modG_pred <- with(CO2,
@@ -246,8 +247,7 @@ bird_modG <- gam(count ~ te(week, latitude, bs=c("cc", "tp"), k=c(10, 10)),
 #mgcv gam plot for the two-dimensional tensor product smoother for bird_modG.
 #scheme=2 displays the color scheme (rather than mgcv's default, which only
 #shows contour lines)
-plot(bird_modG, pages=1, scheme=2, rug=FALSE)
-box()
+draw(bird_modG)
 #add the predicted values from the model to bird_move
 bird_move <- transform(bird_move, modG = predict(bird_modG, type="response"))
 
@@ -259,7 +259,7 @@ ggplot(bird_move, aes(x=modG, y=count)) +
 CO2_modGS <- gam(log(uptake) ~ s(log(conc), k=5, m=2) + 
                   s(log(conc), Plant_uo, k=5,  bs="fs", m=2),
                 data=CO2, method="REML")
-plot(CO2_modGS, page=1, seWithMean=TRUE)
+draw(CO2_modGS)
 CO2_modGS_pred <- predict(CO2_modGS, se.fit=TRUE)
 CO2 <- transform(CO2, modGS = CO2_modGS_pred$fit, modGS_se = CO2_modGS_pred$se.fit)
 
@@ -307,42 +307,7 @@ CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                   s(Plant_uo, bs="re", k=12),
                 data=CO2, method="REML")
 
-op <- par(mfrow=c(2, 3), mar =c(4, 4, 1, 1))
-CO_modGI_ylim = c(-0.3,0.3)
-plot(CO2_modGI, scale=0, 
-     select=1, 
-     ylab="Global smoother", 
-     seWithMean=TRUE)
-plot(CO2_modGI, 
-     scale=0, 
-     select=14, 
-     ylab="Intercept",
-     main=NA)
-plot(CO2_modGI, 
-     scale=0, 
-     select=3,  
-     ylab="Plant Qn1", 
-     seWithMean=TRUE,
-     ylim = CO_modGI_ylim)
-plot(CO2_modGI, 
-     scale=0, 
-     select=5,  
-     ylab="Plant Qc1",     
-     seWithMean=TRUE,
-     ylim = CO_modGI_ylim)
-plot(CO2_modGI, 
-     scale=0, 
-     select=10, 
-     ylab="Plant Mn1",     
-     seWithMean=TRUE,
-     ylim = CO_modGI_ylim)
-plot(CO2_modGI, 
-     scale=0, 
-     select=13, 
-     ylab="Plant Mc1",
-     seWithMean=TRUE,
-     ylim = CO_modGI_ylim)
-par(op)
+draw(CO2_modGI, select = c(1,14,3,5,10,13), scales = "fixed")
 bird_modGI <- gam(count ~ species +
                    te(week, latitude, bs=c("cc", "tp"),
                       k=c(10, 10), m=2) +
@@ -368,7 +333,7 @@ bird_modI <- gam(count ~ species +
                  data=bird_move, method="REML", family="poisson",
                  knots = list(week = c(0, 52)))
 
-AIC_table = AIC(CO2_modG,CO2_modGS, CO2_modGI, CO2_modS, CO2_modI,
+AIC_table <- AIC(CO2_modG,CO2_modGS, CO2_modGI, CO2_modS, CO2_modI,
              bird_modG, bird_modGS, bird_modGI, bird_modS, bird_modI)%>%
   rownames_to_column(var= "Model")%>%
   mutate(data_source = rep(c("CO2","bird_data"), each =5))%>%
@@ -402,18 +367,9 @@ zoo_test  <- subset(zooplankton, year%%2==1 & lake=="Mendota")
 daphnia_train <- subset(zooplankton, year%%2==0 & taxon=="D. mendotae")
 daphnia_test  <- subset(zooplankton, year%%2==1 & taxon=="D. mendotae")
 
-#This function calculates the deviance of out-of-sample data,
-#conditional on their mean predicted value from the model
-get_deviance <- function(model, y_pred, y_obs, weights = NULL){
-  stopifnot(length(y_obs)==length(y_pred))
-  #We don't use the weights term in this paper, but it can be useful if
-  #how well the model matters more for some sample points than others
-  if(is.null(weights)) weights = rep(1, times= length(y_obs))
-  #this uses the deviance residual function from the model family to
-  #calculate deviances for individual points
-  dev_residuals = model$family$dev.resids(y_obs, y_pred, weights)
-  return(sum(dev_residuals))
-}
+#This function calculates the root-mean-squared-error for out-of-sample data
+get_RMSE <- function(fit, obs) sqrt(mean((fit-obs)^2))
+
 zoo_comm_modS <- gam(density_adj ~ s(day, taxon,
                                      bs="fs",
                                      k=10,
@@ -440,12 +396,13 @@ zoo_comm_modI <- gam(density_adj ~ s(day, by=taxon,
 ## #individual components of gam.check: the results for k.check
 ## round(k.check(zoo_comm_modI),2)
 #individual components of gam.check: residual plots
-par(mfrow= c(1,2))
-qq.gam(zoo_comm_modI, rep = 250)
-plot(log(fitted(zoo_comm_modI)), 
-     residuals.gam(zoo_comm_modI,type = "deviance"), 
-     xlab = "linear predictor",
-     ylab = "residuals")
+plt1 <- qq_plot(zoo_comm_modI, method = "simulate")
+df <- data.frame(log_fitted = log(fitted(zoo_comm_modI)),
+                 residuals  = resid(zoo_comm_modI, type = "deviance"))
+plt2 <- ggplot(df, aes(x = log_fitted, y = residuals)) +
+    geom_point() +
+    labs(x = "Linear predictor", y = "Deviance residual")
+plot_grid(plt1, plt2, ncol = 2, align = "hv", axis = "lrtb")
 #Create synthetic data to use to compare predictions
 zoo_plot_data <- expand.grid(day = 1:365, 
                              taxon = factor(levels(zoo_train$taxon)), 
@@ -486,8 +443,6 @@ zoo_plot <- ggplot(zoo_plot_data) +
                   fill = model),
               alpha=0.2)+
   geom_point(data= zoo_train, aes(x = day, y = density_adj),size=0.1)+
-  geom_point(data= zoo_test, aes(x = day, y = density_adj),
-             size=0.1,col="grey")+
   geom_line(aes(x = day, y = fit, color = model))+
   labs(y = expression(atop(Population~density,("10 000"~individuals~m^{-2}))), 
        x = "Day of Year") +
@@ -499,7 +454,7 @@ zoo_plot <- ggplot(zoo_plot_data) +
 
 zoo_plot
 
-#Getting the out-of-sample predictions for both models:
+#Getting the out of sample predictions for both models:
 
 # we need to compare how well this model fits with a null model. here we'll use an
 # intercept-only model
@@ -519,13 +474,13 @@ zoo_test_summary = zoo_test %>%
     modI = predict(zoo_comm_modI, ., type="response"))%>%
   group_by(taxon)%>%
   summarise(
-    `Intercept only` = format(get_deviance(zoo_comm_mod0, mod0, density_adj), 
+    `Intercept only` = format(get_RMSE(mod0, density_adj), 
                               scientific = FALSE, 
                               digits=3),
-    `Model S` = format(get_deviance(zoo_comm_modS, modS, density_adj), 
+    `Model S` = format(get_RMSE(modS, density_adj), 
                        scientific = FALSE, 
                        digits=3),
-    `Model I` = format(get_deviance(zoo_comm_modI, modI, density_adj), 
+    `Model I` = format(get_RMSE(modI, density_adj), 
                        scientific = FALSE, 
                        digits=3))%>%
   #need to specify this to ensure that species names are italized in the table
@@ -565,7 +520,7 @@ daph_plot_data <- expand.grid(day = 1:365,
 
 #extract predicted values and standard errors for both models. the exclude = "s(taxon,year_f)" 
 #term indicates that predictions should be made excluding the effect of the
-#taxon-by-year random effect (effectively making predictions averaging
+#taxon by year random effect (effectively setting making predictions averaging
 #over year-taxon effects).
 daph_modG_fit <- predict(zoo_daph_modG, 
                          newdata = daph_plot_data, 
@@ -607,8 +562,6 @@ daph_plot <- ggplot(daph_plot_data, aes(x=day))+
   geom_ribbon(aes(x = day, ymin = lower, ymax = upper, fill = model), 
                 alpha = 0.2) +
   geom_point(data= daphnia_train, aes(x = day, y = density_adj),size=0.1)+
-  geom_point(data= daphnia_test, aes(x = day, y = density_adj),
-             size=0.1,col="grey")+
   geom_line(aes(x = day, y = fit, colour = model)) +
 
   labs(y = expression(atop(Population~density,
@@ -642,13 +595,13 @@ daph_test_summary <- daphnia_test %>%
     modGS = as.numeric(predict(zoo_daph_modGS,.,type="response")),
     modGI = as.numeric(predict(zoo_daph_modGI,.,type="response")))%>%
   group_by(lake)%>%
-  summarise(`Intercept only` = format(get_deviance(zoo_daph_mod0, mod0, density_adj), 
+  summarise(`Intercept only` = format(get_RMSE(mod0, density_adj), 
                                       scientific = FALSE, digits=2),
-            `Model G` = format(get_deviance(zoo_daph_modG, modG, density_adj), 
+            `Model G` = format(get_RMSE(modG, density_adj), 
                                scientific = FALSE, digits=2),
-            `Model GS` = format(get_deviance(zoo_daph_modGS, modGS, density_adj), 
+            `Model GS` = format(get_RMSE(modGS, density_adj), 
                                scientific = FALSE, digits=2),
-            `Model GI` = format(get_deviance(zoo_daph_modGI, modGI, density_adj), 
+            `Model GI` = format(get_RMSE(modGI, density_adj), 
                                scientific = FALSE, digits=2))%>%
   rename(Lake = lake)
 

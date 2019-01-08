@@ -44,6 +44,7 @@ library(docxtools)
 library(knitr)
 library(tibble)
 library(dplyr)
+library('gratia')
 
 #Set the default theme for ggplot objects to theme_bw()
 theme_set(theme_bw())
