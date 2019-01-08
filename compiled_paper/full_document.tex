@@ -1566,63 +1566,33 @@ We developed a simple numerical experiment to determine whether
 \textbf{mgcv}'s fitting criteria tend to set estimated smoothness
 penalties high or low in the presence of among-group variability in
 smoothness when fitting model \emph{GS} or \emph{S} HGAMs. We simulated
-data from four different groups, with all groups having the same levels
-of the covariate \(x\), equally spaced across the range from 0 to
-\(2\pi\). For each group, the true function relating \(x\) to the
-response, \(y\), was a cosine wave, but the frequency varied from 0.5
-(equal to half a cycle across the range of \(x\)) to 4 (corresponding to
-4 full cycles across the range). As all four sin waves spanned the whole
-range from -1 to +1 across the range of x, and as they were all integer
-or half-integer frequencies, the signal for all groups had the same
-variance across the range of \(x\), approximately equal to 0.5.
-Therefore, the true function for all groups had the same strength of
-signal; all that varied between groups was how rapidly the signal
-fluctuated. We added normally distributed error to all \(y\)-values,
-with three different noise levels, given by standard deviations of
-0.5,1, and 2. These correspond to signal-to-noise ratios (i.e.~variance
-of the cosine curve divided by variance of the noise) of 2, 0.5, and
-0.125. For each noise level, we created 25 replicate data sets, to
-illustrate the amount of simulation-to-simulation variation in model
-fit. We then fit both model \emph{S} (where all curves were assumed to
-be equally smooth) and model \emph{I} (with varying smoothness) to each
-replicate for each noise level, using REML criteria to estimate
-penalties.
-
-A sample of the fits for each group for three of the replicates for each
-model are shown in Fig. \ref{fig:var_pen}a, with model \emph{S} in red
-and model \emph{I} in blue. Fig. \ref{fig:var_pen}b illustrates how well
-each model fared across the range of replicates at accurately estimating
-the true smoothness of the highest frequency terms as measured by the
-squared second derivative of the smooth fit versus that of the true
-function, with the distance to the black one-to-one line indicating the
-degree to which the estimated function for each group over- or
-under-estimated the smoothness of the true signal. In general, under low
-noise conditions (Fig \ref{fig:var_pen}, signal-to-noise ratio of 2),
-model \emph{S} tendeded to overfit the smoothest, lowest-frequency,
-groups, while accurately fitting the highest frequency groups. Under
-moderate signal-to-noise ratios, model \emph{S} tended to over-penalize
-high-frequency groups and under-penalize low frequency groups, and in
-the lowest signal-to-noise ratio tested (0.125), model \emph{S} tended
-to penalize all groups towards very smooth functions (Fig.
-\ref{fig:var_pen}b). Curves estimated by model \emph{I}, on the other
-hand, tended to accurately capture the true wiggliness of the function
-across the whole range of frequencies and noises, except for the
-lowest-frequency groups, and the highest frequency groups it the
-presence of high noise; in both cases, model \emph{I} tended to
-over-smooth (.Fig. \ref{fig:var_pen}b).
-
+data from five different groups, with all groups having the same levels
+of the covariate \(x\), ranging from 0 to \(2\pi\). For each group, the
+true function relating \(x\) to the response, \(y\), was a sine wave,
+but the frequency varied from 0.25 (equal to half a cycle across the
+range of \(x\)) to 4 (corresponding to 4 full cycles across the range).
+We added normally distributed error to all \(y\)-values, with a standard
+deviation of 0.2. We then fit both model \emph{S} (where all curves were
+assumed to be equally smooth) and model \emph{I} (with varying
+smoothness) to the entire data set, using REML criteria to estimate
+penalties. For this example (Fig. \ref{fig:var_pen}a), requiring equal
+smoothness for all group levels resulted in \textbf{mgcv}
+underestimating the penalty for the lowest frequency (most smooth)
+terms, but accurately estimating the true smoothness of the highest
+frequency terms as measured by the squared second derivative of the
+smooth fit versus that of the true function (Fig. \ref{fig:var_pen}b).
 This implies that assuming equal smoothness will result in
-underestimating the true smoothness of low-variability terms in cases of
-high signal-to-noise, and overestimating the true smoothness of
-high-frequency terms in low signal-to-noise data sets. If this is a
-potential issue, we recommend fitting both models \emph{S} and \emph{I}
-and using standard model evaluation criteria (e.g., AIC) or
-out-of-sample predictive accuracy (as in Section IV) to determine if
-there is evidence for among-group variability in smoothness. However, it
-may be the case that there are too few data points per group to estimate
-separate smoothness levels, in which case model \emph{GS} or model
-\emph{S} may still be the better option even in the face of varying
-smoothness.
+underestimating the true smoothness of low-variability terms, and thus
+lead to more variable estimates of these terms. If this is a potential
+issue, we recommend fitting both models \emph{S} and \emph{I} and using
+standard model evaluation criteria (e.g., AIC) to determine if there is
+evidence for among-group variability in smoothness. For instance, the
+AIC for model \emph{S} fit to this data is -178, whereas it is -211 for
+model \emph{I}, implying a improvement in fit by allowing smoothness to
+vary. However, it may be the case that there are too few data points per
+group to estimate separate smoothness levels, in which case model
+\emph{GS} or model \emph{S} may still be the better option even in the
+face of varying smoothness.
 
 The ideal case would be to assume that among-group penalties follow
 their own distribution (estimated from the data), to allow variation in
@@ -1630,31 +1600,22 @@ smoothness while still getting the benefit of pooling information on
 smoothness between groups. This is currently not implemented in
 \textbf{mgcv}. It is possible to set up this type of varying penalty
 model in flexible Bayesian modelling software such as \emph{Stan} (see
-below for a discussion of how to fit HGAMs using these tools), where
-inter-group variation in smoothing penalties could be modelled with a
-hierarchical prior. However, to the best of our knowledge, how to fit
-this type of model has not been well studied in either the Bayesian or
-frequentist literature.
+below for a discussion of how to fit HGAMs using these tools), but how
+to fit this type of model has not been well studied.
 
 \begin{figure}
 \centering
 \includegraphics{../figures/single_smooth_bias_plot-1.pdf}
 \caption{\label{fig:var_pen} a) Illustration of bias that can arise from
 assuming equal smoothness for all group levels (model \emph{S}, red
-lines) versus allowing for intergroup variation in smoothness (model
-\emph{I}, blue lines) across a range of signal-to-noise ratios, holding
-the group-level signals constant. The true function for each group level
-is shown in black. b) Distribution of wiggliness (as measured by the
-integral of the squared 2nd derivative) of the estimated function for
-each replicate for each group level for model \emph{S} (red) and model
-\emph{I} (blue), versus the true wiggliness of the function for that
-grouping level, with the black line indicating the one-to-one line.
-Points below (above) the black line indicate that a given model
-estimated the curve as less (more) wiggly than the true curve used to
-generate the data. Estimated wiggliness less than \(10^{-3}\) was
-truncated for visual clarity, as \textbf{mgcv} estimated effectively
-straight lines for several groups, corresponding to a wiggliness of 0,
-which would not appear on a log-scaled plot.}
+line) versus allowing for intergroup variation in smoothness (model
+\emph{I}, red line) when the true function (black line) shows
+substantial variation in smoothness between groups. b) Estimated
+wiggliness (as measured by the integral of the squared 2nd derivative)
+of the true function for each group level versus that for the functions
+estimated by model \emph{S} (red) and model \emph{I} (blue), indicating
+substantial undersmoothing for low-variability curves by model
+\emph{S}.}
 \end{figure}
 
 It may seem there is also a bias-variance trade-off between choosing to
@@ -1759,16 +1720,16 @@ model & relative time & coefficients & penalties\\
 \multicolumn{4}{l}{\textbf{A. CO2 data}}\\
 \hspace{1em}G & 1 & 17 & 2\\
 \hspace{1em}GS & 12 & 65 & 14\\
-\hspace{1em}GI & 3 & 65 & 3\\
-\hspace{1em}S & 12 & 61 & 13\\
-\hspace{1em}I & 2 & 61 & 3\\
+\hspace{1em}GI & 6 & 65 & 3\\
+\hspace{1em}S & 11 & 61 & 13\\
+\hspace{1em}I & 3 & 61 & 3\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. bird movement data}}\\
 \hspace{1em}G & 1 & 90 & 2\\
-\hspace{1em}GS & 490 & 624 & 14\\
-\hspace{1em}GI & 290 & 540 & 5\\
-\hspace{1em}S & 150 & 535 & 12\\
-\hspace{1em}I & 160 & 541 & 3\\
+\hspace{1em}GS & 360 & 624 & 14\\
+\hspace{1em}GI & 190 & 540 & 5\\
+\hspace{1em}S & 68 & 535 & 12\\
+\hspace{1em}I & 130 & 541 & 3\\
 \bottomrule
 \end{tabular}
 \end{table}

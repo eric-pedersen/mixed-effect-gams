@@ -20,7 +20,12 @@ csl: peerj.csl
 ---
 
 ```{r knitr_setup, include=FALSE, purl=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, cache=TRUE,fig.path = "../figures/")
+knitr::opts_chunk$set(echo = TRUE, 
+                      message=FALSE, 
+                      warning=FALSE, 
+                      cache=TRUE,
+                      autodep=TRUE,
+                      fig.path = "../figures/")
 ```
 
 ```{r setup, include=FALSE}
@@ -39,6 +44,7 @@ library(docxtools)
 library(knitr)
 library(tibble)
 library(dplyr)
+library(gratia)
 library(latex2exp)
 
 #Set the default theme for ggplot objects to theme_bw()
