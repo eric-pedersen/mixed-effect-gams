@@ -27,5 +27,6 @@ compare: compiled_paper/full_document.tex compiled_paper/prior_submission.tex
         ifeq ($(run_comparison),true)
 					latexdiff --config="PICTUREENV=(?:picture|DIFnomarkup|table)[\w\d*@]*" compiled_paper/prior_submission.tex compiled_paper/full_document.tex  > compiled_paper/diff.tex
 					-pdflatex -interaction=nonstopmode compiled_paper/diff.tex -output-directory compiled_paper
+					-pdflatex -interaction=nonstopmode compiled_paper/diff.tex -output-directory compiled_paper
 					rm compiled_paper/diff.log compiled_paper/diff.aux compiled_paper/diff.out
         endif
