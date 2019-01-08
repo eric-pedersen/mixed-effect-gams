@@ -20,7 +20,12 @@ csl: peerj.csl
 ---
 
 ```{r knitr_setup, include=FALSE, purl=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, cache=TRUE,fig.path = "../figures/")
+knitr::opts_chunk$set(echo = TRUE, 
+                      message=FALSE, 
+                      warning=FALSE, 
+                      cache=TRUE,
+                      autodep=TRUE,
+                      fig.path = "../figures/")
 ```
 
 ```{r setup, include=FALSE}
