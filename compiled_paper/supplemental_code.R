@@ -738,21 +738,26 @@ noise_labeller <- function(string) {
 }
 
 #The derivative plots
-deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv, 
-                                              y= pmax(obs_sqr_deriv,1e-6),
-                                              color= model))+
+
+deriv_min = -3
+deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv,                                                                    y= pmax(obs_sqr_deriv,10^deriv_min),
+                                              fill= model,
+                                              group=paste(sqr_2nd_deriv,model)))+
   facet_grid(.~noise, labeller = as_labeller(noise_labeller,
                                                default = label_parsed))+
-  geom_point(position = position_dodge(width =0.3))+
-  scale_y_log10("Estimated wiggliness\nof fitted curves",
-                limits = c(1e-6,5e+3),expand=c(0,0.1),
-                breaks= c(1e-6, 1e-3, 1e+0, 1e+3), 
-                labels = c("<= 1e-6","1e-3","1e+0","1e+3"))+
-  scale_x_log10("Wiggliness of true curve", 
-                breaks= c(1e-3, 1e+0, 1e+3), 
-                labels = c("1e-3","1e+0","1e+3")
+  geom_dotplot(binaxis = "y", stackdir = "center",binwidth = 0.125,color=NA)+
+  scale_y_log10("Fitted wiggliness",
+                limits = c(10^deriv_min,5e+3),expand=c(0,0.1),
+                breaks = c(10^deriv_min,  1e+0, 1e+3), 
+                labels = list(bquote(""<=10^.(deriv_min)),
+                              bquote(10^0), 
+                              bquote(10^3))
                 )+
-  scale_color_brewer(name=NULL,palette= "Set1")+
+  scale_x_log10("True wiggliness", 
+                breaks= c(1e-3, 1e+0, 1e+3), 
+                labels = list(bquote(10^-3),bquote(10^0), bquote(10^3))
+                )+
+  scale_fill_brewer(name=NULL,palette= "Set1")+
   geom_abline(color="black")+
   theme(legend.position = c(0.1, 0.25),
         strip.text.x = element_blank(),
@@ -768,7 +773,7 @@ overfit_vis_plot = ggplot(data=biasvar_predict_fit_summary,
                         rep==1,
                         model=="true value"),
             color= "black",
-            size=1.2)+
+            size=0.9)+
   geom_line(data=filter(biasvar_predict_fit_long,rep%in%1:3),
             aes(group=paste(rep,model)))+
   scale_color_manual(name = "",values=fit_colors)+
@@ -782,7 +787,7 @@ overfit_vis_plot = ggplot(data=biasvar_predict_fit_summary,
 #Plot the overfit graphs together.
 cowplot::plot_grid(overfit_vis_plot, deriv_plot, ncol=1, labels="auto",
                    align="hv", axis="lr",
-                   rel_heights = c(1,0.6))
+                   rel_heights = c(1,0.5))
 #Note: this code takes quite a long time to run! It's fitting all 10 models. Run
 #once if possible, then rely on the cached code. There's a reason it's split off
 #from the rest of the chunks of code.

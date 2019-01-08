@@ -1643,15 +1643,18 @@ frequentist literature.
 assuming equal smoothness for all group levels (model \emph{S}, red
 lines) versus allowing for intergroup variation in smoothness (model
 \emph{I}, blue lines) across a range of signal-to-noise ratios, holding
-the group-level signals (cosine waves) constant. The true function for
-each group level (black lines) shows substantial variation in smoothness
-between groups. b) Wiggliness (as measured by the integral of the
-squared 2nd derivative) of the estimated function for each replicate for
-each group level for model \emph{S} (red) and model \emph{I} (blue),
-versus the true wiggliness of the function for that grouping level, with
-the black line indicating the one-to-one line. Points below (above) the
-black line indicate that a given model estimated the curve as less
-(more) wiggly than the true curve used to generate the data.}
+the group-level signals constant. The true function for each group level
+is shown in black. b) Distribution of wiggliness (as measured by the
+integral of the squared 2nd derivative) of the estimated function for
+each replicate for each group level for model \emph{S} (red) and model
+\emph{I} (blue), versus the true wiggliness of the function for that
+grouping level, with the black line indicating the one-to-one line.
+Points below (above) the black line indicate that a given model
+estimated the curve as less (more) wiggly than the true curve used to
+generate the data. Estimated wiggliness less than \(10^{-3}\) was
+truncated for visual clarity, as \textbf{mgcv} estimated effectively
+straight lines for several groups, corresponding to a wiggliness of 0,
+which would not appear on a log-scaled plot.}
 \end{figure}
 
 It may seem there is also a bias-variance trade-off between choosing to
