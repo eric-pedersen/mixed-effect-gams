@@ -12,7 +12,7 @@ In this section, we will describe how to model inter-group variability using smo
 2. Do all of the group-specific smoothers have the same wiggliness, or should each group have its own smoothing parameter?
 3. Will the smoothers for each group have a similar shape to one another --- a shared global smoother?
 
-These three choices result in five possible models (figure \ref{fig:models}):
+These three choices result in five possible models (Fig. \ref{fig:models}):
 
 1. A single common smoother for all observations; We will refer to this as model *G*, as it only has a Global smoother.
 2. A global smoother plus group-level smoothers that have the same wiggliness. We will refer to this as model *GS* (for Global smoother with individual effects with a Shared penalty)
@@ -31,10 +31,10 @@ We will discuss the trade-offs between different models and guidelines about whe
 Each of the models in Figure \ref{fig:models} can be coded straightforwardly in **mgcv**.
 We will use two example datasets to demonstrate how to code these models (see the supplemental code to reproduce these examples):
 
-A. The `CO2` dataset, available in R via the **datasets** package. This data is from an experimental study by @potvin_statistical_1990 of CO~2~ uptake in grasses under varying concentrations of CO~2~, measuring how concentration-uptake functions varied between plants from two locations (Mississippi and Quebec) and two temperature treatments (chilled and warm). Twelve plants were used and CO~2~ uptake measured at 7 CO~2~ concentrations for each plant (figure \ref{fig:vis_data}a). Here we will focus on how to use HGAMs to estimate inter-plant variation in functional responses. This data set has been modified from the default version available with R, to recode the `Plant` variable as an unordered factor `Plant_uo`[^ordered].
+A. The `CO2` dataset, available in R via the **datasets** package. This data is from an experimental study by @potvin_statistical_1990 of CO~2~ uptake in grasses under varying concentrations of CO~2~, measuring how concentration-uptake functions varied between plants from two locations (Mississippi and Quebec) and two temperature treatments (chilled and warm). Twelve plants were used and CO~2~ uptake measured at 7 CO~2~ concentrations for each plant (Fig. \ref{fig:vis_data}a). Here we will focus on how to use HGAMs to estimate inter-plant variation in functional responses. This data set has been modified from the default version available with R, to recode the `Plant` variable as an unordered factor `Plant_uo`[^ordered].
 
 B. Data generated from a hypothetical study of bird movement along a migration corridor, sampled throughout the year (see supplemental code). This dataset consists of simulated sample records of numbers of observed locations of 100 tagged individuals each from six species of bird, at ten locations along a latitudinal gradient, with one observation taken every four weeks. Counts were simulated randomly for each species in each location and week by creating a species-specific migration curve that gave the probability of finding an individual of a given species in a given location, then simulated the distribution of individuals across sites using a multinomial distribution, and subsampling that using a binomial distribution to simulation observation error (i.e. not every bird present at a location would be detected). 
-The data set (`bird_move`) consists of the variables `count`, `latitude`, `week` and `species` (figure \ref{fig:vis_data}b). This example allows us to demonstrate how to fit these models with interactions and with non-normal (count) data. The true model used to generate this data was model *GS*: a single global function plus species-specific deviations around that global function.
+The data set (`bird_move`) consists of the variables `count`, `latitude`, `week` and `species` (Fig. \ref{fig:vis_data}b). This example allows us to demonstrate how to fit these models with interactions and with non-normal (count) data. The true model used to generate this data was model *GS*: a single global function plus species-specific deviations around that global function.
 
 [^ordered]: Note that **mgcv** requires that grouping or categorical variables be coded as factors in R; it will raise an error message if passed data coded as characters. It is also important to know whether the factor is coded as ordered or unordered (see `?factor` for more details on this). This matters when fitting groupwise smoothers using the `by=` argument (as is used for fitting models *GI* and *I*, shown below). If the factor is unordered, **mgcv** will set up a model with one smoother for each grouping level. If the factor is ordered, **mgcv** will set any basis functions for the first grouping level to zero. In model *GI* the ungrouped smoother will then correspond to the first grouping level, rather than the average functional response, and the group-specific smoothers will correspond to deviations from the first group. In model *I*, using an ordered factor will result in the first group not having a smoother associated with it at all.
 
@@ -163,9 +163,9 @@ Note that in `bird_modG` we have specified week 0 and week 52 as the endpoints, 
 draw(bird_modG)
 ```
 
-Fig, \ref{fig:bird_modG} shows the default `draw(bird_modG)` plot for the week-by-latitude smoother. It shows birds starting at low latitudes in the winter then migrating to high latitudes from the 10th to 20th week, staying there for 15-20 weeks, then migrating back. However, the plot also indicates a large amount of variability in the timing of migration. The source of this variability is apparent when we look at the timing of migration of each species (cf. figure \ref{fig:vis_data}b).
+Fig, \ref{fig:bird_modG} shows the default `draw(bird_modG)` plot for the week-by-latitude smoother. It shows birds starting at low latitudes in the winter then migrating to high latitudes from the 10th to 20th week, staying there for 15-20 weeks, then migrating back. However, the plot also indicates a large amount of variability in the timing of migration. The source of this variability is apparent when we look at the timing of migration of each species (cf. Fig. \ref{fig:vis_data}b).
 
-All six species in figure \ref{fig:vis_data}b show relatively precise migration patterns, but they differ in the timing of when they leave their winter grounds and the amount of time they spend at their summer grounds. Averaging over all of this variation results in a relatively imprecise (diffuse) estimate of migration timing (figure \ref{fig:bird_modG}), and viewing species-specific plots of observed versus predicted values (figure \ref{fig:bird-fitted-modG}), it is apparent that the model fits some of the species better than others. This model could potentially be improved by adding inter-group variation in migration timing. The rest of this section will focus on how to model this type of variation.
+All six species in Fig. \ref{fig:vis_data}b show relatively precise migration patterns, but they differ in the timing of when they leave their winter grounds and the amount of time they spend at their summer grounds. Averaging over all of this variation results in a relatively imprecise (diffuse) estimate of migration timing (Fig. \ref{fig:bird_modG}), and viewing species-specific plots of observed versus predicted values (Fig. \ref{fig:bird-fitted-modG}), it is apparent that the model fits some of the species better than others. This model could potentially be improved by adding inter-group variation in migration timing. The rest of this section will focus on how to model this type of variation.
 
 ```{r bird-fitted-modG,echo=FALSE, fig.width=6, fig.height=4, out.width="\\linewidth", fig.cap="\\label{fig:bird-fitted-modG}Observed counts by species versus predicted counts from \\texttt{bird\\_modG} (1-1 line added as reference). If our model fitted well we would expect that all species should show similiar patterns of dispersion around the 1-1 line (and as we are assuming the data is Poisson, the variance around the mean should equal the mean). Instead we see that variance around the predicted value is much higher for species 1 and 6."}
 #add the predicted values from the model to bird_move
@@ -264,9 +264,9 @@ plot_grid(bird_modGS_indiv, bird_modGS_indiv_fit, ncol=1, align="vh", axis = "lr
 ```
 
 Model *GS* is able to effectively capture the observed patterns of interspecific
-variation in migration behaviour (figure \ref{fig:bird_modGS}a). It shows a much
+variation in migration behaviour (Fig. \ref{fig:bird_modGS}a). It shows a much
 tighter fit between observed and predicted values, as well as less evidence of
-over-dispersion in some species compared to model *G* (figure \ref{fig:bird_modGS}b).
+over-dispersion in some species compared to model *G* (Fig. \ref{fig:bird_modGS}b).
 
 ### A single common smoother plus group-level smoothers with differing wiggliness (Model *GI*)
 
@@ -319,7 +319,7 @@ bird_modGI <- gam(count ~ species +
 
 As above, we have set (`m=1`) for the latitude marginal effect to  avoid issues of collinearity between the global and groupwise smoother. Note that switching `m=1` to `m=2` does not have any effect on the marginal basis for `week`, where we are using a cyclic smoother instead of a tprs.
 
-The fitted model for `bird_modGI` is visually indistinguishable from `bird_modGS` (figure \ref{fig:bird_modGS}) so we do not illustrate it here. 
+The fitted model for `bird_modGI` is visually indistinguishable from `bird_modGS` (Fig. \ref{fig:bird_modGS}) so we do not illustrate it here. 
 
 ### Models without global smoothers (models *S* and *I*)
 

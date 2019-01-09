@@ -4,7 +4,7 @@
 ```{r part_5_premble, include=FALSE}
 #### Code for V: Computational and statistical issues when fitting HGAMs ####
 ```
-Which of the five model formulations (figure \ref{fig:models}) should you choose for a given data set? There are two major trade-offs to consider. The first is the bias-variance trade-off: more complex models can account for more fluctuations in the data, but also tend to give more variable predictions, and can overfit.  The second trade-off is model complexity versus computational cost: more complex models can include more potential sources of variation and give more information about a given data set, but will generally take more time and computational resources to fit and debug. We discuss both of these trade-offs in this section. We also discuss
+Which of the five model formulations (Fig. \ref{fig:models}) should you choose for a given data set? There are two major trade-offs to consider. The first is the bias-variance trade-off: more complex models can account for more fluctuations in the data, but also tend to give more variable predictions, and can overfit.  The second trade-off is model complexity versus computational cost: more complex models can include more potential sources of variation and give more information about a given data set, but will generally take more time and computational resources to fit and debug. We discuss both of these trade-offs in this section. We also discuss
 how to extend the HGAM framework to fit more complex models.
 
 ## Bias-variance trade-offs
@@ -132,11 +132,11 @@ For each noise level, we created 25 replicate data sets, to illustrate the amoun
 We then fit both model *S* (where all curves were assumed to be equally smooth) and model *I* (with varying smoothness) to each replicate for each noise level, using REML criteria to estimate penalties.
 
 A sample of the fits for each group for three of the replicates for each model are shown in Fig. \ref{fig:var_pen}a, with model *S* in red and model *I* in blue. 
-Fig. \ref{fig:var_pen}b illustrates how well each model fared across the range of replicates at accurately estimating the true smoothness of the highest frequency terms as measured by the squared second derivative of the smooth fit versus that of the true function, with the distance to the black one-to-one line indicating the degree to which the estimated function for each group over- or under-estimated the smoothness of the true signal. 
-In general, under low noise conditions (Fig \ref{fig:var_pen}, signal-to-noise ratio of 2), model *S* tendeded to overfit the smoothest, lowest-frequency, groups, while accurately fitting the highest frequency groups. 
+Figure \ref{fig:var_pen}b illustrates how well each model fared across the range of replicates at accurately estimating the true smoothness of the highest frequency terms as measured by the squared second derivative of the smooth fit versus that of the true function, with the distance to the black one-to-one line indicating the degree to which the estimated function for each group over- or under-estimated the smoothness of the true signal. 
+In general, under low noise conditions (Fig. \ref{fig:var_pen}, signal-to-noise ratio of 2), model *S* tendeded to overfit the smoothest, lowest-frequency, groups, while accurately fitting the highest frequency groups. 
 Under moderate signal-to-noise ratios,  model *S* tended to over-penalize high-frequency groups and under-penalize low frequency groups, and in the lowest signal-to-noise ratio tested (0.125), model *S* tended to penalize all groups towards very smooth functions (Fig. \ref{fig:var_pen}b). 
 Curves estimated by model *I*, on the other hand, tended to accurately capture the true wiggliness of the function across the whole range of frequencies and noises, except for the lowest-frequency groups, and the highest frequency groups it the presence of high noise; 
-in both cases, model *I* tended to over-smooth (.Fig. \ref{fig:var_pen}b). 
+in both cases, model *I* tended to over-smooth (Fig. \ref{fig:var_pen}b). 
 
 This implies that assuming equal smoothness will result in underestimating
 the true smoothness of low-variability terms in cases of high signal-to-noise, and overestimating the true smoothness of high-frequency terms in low signal-to-noise data sets. 
@@ -422,11 +422,11 @@ kable(comp_resources_table,format ="latex", caption="Relative computational time
 
 When fitting models with large numbers of groups, it is often possible to speed up computation substantially by using one of the alternative fitting routines available through **mgcv**.
 
-The first option is the function `bam()`, this requires the least changes to existing code written using the `gam()` function. `bam()` is designed to improve  performance when fitting large data sets via two mechanisms. First, it saves on memory needed to compute a given model by using a random subset of the data to calculate the basis functions. It then blocks the data and updates model fit within each block [@wood_generalized_2015]. While this is primarily designed to reduce memory usage, it can also substantially reduce computation time. Second, when using `bam()`'s default fREML ("Fast REML") method, you can use the `discrete=TRUE` option: this first bins continuous covariates into a smaller number of discrete values before estimating the model, substantially reducing the amount of computation needed (@Wood2017-iy; see `?mgcv::bam` for more details). Setting up the five model types (figure \ref{fig:models}) in `bam()` uses the same code as we have previously covered;
+The first option is the function `bam()`, this requires the least changes to existing code written using the `gam()` function. `bam()` is designed to improve  performance when fitting large data sets via two mechanisms. First, it saves on memory needed to compute a given model by using a random subset of the data to calculate the basis functions. It then blocks the data and updates model fit within each block [@wood_generalized_2015]. While this is primarily designed to reduce memory usage, it can also substantially reduce computation time. Second, when using `bam()`'s default fREML ("Fast REML") method, you can use the `discrete=TRUE` option: this first bins continuous covariates into a smaller number of discrete values before estimating the model, substantially reducing the amount of computation needed (@Wood2017-iy; see `?mgcv::bam` for more details). Setting up the five model types (Fig. \ref{fig:models}) in `bam()` uses the same code as we have previously covered;
 the only difference is that you use the `bam()` instead of `gam()` function, and
 have the additional option of discretizing your covariates.
 
-`bam()` has a larger computational overhead than `gam()`, so for small numbers of groups, it can be slower than `gam()` (Figure\ \ref{fig:alt_timing}). As the number of groups increases, computational time for `bam()` increases more slowly than for `gam()`; in our simulation tests, when the number of groups is greater than 16, `bam()` can be upward of an order of magnitude faster (Figure \ref{fig:alt_timing}). Note that `bam()` can be somewhat less computationally stable when estimating these models (i.e., less likely to converge). 
+`bam()` has a larger computational overhead than `gam()`, so for small numbers of groups, it can be slower than `gam()` (Fig. \ref{fig:alt_timing}). As the number of groups increases, computational time for `bam()` increases more slowly than for `gam()`; in our simulation tests, when the number of groups is greater than 16, `bam()` can be upward of an order of magnitude faster (Fig. \ref{fig:alt_timing}). Note that `bam()` can be somewhat less computationally stable when estimating these models (i.e., less likely to converge). 
 
 The second option is to fit models using one of two dedicated mixed effect
 model estimation packages, **nlme** and **lme4**. The **mgcv** package includes the
@@ -442,7 +442,7 @@ value for observations in that group level). As with `bam()`, `gamm()` and `gamm
 levels is small (in our simulations, <8 group levels), however they do show
 substantial speed improvements even with a moderate number of groups, and were
 as fast as or faster to calculate than `bam()` for all numbers of grouping levels
-we tested (Figure \ref{fig:alt_timing})[^parallel].
+we tested (Fig. \ref{fig:alt_timing})[^parallel].
 
 <!-- send to discussion For large numbers of group
 levels and bigger data sets, it may be necessary to use full functional
@@ -572,7 +572,7 @@ timing_plot
 ```
 
 Both `gamm()` and `gamm4()` require a few changes to model code.
-First, there are a few limitations on how you are able to specify the different model types (figure \ref{fig:models}) in both frameworks. Factor-smoother interaction (`bs="fs"`) basis setup works in both `gamm()` and `gamm4()`. However, as the **nlme** package does not support crossed random effects, it is not possible to have two factor-smoother interaction terms for the same grouping variable in `gamm()` models (e.g., `y~s(x1, grp, bs="fs")+s(x2, grp, bs="fs")`. These type of crossed random effects are allowed in **gamm4**. The use of `te()` terms are not possible in **gamm4**, due to
+First, there are a few limitations on how you are able to specify the different model types (Fig. \ref{fig:models}) in both frameworks. Factor-smoother interaction (`bs="fs"`) basis setup works in both `gamm()` and `gamm4()`. However, as the **nlme** package does not support crossed random effects, it is not possible to have two factor-smoother interaction terms for the same grouping variable in `gamm()` models (e.g., `y~s(x1, grp, bs="fs")+s(x2, grp, bs="fs")`. These type of crossed random effects are allowed in **gamm4**. The use of `te()` terms are not possible in **gamm4**, due to
 issues with how random effects are specified in the **lme4** package, making it impossible to code models where multiple penalties apply to a single basis function. Instead, for multidimensional group-level smoothers, the alternate function `t2()` needs to be used to generate these terms, as it creates tensor products with only a single penalty for each basis function (see `?mgcv::t2` for details on these smoothers, and @wood_straightforward_2012 for the theoretical basis behind this type of tensor product). For instance, model *GS* for the
 bird movement data we discussed in section III would need to be coded as:
 
