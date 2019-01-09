@@ -1,5 +1,5 @@
 
-#II: A review of Generalized Additive Models
+# II: A review of Generalized Additive Models
 
 ```{r part_2_premble, include=FALSE}
 #### Code for II: A review of Generalized Additive Models ####
