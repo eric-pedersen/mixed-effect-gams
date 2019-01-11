@@ -18,7 +18,7 @@ tex: paper_sections/bibliography.bib paper_sections/peerj.csl paper_sections/pre
 main: paper_sections/full_document.Rmd
 				R --vanilla --slave -e "library(knitr); purl('paper_sections/full_document.Rmd',documentation =0, output = 'compiled_paper/supplemental_code.R')"
 				R --vanilla --slave -e "library(rmarkdown); render('paper_sections/full_document.Rmd',output_file = 'full_document.tex')"
-				sed -i '/xcolor/d' paper_sections/full_document.tex
+				sed -i.bak '/xcolor/d' paper_sections/full_document.tex
 				R --vanilla --slave -e "setwd('paper_sections'); library(tools); texi2pdf('full_document.tex',clean = TRUE)"
 				mv paper_sections/full_document.pdf compiled_paper/full_document.pdf 
 				mv paper_sections/full_document.tex compiled_paper/full_document.tex 
