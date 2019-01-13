@@ -134,8 +134,13 @@ round(k.check(zoo_comm_modI),2)
 
 
 ```{r zoo_comm_check_k_kable, echo=FALSE, message=FALSE,  cache=TRUE,purl=FALSE}
+k.check_table <-round(k.check(zoo_comm_modI),2) %>%
+  as.data.frame()%>%
+  rownames_to_column()%>%
+  rename(`Model term` = rowname,
+         EDF = edf)
 
-kable(round(k.check(zoo_comm_modI),2), 
+kable(k.check_table, 
       format = table_out_format, 
       caption='Results from running \\texttt{k.check} on \\texttt{zoo\\_comm\\_modI}. Each row corresponds to a single model term. The notation for term names uses `mgcv` syntax. For instance, "s(day):taxonC. sphaericus" refers to the the smoother for day for the taxon "C. sphaericus".', 
       booktabs = TRUE,
