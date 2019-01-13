@@ -6,7 +6,7 @@
 
 ## What do we mean by hierarchical smoothers?
 
-In this section, we will describe how to model inter-group variability using smooth curves and how to fit these models using **mgcv**. Model structure is key in this framework, so we start with three model choices:
+In this section, we will describe how to model inter-group variability using smooth curves and how to fit these models using **mgcv**. All models were fitted using **mgcv** version 1.8-26 [@wood_fast_2011]. Model structure is key in this framework, so we start with three model choices:
 
 1. Should each group have its own smoother, or will a common smoother suffice?
 2. Do all of the group-specific smoothers have the same wiggliness, or should each group have its own smoothing parameter?
@@ -336,7 +336,7 @@ CO2_modS <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5, bs="fs", m=2),
                 data=CO2, method="REML")
 
 bird_modS <- gam(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
-                            k=c(10, 10, 6), m=c(2, 2, 2)),
+                            k=c(10, 10, 6), m=2),
                  data=bird_move, method="REML", family="poisson",
                  knots = list(week = c(0, 52)))
 ```
@@ -364,7 +364,13 @@ These models can be compared using standard model comparison tools. Model *GS* a
 
 Comparing models based on AIC is a more robust approach to comparing the different model structures. There is well-developed theory of how to include effects of penalization and smoothing parameter uncertainty when estimating the model complexity penalty for AIC [@wood_smoothing_2016]. We demonstrate this approach in Table \ref{tab:AIC_table_kable}. Using AIC, there is strong support for including among-group functional variability for both the CO2 dataset and the `bird_move` dataset (compare models *G* versus all other models). For the CO2 dataset (Table \ref{tab:AIC_table_kable}A), there is relatively strong evidence that there is more inter-group variability in smoothness than model *GS* allows, and weaker evidence that model *S* or *I* (separate smoothers for all plants) show the best fit. 
 
-For the `bird_move` dataset (Table \ref{tab:AIC_table_kable}B), model *GS* (global smoother plus group-level smoothers with a shared penalty) gives the best fit for all models including a global smooth (which is good as we simulated the data from a model with this structure!). However, model *S* (without a global term) still fits this data better than model *GS* based on AIC. This highlights an issue with AIC for selecting between models with and without a global smooth: as it is possible to fully recreate the global term by just allowing each group-level smoother to have a similiar shape to one another (that is, the global term is totally concurve with the group-level smoothers; see section V) model selection criteria such as AIC may indicate that the extra parameters required to fit the global smoother are unnecessary. 
+For the `bird_move` dataset (Table \ref{tab:AIC_table_kable}B), model *GS* (global smoother plus group-level smoothers with a shared penalty) gives the best fit for all models including a global smooth (which is good as we simulated the data from a model with this structure!). However, model *S* (without a global term) still fits this data better than model *GS* based on AIC. This highlights an issue with AIC for selecting between models with and without a global smooth: as it is possible to fully recreate the global term by just allowing each group-level smoother to have a similar shape to one another (that is, the global term is totally concurve with the group-level smoothers; see section V) model selection criteria such as AIC may indicate that the extra parameters required to fit the global smoother are unnecessary[^select_note].
+
+[^select_note]: If it is important for a given study to determine if there is evidence for a significant global smooth effect, we recommend refitting model *GS* or *GI*, including the argument `select = TRUE` in the `gam` model. 
+This has the effect of adding an extra penalty to each smooth term, that penalizes functions in the null space of the other penalty matrices for each smooth. 
+By doing this, it is possible for `mgcv` to penalize all model terms to a zero effect, in effect doing variable selection [@marra_practical_2011].
+When `select=TRUE`, the significance of the global term can be found by looking at the significance of the term in `summary.gam(model)`. 
+Note that this can increase the amount of time it takes to fit a model significantly for data sets with a large number of penalty terms (such as model *GI* when the number of groups is high). 
 
 ```{r AIC_table, echo=FALSE,  fig.width=4, fig.height=6, message=FALSE, warning=FALSE, cache=TRUE}
 
