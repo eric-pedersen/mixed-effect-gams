@@ -104,11 +104,11 @@ Penalties can have two effects on how well a model fits: they can penalize how w
 k = 6
 plotting_data = data.frame(x = seq(0,1,length=100))
 
-#This creates the basis functions for a thin-plate spline
-#The absorb.cons=FALSE setting makes sure that smoothCon does not remove basis 
-#functions that have a non-zero sum (in this case, the intercept). Absorbing 
-#constraints would result in having less than k basis functions, which is why fitted 
-#terms in mgcv often have less than k maximum EDF. 
+#This creates the basis functions for a thin-plate spline The absorb.cons=FALSE
+#setting makes sure that smoothCon does not remove basis functions that have a
+#non-zero sum (in this case, the intercept). Absorbing constraints would result
+#in having less than k basis functions, which is why fitted terms in mgcv often
+#have less than k maximum EDF.
 tp_basis = smoothCon(s(x,bs="tp",k=k), data=plotting_data,
                      knots=NULL,absorb.cons=FALSE)[[1]]
 
@@ -137,7 +137,8 @@ spline_basis_penalties$penalty_type = "Smoothness penalty"
 
 
 ##### Creating a random draw from the function ####
-set.seed(6) #ensure we can reproduce this example
+#ensure we can reproduce this example
+set.seed(6) 
 coef_sample = rmvn(n = 1, mu = rep(0, times = k),V = 4*ginv(tp_basis$S[[1]]))
 
 #randomly draw the null space terms from a normal distribution

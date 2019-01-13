@@ -53,7 +53,8 @@ biasvar_data = crossing(noise = noise_levels,
                )%>%
   mutate(y = cos(freq*x) +rnorm(n(), 0, noise),
          grp = paste("frequency = ",freq,sep= ""),
-         grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")))
+         grp = factor(grp,  
+                      levels = paste("frequency = ",freq_vals,sep= "")))
 
 biasvar_fit = biasvar_data %>%
   group_by(noise,rep)%>%
@@ -68,7 +69,8 @@ biasvar_fit = biasvar_data %>%
 biasvar_predict_data = crossing(x = seq(0,2*pi,length=500), 
                                 freq = freq_vals)%>%
   mutate(grp = paste("frequency = ",freq,sep= ""),
-         grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")),
+         grp = factor(grp,  
+                      levels = paste("frequency = ",freq_vals,sep= "")),
          y = cos(freq*x))
 
 biasvar_predict_fit = biasvar_fit %>%
@@ -80,7 +82,9 @@ biasvar_predict_fit = biasvar_fit %>%
                                newdata = biasvar_predict_data,
                                type="response")))%>%
   unnest(fitS, fitI) %>%
-  bind_cols(crossing(noise=noise_levels, rep= 1:n_reps,biasvar_predict_data))
+  bind_cols(crossing(noise=noise_levels, 
+                     rep= 1:n_reps,
+                     biasvar_predict_data))
 
 #turn this into long-format data for plotting, and to make it easier to
 #calculate derivatives
@@ -165,12 +169,18 @@ noise_labeller <- function(string) {
 #The derivative plots
 
 deriv_min = -3
-deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv,                                                                    y= pmax(obs_sqr_deriv,10^deriv_min),
-                                              fill= model,
-                                              group=paste(sqr_2nd_deriv,model)))+
-  facet_grid(.~noise, labeller = as_labeller(noise_labeller,
-                                               default = label_parsed))+
-  geom_dotplot(binaxis = "y", stackdir = "center",binwidth = 0.125,color=NA)+
+deriv_plot =  ggplot(data=deriv_est_data, 
+                     aes(x=sqr_2nd_deriv,     
+                         y= pmax(obs_sqr_deriv,10^deriv_min),
+                         fill= model,
+                         group=paste(sqr_2nd_deriv,model)))+
+  facet_grid(.~noise, 
+             labeller = as_labeller(noise_labeller,
+                                    default = label_parsed))+
+  geom_dotplot(binaxis = "y", 
+               stackdir = "center",
+               binwidth = 0.125,
+               color=NA)+
   scale_y_log10("Fitted wiggliness",
                 limits = c(10^deriv_min,5e+3),expand=c(0,0.1),
                 breaks = c(10^deriv_min,  1e+0, 1e+3), 
@@ -274,7 +284,8 @@ comp_resources = crossing(model_number = c("G","GS","GI","S","I"),
                                                levels = c("CO2","bird_move")),
                           time = 0, n_smooths = 0,
                           n_coef = 0)%>%
-  mutate(model_number = factor(model_number, levels = c("G","GS","GI","S","I")))
+  mutate(model_number = factor(model_number, 
+                               levels = c("G","GS","GI","S","I")))
 
 
 #Fit each model to the example data sets, and calculate run time for them
@@ -296,7 +307,7 @@ comp_resources[2,"time"] = system.time(
 
 comp_resources[3,"time"] = system.time(
   CO2_modGS <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
-                                s(log(conc), Plant_uo, k=5, bs="fs",m=1),
+                                 s(log(conc), Plant_uo, k=5, bs="fs",m=1),
                   data= CO2,
                   method="REML",
                   control = list(keepData=TRUE))
@@ -306,8 +317,8 @@ comp_resources[3,"time"] = system.time(
 comp_resources[4,"time"] = system.time(
   bird_modGS <- gam(count ~ te(week,latitude, bs= c("cc", "tp"),
                               k=c(10,10),m=c(2,2))+
-                           te(week,latitude,species, bs= c("cc", "tp","re"),
-                              k=c(10,10,6),m = c(1,1,1)),
+                            te(week,latitude,species, bs= c("cc", "tp","re"),
+                               k=c(10,10,6),m = c(1,1,1)),
                    data= bird_move, 
                    method="REML", 
                    family= poisson,
@@ -317,8 +328,8 @@ comp_resources[4,"time"] = system.time(
 
 comp_resources[5,"time"] = system.time(
   CO2_modGI <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
-                                s(log(conc),by= Plant_uo, k =5,  bs="ts",m=1)+
-                                s(Plant_uo,bs="re",k=12),
+                                 s(log(conc),by= Plant_uo, k =5,  bs="ts",m=1)+
+                                 s(Plant_uo,bs="re",k=12),
                   data= CO2,
                   method="REML",
                   control = list(keepData=TRUE)))[3]
@@ -327,9 +338,9 @@ comp_resources[5,"time"] = system.time(
 
 comp_resources[6,"time"] = system.time(
   bird_modGI <- gam(count ~ te(week,latitude, bs= c("cc", "tp"),
-                              k=c(10,10),m=c(2,2)) +
-                           te(week,latitude, bs= c("cc", "tp"),
-                              k=c(10,10),m=c(1,1),by= species),
+                               k=c(10,10),m=c(2,2)) +
+                            te(week,latitude, bs= c("cc", "tp"),
+                               k=c(10,10),m=c(1,1),by= species),
                    data= bird_move, 
                    method="REML", 
                    family= poisson,
@@ -410,7 +421,9 @@ comp_resources_table =comp_resources %>%
 ```
 
 ```{r comp_time_kable, echo=FALSE, fig.width=4, fig.height=6, message=FALSE, warning=FALSE, cache=TRUE,purl=FALSE}
-kable(comp_resources_table,format ="latex", caption="Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model *G* takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smoothers is the total number of unique penalty values estimated by the model.", booktabs = TRUE)%>% #NOTE: change format to "latex" when compiling to pdf, "html" when compiling html
+kable(comp_resources_table,format ="latex", caption="Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model *G* takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smoothers is the total number of unique penalty values estimated by the model.", booktabs = TRUE)%>% 
+  #NOTE: change format to "latex" when compiling to pdf, 
+  #"html" when compiling html
   kable_styling(full_width = FALSE)%>%
   add_header_above(c(" " = 1," "=1, "# of terms"=2))%>%
   group_rows("A. CO2 data", 1,5)%>%
@@ -443,12 +456,6 @@ levels is small (in our simulations, <8 group levels), however they do show
 substantial speed improvements even with a moderate number of groups, and were
 as fast as or faster to calculate than `bam()` for all numbers of grouping levels
 we tested (Fig. \ref{fig:alt_timing})[^parallel].
-
-<!-- send to discussion For large numbers of group
-levels and bigger data sets, it may be necessary to use full functional
-regression methods such as those implemented in the `refund` package
-[@scheipl_functional_2014]. See below for a discussion of what functional
-regression is and its connections to HGAMs. -->
 
 [^parallel]: It is also possible to speed up both `gam()` and `bam()` by using
 multiple processors in parallel, whereas this is not currently possible for
@@ -506,7 +513,8 @@ for(i in 1:n_steps){
   model_data = crossing(fac=fac_current, x=x)%>%
     left_join(model_coefs)%>%
     mutate(base_func  = dnorm(x)*10,
-           indiv_func = int + x^2*x2 + 2*(exp(x*logit_slope)/(1+exp(x*logit_slope))-0.5),
+           indiv_func = int + x^2*x2 +
+                        2*(exp(x*logit_slope)/(1+exp(x*logit_slope))-0.5),
            y = base_func + indiv_func + rnorm(n()))
   
   fit_timing_data$gam[i] = system.time(gam(y~s(x,k=10, bs="cp") + 
@@ -546,7 +554,10 @@ for(i in 1:n_steps){
 
 #Combine all of the timing data into long format, ready for plotting
 fit_timing_long = fit_timing_data %>% 
-  gather(model, timing, gam,`bam (discrete = FALSE)`, 
+  gather(model, 
+         timing, 
+         gam,
+         `bam (discrete = FALSE)`, 
          `bam (discrete = TRUE)`, gamm, gamm4)%>%
   mutate(model = factor(model, levels = c("gam",
                                          "bam (discrete = FALSE)",
@@ -559,7 +570,11 @@ timing_plot = ggplot(aes(n_groups, timing, color=model, linetype= model),
                      data=fit_timing_long)+
   geom_line()+
   geom_point(show.legend = FALSE)+
-  scale_color_manual(values = c("black", "#1b9e77","#1b9e77", "#d95f02", "#7570b3"))+
+  scale_color_manual(values = c("black", 
+                                "#1b9e77",
+                                "#1b9e77", 
+                                "#d95f02", 
+                                "#7570b3"))+
   scale_linetype_manual(values =c(1,1,2,1,1))+
   scale_y_log10("run time (seconds)", 
                 breaks = c(0.1,1,10,100), 

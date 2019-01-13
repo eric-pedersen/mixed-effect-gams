@@ -244,15 +244,15 @@ zoo_test_summary = zoo_test %>%
                        digits=3),
     `Model I` = format(get_deviance(zoo_comm_modI, modI, density_adj), 
                        scientific = FALSE, 
-                       digits=3))%>%
-  #need to specify this to ensure that species names are italized in the table
-  mutate(taxon = cell_spec(taxon, 
-                           italic = c(TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,TRUE,TRUE))) 
+                       digits=3))
 
 ```
 
 ```{r zoo_comm_outofsample_kable, echo=FALSE, message=FALSE, dependson=-1, cache=TRUE,purl=FALSE}
-zoo_test_summary = zoo_test_summary %>%
+zoo_test_summary = zoo_test_summary%>%
+  #need to specify this to ensure that species names are italized in the table
+  mutate(taxon = cell_spec(taxon, 
+                           italic = c(TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,TRUE,TRUE)))%>%
   #Capitilizing taxon in the table names
   rename(Taxon = taxon)
 
@@ -343,10 +343,10 @@ daph_plot_data <- expand.grid(day = 1:365,
                               lake = factor(levels(zoo_train$lake)),
                               year_f = 1980)
 
-#extract predicted values and standard errors for both models. the exclude = "s(taxon,year_f)" 
-#term indicates that predictions should be made excluding the effect of the
-#taxon-by-year random effect (effectively making predictions averaging
-#over year-taxon effects).
+#extract predicted values and standard errors for both models. the 
+#exclude ="s(taxon,year_f)" term indicates that predictions should be made 
+#excluding the effect of the taxon-by-year random effect (effectively making
+#predictions averaging over year-taxon effects).
 daph_modG_fit <- predict(zoo_daph_modG, 
                          newdata = daph_plot_data, 
                          se.fit = TRUE, 
@@ -380,25 +380,34 @@ daph_plot_data <- mutate(daph_plot_data,
                          fit   = exp(fit))
 
 daph_plot_model_labels = paste("Model", c("G","GS","GI"))
-daph_plot_model_labels = factor(daph_plot_model_labels, levels= daph_plot_model_labels)
+daph_plot_model_labels = factor(daph_plot_model_labels, 
+                                levels= daph_plot_model_labels)
 
 daph_plot <- ggplot(daph_plot_data, aes(x=day))+
   facet_wrap(~lake, nrow = 2)+
   geom_ribbon(aes(x = day, ymin = lower, ymax = upper, fill = model), 
                 alpha = 0.2) +
-  geom_point(data= daphnia_train, aes(x = day, y = density_adj),size=0.06)+
-  geom_point(data= daphnia_test, aes(x = day, y = density_adj),
-             size=0.06,col="grey")+
+  geom_point(data= daphnia_train, 
+             aes(x = day, 
+                 y = density_adj),
+             size=0.06)+
+  geom_point(data= daphnia_test, 
+             aes(x = day, 
+                 y = density_adj),
+             size=0.06,
+             col="grey")+
   geom_line(aes(x = day, y = fit, colour = model)) +
 
   labs(y = expression(atop(Population~density,
                            ("10 000"~individuals~m^{-2}))), 
        x = "Day of Year") +
   scale_x_continuous(expand = c(0,0))+
-    scale_fill_brewer(name = "", palette = "Dark2",
+    scale_fill_brewer(name = "", 
+                      palette = "Dark2",
                       labels = daph_plot_model_labels) +
     scale_colour_brewer(name = "",
-                        palette = "Dark2", labels = daph_plot_model_labels)+
+                        palette = "Dark2", 
+                        labels = daph_plot_model_labels)+
   theme(legend.position = "top")
 
 
@@ -424,25 +433,42 @@ zoo_daph_mod0 <- gam(density_adj~s(lake, bs="re"),
 # We'll look at the correlation between fitted and observed values for all species:
 
 daph_test_summary <- daphnia_test %>%
-  mutate(#get out-of-sample predicted fits
+  mutate(
+    #get out-of-sample predicted fits
     mod0 = as.numeric(predict(zoo_daph_mod0,.,type="response")),
     modG = as.numeric(predict(zoo_daph_modG,.,type="response")),
     modGS = as.numeric(predict(zoo_daph_modGS,.,type="response")),
     modGI = as.numeric(predict(zoo_daph_modGI,.,type="response")))%>%
   group_by(lake)%>%
-  summarise(`Intercept only` = format(get_deviance(zoo_daph_mod0, mod0, density_adj), 
-                                      scientific = FALSE, digits=2),
-            `Model G` = format(get_deviance(zoo_daph_modG, modG, density_adj), 
-                               scientific = FALSE, digits=2),
-            `Model GS` = format(get_deviance(zoo_daph_modGS, modGS, density_adj), 
-                               scientific = FALSE, digits=2),
-            `Model GI` = format(get_deviance(zoo_daph_modGI, modGI, density_adj), 
-                               scientific = FALSE, digits=2))%>%
+  summarise(`Intercept only` = format(get_deviance(zoo_daph_mod0, 
+                                                   mod0, 
+                                                   density_adj), 
+                                      scientific = FALSE, 
+                                      digits=2),
+            `Model G` = format(get_deviance(zoo_daph_modG, 
+                                            modG, 
+                                            density_adj), 
+                               scientific = FALSE, 
+                               digits=2),
+            `Model GS` = format(get_deviance(zoo_daph_modGS, 
+                                             modGS, 
+                                             density_adj), 
+                               scientific = FALSE, 
+                               digits=2),
+            `Model GI` = format(get_deviance(zoo_daph_modGI, 
+                                             modGI, 
+                                             density_adj), 
+                               scientific = FALSE, 
+                               digits=2))%>%
   rename(Lake = lake)
 ```
 
 ```{r zoo_daph_outofsample_kable, echo=FALSE, message=FALSE, dependson=-1,  cache=TRUE, purl = FALSE}
-kable(daph_test_summary,format = table_out_format, caption="Out-of-sample predictive ability for model \\textit{G}, \\textit{GS}, and \\textit{GI} applied to the \\textit{D. mendotae} dataset. Deviance values represent the total deviance of model predictions from observations for out-of-sample data. 'Intercept only' results are for a null model with only lake-level random effect intercepts included.", booktabs = TRUE)%>%
-  add_header_above(c(" " = 1, "Total deviance of out-of-sample data" = 4),escape = FALSE)%>%
+kable(daph_test_summary,
+      format = table_out_format, 
+      caption="Out-of-sample predictive ability for model \\textit{G}, \\textit{GS}, and \\textit{GI} applied to the \\textit{D. mendotae} dataset. Deviance values represent the total deviance of model predictions from observations for out-of-sample data. 'Intercept only' results are for a null model with only lake-level random effect intercepts included.", 
+      booktabs = TRUE)%>%
+  add_header_above(c(" " = 1, "Total deviance of out-of-sample data" = 4),
+                   escape = FALSE)%>%
   kable_styling(full_width = FALSE)
 ```

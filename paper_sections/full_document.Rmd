@@ -53,7 +53,8 @@ theme_update(panel.grid = element_blank())
 ```
 
 ```{r setup_tables, include=FALSE, purl=FALSE}
-#This code is for configuring latex tables. It is not needed for general script usage.
+#This code is for configuring latex tables. It is not needed for general script
+#usage.
 table_out_format <- ifelse("pdf_document" %in% rmarkdown::all_output_formats("full_document.Rmd"),
                     "latex",
                      ifelse("html_document" %in% rmarkdown::all_output_formats("full_document.Rmd"),
