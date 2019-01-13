@@ -159,7 +159,7 @@ noise_labeller <- function(string) {
   signal_to_noise = as.numeric(string)
   signal_to_noise = 0.5/signal_to_noise^2
   signal_to_noise = as.character(signal_to_noise)
-  TeX(paste("$\\frac{signal}{noise}\\;= $", signal_to_noise)) 
+  TeX(paste("signal:noise =", signal_to_noise)) 
 }
 
 #The derivative plots
@@ -184,7 +184,7 @@ deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv,                  
                 )+
   scale_fill_brewer(name=NULL,palette= "Set1")+
   geom_abline(color="black")+
-  theme(legend.position = c(0.1, 0.25),
+  theme(legend.position = "top",
         strip.text.x = element_blank(),
         plot.margin = unit(c(3, 5.5, 5,5, 5.5), "pt"))
 

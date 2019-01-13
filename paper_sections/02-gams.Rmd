@@ -167,11 +167,13 @@ bs_func_labels = tp_example_curve %>%
 
 
 #### Creating plots for smoothness and null-space penalties
-basis_func_plot = ggplot(aes(x=x,y=value),data=spline_basis_funcr)+
+basis_func_plot = ggplot(aes(x=x,y=value,color=func),data=spline_basis_funcr)+
   geom_line()+
   scale_x_continuous(breaks=seq(0,1,length=3),
                      labels=c("0","0.5","1"))+
   facet_wrap(~func)+
+  scale_color_viridis_d(end = 0.8)+
+  guides(color = "none")+
   theme_bw()+
   theme(strip.background = element_blank(), panel.grid = element_blank())
 
@@ -199,7 +201,7 @@ basis_sample_plot = ggplot(data= tp_example_curve, aes(x, value))+
             parse=TRUE, hjust = 0,nudge_x = 0.01)+
   scale_x_continuous(expand = c(0,0),
                      limits = c(0,1.15))+
-  scale_color_viridis_d()+
+  scale_color_viridis_d(end = 0.8)+
   guides(color = "none")
 
 
