@@ -37,6 +37,7 @@ library(stringr)
 library(gamm4)
 library(tidyr)
 library(ggplot2)
+library(ggthemes)
 library(viridis)
 library(cowplot)
 library(kableExtra)
@@ -53,7 +54,8 @@ theme_update(panel.grid = element_blank())
 ```
 
 ```{r setup_tables, include=FALSE, purl=FALSE}
-#This code is for configuring latex tables. It is not needed for general script usage.
+#This code is for configuring latex tables. It is not needed for general script
+#usage.
 table_out_format <- ifelse("pdf_document" %in% rmarkdown::all_output_formats("full_document.Rmd"),
                     "latex",
                      ifelse("html_document" %in% rmarkdown::all_output_formats("full_document.Rmd"),
@@ -68,6 +70,7 @@ table_out_format <- ifelse("pdf_document" %in% rmarkdown::all_output_formats("fu
 In this paper, we discuss an extension to two popular approaches to modelling complex structures in ecological data: the generalized additive model (GAM) and the hierarchical model (HGLM).
 The hierarchical GAM (HGAM), allows modelling of nonlinear functional relationships between covariates and outcomes where the shape of the function itself varies between different grouping levels.
 We describe the theoretical connection between these models, HGLMs and GAMs, explain how to model different assumptions about the degree of inter-group variability in functional response, and show how HGAMs can be readily fitted using existing GAM software, the **mgcv** package in R. We also discuss computational and statistical issues with fitting these models, and demonstrate how to fit HGAMs on example data. 
+All code and data used to generate this paper are available at: [github.com/noamross/mixed-effect-gams](https://github.com/noamross/mixed-effect-gams). 
 
 ```{r child = '01-intro.Rmd'}
 ```

@@ -104,11 +104,11 @@ Penalties can have two effects on how well a model fits: they can penalize how w
 k = 6
 plotting_data = data.frame(x = seq(0,1,length=100))
 
-#This creates the basis functions for a thin-plate spline
-#The absorb.cons=FALSE setting makes sure that smoothCon does not remove basis 
-#functions that have a non-zero sum (in this case, the intercept). Absorbing 
-#constraints would result in having less than k basis functions, which is why fitted 
-#terms in mgcv often have less than k maximum EDF. 
+#This creates the basis functions for a thin-plate spline The absorb.cons=FALSE
+#setting makes sure that smoothCon does not remove basis functions that have a
+#non-zero sum (in this case, the intercept). Absorbing constraints would result
+#in having less than k basis functions, which is why fitted terms in mgcv often
+#have less than k maximum EDF.
 tp_basis = smoothCon(s(x,bs="tp",k=k), data=plotting_data,
                      knots=NULL,absorb.cons=FALSE)[[1]]
 
@@ -137,7 +137,8 @@ spline_basis_penalties$penalty_type = "Smoothness penalty"
 
 
 ##### Creating a random draw from the function ####
-set.seed(6) #ensure we can reproduce this example
+#ensure we can reproduce this example
+set.seed(6) 
 coef_sample = rmvn(n = 1, mu = rep(0, times = k),V = 4*ginv(tp_basis$S[[1]]))
 
 #randomly draw the null space terms from a normal distribution
@@ -167,11 +168,19 @@ bs_func_labels = tp_example_curve %>%
 
 
 #### Creating plots for smoothness and null-space penalties
-basis_func_plot = ggplot(aes(x=x,y=value),data=spline_basis_funcr)+
+#getting a color-blind palette for the 6 levels, avoiding the yellow and black 
+#levels
+basis_func_palette = colorblind_pal()(8)
+basis_func_palette = basis_func_palette[-c(1,5)]
+
+#Plotting the basis functions
+basis_func_plot = ggplot(aes(x=x,y=value,color=func),data=spline_basis_funcr)+
   geom_line()+
   scale_x_continuous(breaks=seq(0,1,length=3),
                      labels=c("0","0.5","1"))+
   facet_wrap(~func)+
+  scale_color_manual(values = basis_func_palette)+
+  guides(color = "none")+
   theme_bw()+
   theme(strip.background = element_blank(), panel.grid = element_blank())
 
@@ -199,7 +208,7 @@ basis_sample_plot = ggplot(data= tp_example_curve, aes(x, value))+
             parse=TRUE, hjust = 0,nudge_x = 0.01)+
   scale_x_continuous(expand = c(0,0),
                      limits = c(0,1.15))+
-  scale_color_viridis_d()+
+  scale_color_manual(values = basis_func_palette)+
   guides(color = "none")
 
 

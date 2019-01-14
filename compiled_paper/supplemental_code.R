@@ -6,6 +6,7 @@ library(stringr)
 library(gamm4)
 library(tidyr)
 library(ggplot2)
+library(ggthemes)
 library(viridis)
 library(cowplot)
 library(kableExtra)
@@ -74,11 +75,11 @@ plot_grid(p1, p2, p3, align = "hv", axis = "lrtb", ncol = 3, labels = "auto")
 k = 6
 plotting_data = data.frame(x = seq(0,1,length=100))
 
-#This creates the basis functions for a thin-plate spline
-#The absorb.cons=FALSE setting makes sure that smoothCon does not remove basis 
-#functions that have a non-zero sum (in this case, the intercept). Absorbing 
-#constraints would result in having less than k basis functions, which is why fitted 
-#terms in mgcv often have less than k maximum EDF. 
+#This creates the basis functions for a thin-plate spline The absorb.cons=FALSE
+#setting makes sure that smoothCon does not remove basis functions that have a
+#non-zero sum (in this case, the intercept). Absorbing constraints would result
+#in having less than k basis functions, which is why fitted terms in mgcv often
+#have less than k maximum EDF.
 tp_basis = smoothCon(s(x,bs="tp",k=k), data=plotting_data,
                      knots=NULL,absorb.cons=FALSE)[[1]]
 
@@ -107,7 +108,8 @@ spline_basis_penalties$penalty_type = "Smoothness penalty"
 
 
 ##### Creating a random draw from the function ####
-set.seed(6) #ensure we can reproduce this example
+#ensure we can reproduce this example
+set.seed(6) 
 coef_sample = rmvn(n = 1, mu = rep(0, times = k),V = 4*ginv(tp_basis$S[[1]]))
 
 #randomly draw the null space terms from a normal distribution
@@ -137,11 +139,19 @@ bs_func_labels = tp_example_curve %>%
 
 
 #### Creating plots for smoothness and null-space penalties
-basis_func_plot = ggplot(aes(x=x,y=value),data=spline_basis_funcr)+
+#getting a color-blind palette for the 6 levels, avoiding the yellow and black 
+#levels
+basis_func_palette = colorblind_pal()(8)
+basis_func_palette = basis_func_palette[-c(1,5)]
+
+#Plotting the basis functions
+basis_func_plot = ggplot(aes(x=x,y=value,color=func),data=spline_basis_funcr)+
   geom_line()+
   scale_x_continuous(breaks=seq(0,1,length=3),
                      labels=c("0","0.5","1"))+
   facet_wrap(~func)+
+  scale_color_manual(values = basis_func_palette)+
+  guides(color = "none")+
   theme_bw()+
   theme(strip.background = element_blank(), panel.grid = element_blank())
 
@@ -169,7 +179,7 @@ basis_sample_plot = ggplot(data= tp_example_curve, aes(x, value))+
             parse=TRUE, hjust = 0,nudge_x = 0.01)+
   scale_x_continuous(expand = c(0,0),
                      limits = c(0,1.15))+
-  scale_color_viridis_d()+
+  scale_color_manual(values = basis_func_palette)+
   guides(color = "none")
 
 
@@ -194,13 +204,18 @@ CO2 <- transform(CO2, Plant_uo=factor(Plant, ordered=FALSE))
 #Loading simulated bird movement data
 bird_move <- read.csv("../data/bird_move.csv")
 
-CO2_vis_plot <- ggplot(CO2, aes(x=conc, y=uptake, group=Plant,color=Plant, lty=Plant)) +
+CO2_vis_plot <- ggplot(CO2, aes(x=conc, 
+                                y=uptake, 
+                                group=Plant,
+                                color=Plant, 
+                                lty=Plant)) +
   geom_point() +
   geom_line() +
   scale_color_manual(values = rep(c("red","blue","black"), times =4))+
   scale_linetype_manual(values = rep(1:4, each=3))+
   guides(color="none",linetype="none")+
-  labs(x=expression(CO[2] ~ concentration ~ (mL ~ L^{-1})), y=expression(CO[2] ~ uptake ~ (mu*mol ~ m^{-2})))
+  labs(x=expression(CO[2] ~ concentration ~ (mL ~ L^{-1})), 
+       y=expression(CO[2] ~ uptake ~ (mu*mol ~ m^{-2})))
 
 bird_vis_plot <- ggplot(dplyr::filter(bird_move, count > 0),
                         aes(x=week, y=latitude, size=count))+
@@ -321,7 +336,7 @@ CO2_modS <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5, bs="fs", m=2),
                 data=CO2, method="REML")
 
 bird_modS <- gam(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
-                            k=c(10, 10, 6), m=c(2, 2, 2)),
+                            k=c(10, 10, 6), m=2),
                  data=bird_move, method="REML", family="poisson",
                  knots = list(week = c(0, 52)))
 CO2_modI <- gam(log(uptake) ~ s(log(conc), by=Plant_uo, k=5, bs="tp", m=2) +
@@ -404,11 +419,9 @@ zoo_comm_modI <- gam(density_adj ~ s(day, by=taxon,
                      drop.unused.levels = FALSE)
 ## gam.check(zoo_comm_modS)
 ## gam.check(zoo_comm_modI)
-## #individual components of gam.check: the results for k.check
-## round(k.check(zoo_comm_modI),2)
 #Checking residuals and qqplots for GAM fits
 
-#qqplot, using gratia's qq_plot function, with simulated confidence intervals.
+#QQ-plot, using gratia's qq_plot function, with simulated confidence intervals.
 #We are removing the title and subtitle to simplify the figure
 plt1 <- qq_plot(zoo_comm_modI, method = "simulate") +
   labs(title =NULL, subtitle =NULL)
@@ -420,6 +433,8 @@ plt2 <- ggplot(df, aes(x = log_fitted, y = residuals)) +
     geom_point() +
     labs(x = "Linear predictor", y = "Deviance residual")
 plot_grid(plt1, plt2, ncol = 2, align = "hv", axis = "lrtb",labels=c("a","b"))
+## #individual components of gam.check: the results for k.check
+## round(k.check(zoo_comm_modI),2)
 #Create synthetic data to use to compare predictions
 zoo_plot_data <- expand.grid(day = 1:365, 
                              taxon = factor(levels(zoo_train$taxon)), 
@@ -459,9 +474,9 @@ zoo_plot <- ggplot(zoo_plot_data) +
                   ymax = upper,
                   fill = model),
               alpha=0.2)+
-  geom_point(data= zoo_train, aes(x = day, y = density_adj),size=0.1)+
+  geom_point(data= zoo_train, aes(x = day, y = density_adj),size=0.06)+
   geom_point(data= zoo_test, aes(x = day, y = density_adj),
-             size=0.1,col="grey")+
+             size=0.06,col="grey")+
   geom_line(aes(x = day, y = fit, color = model))+
   labs(y = expression(atop(Population~density,("10 000"~individuals~m^{-2}))), 
        x = "Day of Year") +
@@ -501,10 +516,7 @@ zoo_test_summary = zoo_test %>%
                        digits=3),
     `Model I` = format(get_deviance(zoo_comm_modI, modI, density_adj), 
                        scientific = FALSE, 
-                       digits=3))%>%
-  #need to specify this to ensure that species names are italized in the table
-  mutate(taxon = cell_spec(taxon, 
-                           italic = c(TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,TRUE,TRUE))) 
+                       digits=3))
 
 zoo_daph_modG <- gam(density_adj ~ s(day, bs="cc", k=10)+
                        s(lake, bs="re") + 
@@ -548,10 +560,10 @@ daph_plot_data <- expand.grid(day = 1:365,
                               lake = factor(levels(zoo_train$lake)),
                               year_f = 1980)
 
-#extract predicted values and standard errors for both models. the exclude = "s(taxon,year_f)" 
-#term indicates that predictions should be made excluding the effect of the
-#taxon-by-year random effect (effectively making predictions averaging
-#over year-taxon effects).
+#extract predicted values and standard errors for both models. the 
+#exclude ="s(taxon,year_f)" term indicates that predictions should be made 
+#excluding the effect of the taxon-by-year random effect (effectively making
+#predictions averaging over year-taxon effects).
 daph_modG_fit <- predict(zoo_daph_modG, 
                          newdata = daph_plot_data, 
                          se.fit = TRUE, 
@@ -585,25 +597,35 @@ daph_plot_data <- mutate(daph_plot_data,
                          fit   = exp(fit))
 
 daph_plot_model_labels = paste("Model", c("G","GS","GI"))
-daph_plot_model_labels = factor(daph_plot_model_labels, levels= daph_plot_model_labels)
+daph_plot_model_labels = factor(daph_plot_model_labels, 
+                                levels= daph_plot_model_labels)
 
 daph_plot <- ggplot(daph_plot_data, aes(x=day))+
   facet_wrap(~lake, nrow = 2)+
   geom_ribbon(aes(x = day, ymin = lower, ymax = upper, fill = model), 
                 alpha = 0.2) +
-  geom_point(data= daphnia_train, aes(x = day, y = density_adj),size=0.1)+
-  geom_point(data= daphnia_test, aes(x = day, y = density_adj),
-             size=0.1,col="grey")+
+  geom_point(data= daphnia_train, 
+             aes(x = day, 
+                 y = density_adj),
+             size=0.06)+
+  geom_point(data= daphnia_test, 
+             aes(x = day, 
+                 y = density_adj),
+             size=0.06,
+             col="grey")+
   geom_line(aes(x = day, y = fit, colour = model)) +
 
   labs(y = expression(atop(Population~density,
                            ("10 000"~individuals~m^{-2}))), 
        x = "Day of Year") +
   scale_x_continuous(expand = c(0,0))+
-    scale_fill_brewer(name = "", palette = "Dark2",
+    scale_fill_brewer(name = "", 
+                      palette = "Dark2",
                       labels = daph_plot_model_labels) +
     scale_colour_brewer(name = "",
-                        palette = "Dark2", labels = daph_plot_model_labels)
+                        palette = "Dark2", 
+                        labels = daph_plot_model_labels)+
+  theme(legend.position = "top")
 
 
 daph_plot
@@ -621,20 +643,33 @@ zoo_daph_mod0 <- gam(density_adj~s(lake, bs="re"),
 # We'll look at the correlation between fitted and observed values for all species:
 
 daph_test_summary <- daphnia_test %>%
-  mutate(#get out-of-sample predicted fits
+  mutate(
+    #get out-of-sample predicted fits
     mod0 = as.numeric(predict(zoo_daph_mod0,.,type="response")),
     modG = as.numeric(predict(zoo_daph_modG,.,type="response")),
     modGS = as.numeric(predict(zoo_daph_modGS,.,type="response")),
     modGI = as.numeric(predict(zoo_daph_modGI,.,type="response")))%>%
   group_by(lake)%>%
-  summarise(`Intercept only` = format(get_deviance(zoo_daph_mod0, mod0, density_adj), 
-                                      scientific = FALSE, digits=2),
-            `Model G` = format(get_deviance(zoo_daph_modG, modG, density_adj), 
-                               scientific = FALSE, digits=2),
-            `Model GS` = format(get_deviance(zoo_daph_modGS, modGS, density_adj), 
-                               scientific = FALSE, digits=2),
-            `Model GI` = format(get_deviance(zoo_daph_modGI, modGI, density_adj), 
-                               scientific = FALSE, digits=2))%>%
+  summarise(`Intercept only` = format(get_deviance(zoo_daph_mod0, 
+                                                   mod0, 
+                                                   density_adj), 
+                                      scientific = FALSE, 
+                                      digits=2),
+            `Model G` = format(get_deviance(zoo_daph_modG, 
+                                            modG, 
+                                            density_adj), 
+                               scientific = FALSE, 
+                               digits=2),
+            `Model GS` = format(get_deviance(zoo_daph_modGS, 
+                                             modGS, 
+                                             density_adj), 
+                               scientific = FALSE, 
+                               digits=2),
+            `Model GI` = format(get_deviance(zoo_daph_modGI, 
+                                             modGI, 
+                                             density_adj), 
+                               scientific = FALSE, 
+                               digits=2))%>%
   rename(Lake = lake)
 
 #### Code for V: Computational and statistical issues when fitting HGAMs ####
@@ -660,7 +695,8 @@ biasvar_data = crossing(noise = noise_levels,
                )%>%
   mutate(y = cos(freq*x) +rnorm(n(), 0, noise),
          grp = paste("frequency = ",freq,sep= ""),
-         grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")))
+         grp = factor(grp,  
+                      levels = paste("frequency = ",freq_vals,sep= "")))
 
 biasvar_fit = biasvar_data %>%
   group_by(noise,rep)%>%
@@ -675,7 +711,8 @@ biasvar_fit = biasvar_data %>%
 biasvar_predict_data = crossing(x = seq(0,2*pi,length=500), 
                                 freq = freq_vals)%>%
   mutate(grp = paste("frequency = ",freq,sep= ""),
-         grp = factor(grp,  levels = paste("frequency = ",freq_vals,sep= "")),
+         grp = factor(grp,  
+                      levels = paste("frequency = ",freq_vals,sep= "")),
          y = cos(freq*x))
 
 biasvar_predict_fit = biasvar_fit %>%
@@ -687,7 +724,9 @@ biasvar_predict_fit = biasvar_fit %>%
                                newdata = biasvar_predict_data,
                                type="response")))%>%
   unnest(fitS, fitI) %>%
-  bind_cols(crossing(noise=noise_levels, rep= 1:n_reps,biasvar_predict_data))
+  bind_cols(crossing(noise=noise_levels, 
+                     rep= 1:n_reps,
+                     biasvar_predict_data))
 
 #turn this into long-format data for plotting, and to make it easier to
 #calculate derivatives
@@ -731,18 +770,24 @@ noise_labeller <- function(string) {
   signal_to_noise = as.numeric(string)
   signal_to_noise = 0.5/signal_to_noise^2
   signal_to_noise = as.character(signal_to_noise)
-  TeX(paste("$\\frac{signal}{noise}\\;= $", signal_to_noise)) 
+  TeX(paste("signal:noise =", signal_to_noise)) 
 }
 
 #The derivative plots
 
 deriv_min = -3
-deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv,                                                                    y= pmax(obs_sqr_deriv,10^deriv_min),
-                                              fill= model,
-                                              group=paste(sqr_2nd_deriv,model)))+
-  facet_grid(.~noise, labeller = as_labeller(noise_labeller,
-                                               default = label_parsed))+
-  geom_dotplot(binaxis = "y", stackdir = "center",binwidth = 0.125,color=NA)+
+deriv_plot =  ggplot(data=deriv_est_data, 
+                     aes(x=sqr_2nd_deriv,     
+                         y= pmax(obs_sqr_deriv,10^deriv_min),
+                         fill= model,
+                         group=paste(sqr_2nd_deriv,model)))+
+  facet_grid(.~noise, 
+             labeller = as_labeller(noise_labeller,
+                                    default = label_parsed))+
+  geom_dotplot(binaxis = "y", 
+               stackdir = "center",
+               binwidth = 0.125,
+               color=NA)+
   scale_y_log10("Fitted wiggliness",
                 limits = c(10^deriv_min,5e+3),expand=c(0,0.1),
                 breaks = c(10^deriv_min,  1e+0, 1e+3), 
@@ -756,7 +801,7 @@ deriv_plot =  ggplot(data=deriv_est_data, aes(x=sqr_2nd_deriv,                  
                 )+
   scale_fill_brewer(name=NULL,palette= "Set1")+
   geom_abline(color="black")+
-  theme(legend.position = c(0.1, 0.25),
+  theme(legend.position = "top",
         strip.text.x = element_blank(),
         plot.margin = unit(c(3, 5.5, 5,5, 5.5), "pt"))
 
@@ -815,7 +860,8 @@ comp_resources = crossing(model_number = c("G","GS","GI","S","I"),
                                                levels = c("CO2","bird_move")),
                           time = 0, n_smooths = 0,
                           n_coef = 0)%>%
-  mutate(model_number = factor(model_number, levels = c("G","GS","GI","S","I")))
+  mutate(model_number = factor(model_number, 
+                               levels = c("G","GS","GI","S","I")))
 
 
 #Fit each model to the example data sets, and calculate run time for them
@@ -837,7 +883,7 @@ comp_resources[2,"time"] = system.time(
 
 comp_resources[3,"time"] = system.time(
   CO2_modGS <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
-                                s(log(conc), Plant_uo, k=5, bs="fs",m=1),
+                                 s(log(conc), Plant_uo, k=5, bs="fs",m=1),
                   data= CO2,
                   method="REML",
                   control = list(keepData=TRUE))
@@ -847,8 +893,8 @@ comp_resources[3,"time"] = system.time(
 comp_resources[4,"time"] = system.time(
   bird_modGS <- gam(count ~ te(week,latitude, bs= c("cc", "tp"),
                               k=c(10,10),m=c(2,2))+
-                           te(week,latitude,species, bs= c("cc", "tp","re"),
-                              k=c(10,10,6),m = c(1,1,1)),
+                            te(week,latitude,species, bs= c("cc", "tp","re"),
+                               k=c(10,10,6),m = c(1,1,1)),
                    data= bird_move, 
                    method="REML", 
                    family= poisson,
@@ -858,8 +904,8 @@ comp_resources[4,"time"] = system.time(
 
 comp_resources[5,"time"] = system.time(
   CO2_modGI <- gam(log(uptake) ~ s(log(conc),k=5,m=2, bs="tp")+
-                                s(log(conc),by= Plant_uo, k =5,  bs="ts",m=1)+
-                                s(Plant_uo,bs="re",k=12),
+                                 s(log(conc),by= Plant_uo, k =5,  bs="ts",m=1)+
+                                 s(Plant_uo,bs="re",k=12),
                   data= CO2,
                   method="REML",
                   control = list(keepData=TRUE)))[3]
@@ -868,9 +914,9 @@ comp_resources[5,"time"] = system.time(
 
 comp_resources[6,"time"] = system.time(
   bird_modGI <- gam(count ~ te(week,latitude, bs= c("cc", "tp"),
-                              k=c(10,10),m=c(2,2)) +
-                           te(week,latitude, bs= c("cc", "tp"),
-                              k=c(10,10),m=c(1,1),by= species),
+                               k=c(10,10),m=c(2,2)) +
+                            te(week,latitude, bs= c("cc", "tp"),
+                               k=c(10,10),m=c(1,1),by= species),
                    data= bird_move, 
                    method="REML", 
                    family= poisson,
@@ -988,7 +1034,8 @@ for(i in 1:n_steps){
   model_data = crossing(fac=fac_current, x=x)%>%
     left_join(model_coefs)%>%
     mutate(base_func  = dnorm(x)*10,
-           indiv_func = int + x^2*x2 + 2*(exp(x*logit_slope)/(1+exp(x*logit_slope))-0.5),
+           indiv_func = int + x^2*x2 +
+                        2*(exp(x*logit_slope)/(1+exp(x*logit_slope))-0.5),
            y = base_func + indiv_func + rnorm(n()))
   
   fit_timing_data$gam[i] = system.time(gam(y~s(x,k=10, bs="cp") + 
@@ -1028,7 +1075,10 @@ for(i in 1:n_steps){
 
 #Combine all of the timing data into long format, ready for plotting
 fit_timing_long = fit_timing_data %>% 
-  gather(model, timing, gam,`bam (discrete = FALSE)`, 
+  gather(model, 
+         timing, 
+         gam,
+         `bam (discrete = FALSE)`, 
          `bam (discrete = TRUE)`, gamm, gamm4)%>%
   mutate(model = factor(model, levels = c("gam",
                                          "bam (discrete = FALSE)",
@@ -1041,7 +1091,11 @@ timing_plot = ggplot(aes(n_groups, timing, color=model, linetype= model),
                      data=fit_timing_long)+
   geom_line()+
   geom_point(show.legend = FALSE)+
-  scale_color_manual(values = c("black", "#1b9e77","#1b9e77", "#d95f02", "#7570b3"))+
+  scale_color_manual(values = c("black", 
+                                "#1b9e77",
+                                "#1b9e77", 
+                                "#d95f02", 
+                                "#7570b3"))+
   scale_linetype_manual(values =c(1,1,2,1,1))+
   scale_y_log10("run time (seconds)", 
                 breaks = c(0.1,1,10,100), 
