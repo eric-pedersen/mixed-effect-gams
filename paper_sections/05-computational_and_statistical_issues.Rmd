@@ -440,6 +440,8 @@ the only difference is that you use the `bam()` instead of `gam()` function, and
 have the additional option of discretizing your covariates.
 
 `bam()` has a larger computational overhead than `gam()`, so for small numbers of groups, it can be slower than `gam()` (Fig. \ref{fig:alt_timing}). As the number of groups increases, computational time for `bam()` increases more slowly than for `gam()`; in our simulation tests, when the number of groups is greater than 16, `bam()` can be upward of an order of magnitude faster (Fig. \ref{fig:alt_timing}). Note that `bam()` can be somewhat less computationally stable when estimating these models (i.e., less likely to converge). 
+While base `bam()` (not fit using `discrete=TRUE`) is slower than the other approaches shown in Fig. \ref{fig:alt_timing}, that does not imply that `bam()` is  a worse choice in general, as it is designed to avoid memory limitations when working with big data rather than explicitly speeding up model fitting. 
+The `bam()` functions would likely show much better relative performance when the number of individuals per group were large (in the hundreds to thousands, compared to the 20 individuals per group used in Fig. \ref{fig:alt_timing}).
 
 The second option is to fit models using one of two dedicated mixed effect
 model estimation packages, **nlme** and **lme4**. The **mgcv** package includes the
@@ -456,6 +458,7 @@ levels is small (in our simulations, <8 group levels), however they do show
 substantial speed improvements even with a moderate number of groups, and were
 as fast as or faster to calculate than `bam()` for all numbers of grouping levels
 we tested (Fig. \ref{fig:alt_timing})[^parallel].
+
 
 [^parallel]: It is also possible to speed up both `gam()` and `bam()` by using
 multiple processors in parallel, whereas this is not currently possible for
