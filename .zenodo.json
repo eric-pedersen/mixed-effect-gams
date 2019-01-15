@@ -27,7 +27,7 @@
   "access_right":"open",
   "related_identifiers":[
     {
-      "identifier":"https://github.com/noamross/mixed-effect-gams",
+      "identifier":"https://github.com/eric-pedersen/mixed-effect-gams",
       "relation":"isIdenticalTo",
       "scheme":"url"
     }
