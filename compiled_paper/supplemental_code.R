@@ -182,15 +182,18 @@ basis_sample_plot = ggplot(data= tp_example_curve, aes(x, value))+
   scale_color_manual(values = basis_func_palette)+
   guides(color = "none")
 
+#This is a nessecary step to make sure the top left plot is aligned with the 
+#bottom plot. See https://cran.r-project.org/web/packages/cowplot/vignettes/plot_grid.html
+#for details
+aligned_plots = align_plots(basis_func_plot, basis_sample_plot, align = 'v', axis = 'l')
 
-top_row_plot = plot_grid(basis_func_plot,basis_penalty_plot,
+top_row_plot = plot_grid(aligned_plots[[1]],basis_penalty_plot,
                          ncol=2,
-                         rel_widths = c(1.,1),labels= c("","b"))
+                         rel_widths = c(1.,0.9),labels= c("","b"))
   
-full_plot = plot_grid(top_row_plot,basis_sample_plot,
+full_plot = plot_grid(top_row_plot,aligned_plots[[2]],
                       nrow=2,
                       labels= c("a", "c"),
-                      axis = "t",
                       rel_heights = c(1,0.9))
 
 full_plot
