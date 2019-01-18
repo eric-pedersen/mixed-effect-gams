@@ -151,23 +151,23 @@ basis_func_plot = ggplot(aes(x=x,y=value,color=func),data=spline_basis_funcr)+
                      labels=c("0","0.5","1"))+
   facet_wrap(~func)+
   scale_color_manual(values = basis_func_palette)+
-  guides(color = "none")+
-  theme_bw()+
-  theme(strip.background = element_blank(), panel.grid = element_blank())
+  guides(color = "none")
 
 basis_penalty_plot = ggplot(aes(x=basis_x,y=basis_y,fill=value),
                             data=spline_basis_penalties)+
   geom_tile(color="black")+
-  theme_bw()+
-  scale_fill_gradient2("penalty",high = "#b2182b",low="#2166ac",midpoint = 0 )+
-  theme(strip.background = element_blank())+
+  scale_fill_gradient2("penalty",
+                       high = "#b2182b",
+                       low="#2166ac",
+                       midpoint = 0,
+                       breaks = c(0,0.5,1),
+                       labels = c("0", "0.5", "1"))+
   labs(x="", y="")+
   coord_fixed()+
   scale_x_discrete(expand = c(0,0))+
   scale_y_discrete(expand = c(0,0))+
-  theme(axis.ticks=element_blank(),
-        panel.grid=element_blank())
-
+  theme(axis.ticks = element_blank(),
+        plot.margin = unit(c(0, 0, 0, 0), "cm"))
 
 basis_sample_plot = ggplot(data= tp_example_curve, aes(x, value))+
   geom_line(aes(y = Ftotal),size=2)+
@@ -189,7 +189,7 @@ aligned_plots = align_plots(basis_func_plot, basis_sample_plot, align = 'v', axi
 
 top_row_plot = plot_grid(aligned_plots[[1]],basis_penalty_plot,
                          ncol=2,
-                         rel_widths = c(1.,0.9),labels= c("","b"))
+                         rel_widths = c(1,1),labels= c("","b"))
   
 full_plot = plot_grid(top_row_plot,aligned_plots[[2]],
                       nrow=2,
