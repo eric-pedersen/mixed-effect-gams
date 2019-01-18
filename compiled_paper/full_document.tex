@@ -138,21 +138,6 @@ with mgcv}
 \affil[6]{Department of Biology, University of Regina, Regina, SK, Canada}
 \affil[7]{Ecohealth Alliance, New York, NY, USA}
 \affil[*]{Corresponding author. Email: eric.j.pedersen@gmail.com}
-\usepackage{booktabs}
-\usepackage{longtable}
-\usepackage{array}
-\usepackage{multirow}
-\usepackage{wrapfig}
-\usepackage{float}
-\usepackage{colortbl}
-\usepackage{pdflscape}
-\usepackage{tabu}
-\usepackage{threeparttable}
-\usepackage{threeparttablex}
-\usepackage[normalem]{ulem}
-\usepackage{makecell}
-
-\usepackage{lineno} \usepackage{placeins} \linenumbers
 
 \begin{document}
 \maketitle
@@ -1362,15 +1347,15 @@ not significant.
 \toprule
 Model term & k' & EDF & k-index & p-value\\
 \midrule
-s(day):taxonC. sphaericus & 8 & 4.78 & 0.89 & 0.43\\
-s(day):taxonCalanoid copepods & 8 & 6.66 & 0.89 & 0.47\\
-s(day):taxonCyclopoid copepods & 8 & 5.31 & 0.89 & 0.45\\
-s(day):taxonD. mendotae & 8 & 6.95 & 0.89 & 0.48\\
-s(day):taxonD. thomasi & 8 & 6.57 & 0.89 & 0.46\\
+s(day):taxonC. sphaericus & 8 & 4.78 & 0.89 & 0.44\\
+s(day):taxonCalanoid copepods & 8 & 6.66 & 0.89 & 0.46\\
+s(day):taxonCyclopoid copepods & 8 & 5.31 & 0.89 & 0.46\\
+s(day):taxonD. mendotae & 8 & 6.95 & 0.89 & 0.46\\
+s(day):taxonD. thomasi & 8 & 6.57 & 0.89 & 0.45\\
 \addlinespace
-s(day):taxonK. cochlearis & 8 & 5.92 & 0.89 & 0.49\\
-s(day):taxonL. siciloides & 8 & 0.52 & 0.89 & 0.48\\
-s(day):taxonM. edax & 8 & 4.69 & 0.89 & 0.46\\
+s(day):taxonK. cochlearis & 8 & 5.92 & 0.89 & 0.47\\
+s(day):taxonL. siciloides & 8 & 0.52 & 0.89 & 0.46\\
+s(day):taxonM. edax & 8 & 4.69 & 0.89 & 0.43\\
 s(taxon) & 8 & 6.26 & NA & NA\\
 s(taxon,year\_f) & 152 & 51.73 & NA & NA\\
 \bottomrule
@@ -1843,17 +1828,17 @@ model & relative time & coefficients & penalties\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{A. CO2 data}}\\
 \hspace{1em}G & 1 & 17 & 2\\
-\hspace{1em}GS & 26 & 65 & 14\\
+\hspace{1em}GS & 16 & 65 & 14\\
 \hspace{1em}GI & 6 & 65 & 3\\
-\hspace{1em}S & 15 & 61 & 13\\
-\hspace{1em}I & 5 & 61 & 3\\
+\hspace{1em}S & 13 & 61 & 13\\
+\hspace{1em}I & 6 & 61 & 3\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. bird movement data}}\\
 \hspace{1em}G & 1 & 90 & 2\\
-\hspace{1em}GS & 360 & 624 & 14\\
+\hspace{1em}GS & 400 & 624 & 14\\
 \hspace{1em}GI & 180 & 540 & 5\\
 \hspace{1em}S & 68 & 535 & 12\\
-\hspace{1em}I & 140 & 541 & 3\\
+\hspace{1em}I & 130 & 541 & 3\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1999,55 +1984,100 @@ When fitting models with separate global and groupwise smoothers (models
 the global smoother and groupwise terms. Concurvity measures how well
 one smooth term can be approximated by some combination of the other
 smooth terms in the model (see \texttt{?mgcv::concurvity} for details).
-For models \emph{GS} and \emph{GI}, the global term is entirely
+For models \emph{GS} and \emph{GI}, the global term is either entirely
+or almost entirely\footnote{There is an important caveat here. When
+  fitting \emph{GS} models using tensor products in \textbf{mgcv}, the
+  global and group-level terms will not be entirely concurve because
+  \textbf{mgcv} will automatically drop basis functions from the
+  group-level smoother to ensure that these terms are not perfectly
+  concurve. That is, so that no basis function in the global term could
+  be formed from a linear combination of group-level basis functions
+  (see \texttt{?mgcv::gam.side} for how terms to be dropped are
+  selected). Group-level terms fit \texttt{bs="fs"} smoothers will not
+  have any basis functions dropped, as \texttt{mgcv} disables checking
+  for side-constraints for these smoothers (since all basis functions
+  are fully penalized for this type of smoother, in principle concurvity
+  should not be an issue; see
+  \texttt{?mgcv::smooth.construct.fs.smooth.spec} for details).}
 concurved with the groupwise smoothers. This is because, in the absence
 of the global smooth term, it would be possible to recreate that average
 effect by shifting all the groupwise smoothers so they were centered
-around the global mean. In practical terms, this has the consequence of
-increasing uncertainty around the global mean relative to a model with
-only a global smoother. In some cases, it can result in the estimated
-global smoother being close to flat, even in simulated examples with a
-known strong global effect. This concurvity issue may also increase the
-time it takes to fit these models (for example, compare the time it
-takes to fit models \emph{GI} and \emph{I} in Table
-\ref{tab:comp_time_kable}). These models can still be estimated because
-of penalty terms; all of the methods we have discussed for fitting model
-\emph{GS} (factor-smoother terms or random effect tensor products)
-automatically create a penalty for the null space of the group-level
-terms, so that only the global term has its own unpenalized null space.
-Both the REML and ML criteria work to balance penalties between nested
-smooth terms (this is why nested random effects can be fitted). We have
-observed that \textbf{mgcv} still occasionally finds solutions with
-simulated data where the global term is over-smoothed.
+around the global mean.
+
+In practical terms, this has the consequence of increasing uncertainty
+around the global mean relative to a model with only a global smoother.
+In some cases, it can result in the estimated global smoother being
+close to flat, even in simulated examples with a known strong global
+effect. This concurvity issue may also increase the time it takes to fit
+these models (for example, compare the time it takes to fit models
+\emph{GI} and \emph{I} in Table \ref{tab:comp_time_kable}). These models
+can still be estimated because of penalty terms; all of the methods we
+have discussed for fitting model \emph{GS} (factor-smoother terms or
+random effect tensor products) automatically create a penalty for the
+null space of the group-level terms, so that only the global term has
+its own unpenalized null space. Both the REML and ML criteria work to
+balance penalties between nested smooth terms (this is why nested random
+effects can be fitted). We have observed that \textbf{mgcv} still
+occasionally finds solutions with simulated data where the global term
+is over-smoothed.
 
 To avoid this issue, we recommend both careful choice of basis and
 setting model degrees of freedom so that groupwise terms are either
 slightly less flexible than the global term or have a smaller null
 space. In the examples in section III, we used smoothers with an
-unpenalized null space (standard thin plate splines) for the global
-smoother and ones with no null space for the groupwise terms\footnote{For
-  model \emph{GS} both the factor-smoother, and tensor products of
-  random effect (``re'') and other smooth terms do not have a penalized
-  nullspace by construction (they are full rank), as noted above. For
-  model \emph{GI} groupwise terms, we used basis types that had a
-  penalty added to the nullspace, so called ``shrinkage'' methods:
-  \texttt{bs="ts"}, \texttt{"cs"}, or \texttt{"ps"} have this property.}.
-When using thin plate splines, it may also help to use splines with a
-lower order of derivative penalized in the groupwise smoothers than the
-global smoothers, as lower-order ``tp'' splines have fewer basis
-functions in the null space. For example, we used \texttt{m=2}
-(penalizing squared second derivatives) for the global smoother, and
-\texttt{m=1} (penalizing squared first derivatives) for groupwise
-smoothers in models \emph{GS} and \emph{GI}. Another option is to use a
-lower number of basis functions (\texttt{k}) for groupwise relative to
-global terms. This will reduce the maximum flexibility possible in the
-groupwise terms. We do caution that these are just rules of thumb. In
-cases where an accurately estimated global smoother is essential, we
-recommend either fitting model \emph{G} or using specialized functional
-regression software such as the \texttt{fosr} function in the
-\emph{refund} package (Scheipl, Staicu \& Greven, 2014), which allows
-the user to enforce constraints on the groupwise smoothers so that they
-always sum to zero at any given point (avoiding the collinearity issue).
+unpenalized null space for the global smoother and ones with no null
+space for the groupwise terms{[}\^{}gsnull{]}. When using thin plate
+splines, this can be done with splines with a lower order of derivative
+penalized in the groupwise smoothers than the global smoothers, as
+lower-order ``tp'' splines have fewer basis functions in the null space.
+For example, we used \texttt{m=2} (penalizing squared second
+derivatives) for the global smoother, and \texttt{m=1} (penalizing
+squared first derivatives) for groupwise smoothers in models \emph{GS}
+and \emph{GI}. Another option is to use a lower number of basis
+functions (\texttt{k}) for groupwise relative to global terms. This will
+reduce the maximum flexibility possible in the groupwise terms. We do
+caution that these are just rules of thumb.
+
+As noted above\footnote{There is an important caveat here. When fitting
+  \emph{GS} models using tensor products in \textbf{mgcv}, the global
+  and group-level terms will not be entirely concurve because
+  \textbf{mgcv} will automatically drop basis functions from the
+  group-level smoother to ensure that these terms are not perfectly
+  concurve. That is, so that no basis function in the global term could
+  be formed from a linear combination of group-level basis functions
+  (see \texttt{?mgcv::gam.side} for how terms to be dropped are
+  selected). Group-level terms fit \texttt{bs="fs"} smoothers will not
+  have any basis functions dropped, as \texttt{mgcv} disables checking
+  for side-constraints for these smoothers (since all basis functions
+  are fully penalized for this type of smoother, in principle concurvity
+  should not be an issue; see
+  \texttt{?mgcv::smooth.construct.fs.smooth.spec} for details).},
+interpreting the shape of global terms and group-wise deviations
+seperately for \emph{GS} models fit using tensor-product group-level
+terms is complicated by the fact that \textbf{mgcv} will drop some
+basis-functions for the group-level term to prevent perfect concurvity.
+For tensor-product smoothers, \texttt{gam.side} will generally drop
+\(\le k\) terms from the group-level smoother, where \(k\) is the number
+of basis functions in the global smoother. The total number of terms
+dropped will depend on the smoothers used for the global and groupwise
+terms, and will be dropped essentially at random from different grouping
+levels. This means that some groups will have a different range of
+potential deviations from the global smoother than others. This has the
+effect of also somewhat altering the shape of the global smooth relative
+to what it would be based on model \emph{G} (the average curve through
+all the data); this will be a larger issue when the number of basis
+functions in the global smooth and the number of group levels are small.
+
+There is currently no way to disable dropping side constraints for these
+terms in \textbf{mgcv}. In cases where accurately estimating the global
+smoother or group-level deviations is essential, we recommend either
+fitting model \emph{G}, \emph{GS} using factor-smooth group-level terms
+(\texttt{bs="fs"}), or model \emph{GI}. Alternatively, there is
+specialized functional regression software such as the \texttt{fosr}
+function in the \emph{refund} package (Scheipl, Staicu \& Greven, 2014),
+which does not impose these side constraints; instead the package uses a
+modified type of tensor-product to ensure that group-level terms sum to
+zero at each level of the predictor (Scheipl, Staicu \& Greven, 2014).
 Also, see below for more information on functional regression.
 
 \subsection{A brief foray into the land of
