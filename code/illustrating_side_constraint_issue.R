@@ -2,6 +2,7 @@ library(mgcv)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+library(cowplot)
 
 
 #Set the default theme for ggplot objects to theme_bw()
@@ -159,3 +160,105 @@ term_plot = bind_rows(modGS_fs_terms, modGS_te_terms, modGI_terms)%>%
   scale_color_brewer(palette = "Set1")
 
 print(term_plot)
+
+
+#Looking at a 2-dimensional version using the bird_move data ####
+
+#First load the bird_move data set, and the true global function
+bird_move <- read.csv("data/bird_move.csv")
+bird_move_global <- read.csv("data/bird_move_global.csv")
+
+#Now we'll fit the four models Gavin suggested, to determine which ones recreate
+#the global function the best: 
+
+#Simple te() model 
+bird_modGS_te <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
+                                k=c(10, 10), m=2) +
+                             te(week, latitude, species, bs=c("cc", "tp", "re"),
+                                k=c(10, 10, 6), m=2),
+                     data=bird_move, method="REML", family="poisson", 
+                     knots = list(week = c(0, 52)))
+
+#te() model, but using m=1 for the groupwise smoother
+bird_modGS_te_m1 <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
+                                k=c(10, 10), m=2) +
+                       te(week, latitude, species, bs=c("cc", "tp", "re"),
+                          k=c(10, 10, 6), m=1),
+                     data=bird_move, method="REML", family="poisson", 
+                     knots = list(week = c(0, 52)))
+
+#te() model, but turning off normal parameterization
+bird_modGS_te_np <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
+                                   k=c(10, 10), m=2) +
+                          te(week, latitude, species, bs=c("cc", "tp", "re"),
+                             k=c(10, 10, 6), m=2, np = FALSE),
+                        data=bird_move, method="REML", family="poisson", 
+                        knots = list(week = c(0, 52)))
+
+#t2() model, with full sets of penalties
+bird_modGS_t2 <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
+                             k=c(10, 10), m=2) +
+                    t2(week, latitude, species, bs=c("cc", "tp", "re"),
+                       k=c(10, 10, 6), m=2, full=TRUE),
+                  data=bird_move, method="REML", family="poisson", 
+                  knots = list(week = c(0, 52)))
+
+# Combining all the predictions from the four models together with the global 
+# function
+bird_mod_predict = bird_move_global %>%
+  mutate(species = "sp1")%>%
+  mutate(`te()` = predict(bird_modGS_te,
+                          newdata = ., 
+                          type="terms")[,1],
+         `te(...., m = list(1, NA))` = predict(bird_modGS_te_m1,
+                                               newdata = ., 
+                                               type="terms")[,1],
+         `te(...., np = FALSE)` =  predict(bird_modGS_te_np,
+                                            newdata = ., 
+                                            type="terms")[,1],
+         `t2(...., full = TRUE)` =  predict(bird_modGS_t2,
+                                             newdata = ., 
+                                             type="terms")[,1])%>%
+  mutate(`true global function` = `global_scaled_function`)%>%
+  gather(key = model, value =`fitted value`, `te()`:`true global function`)%>%
+  mutate(model = factor(model, 
+                        levels = c("true global function",
+                                   "te()",
+                                   "te(...., m = list(1, NA))",
+                                   "te(...., np = FALSE)",
+                                   "t2(...., full = TRUE)")),
+         difference = `global_scaled_function`-`fitted value`)
+
+bird_global_true_plot <- ggplot(bird_move_global, 
+                                aes(x=week, 
+                                    y=latitude,
+                                    fill = global_scaled_function))+
+  geom_raster()+
+  scale_fill_viridis_c(limits = range(bird_mod_predict$global_scaled_function)+c(-5,+5))+
+  coord_equal(expand = FALSE)+
+  geom_contour(aes(z=`global_scaled_function`),color="white")+
+  labs(title = "true global function")+
+  theme(legend.position = "bottom")
+  
+
+bird_global_fitted_plot <- ggplot(bird_mod_predict, 
+                                aes(x=week, 
+                                    y=latitude,
+                                    fill = `fitted value`))+
+  facet_grid(~model)+
+  geom_raster()+
+  geom_contour(aes(z=`fitted value`),color="white")+
+  scale_fill_viridis_c(name="fitted value")+
+  coord_equal(expand = FALSE)+
+  theme(legend.position = "bottom")
+
+bird_global_difference_plot <- ggplot(bird_mod_predict %>%filter(model!="true global function"), 
+                                  aes(x=week, 
+                                      y=latitude,
+                                      fill = difference))+
+  facet_grid(~model)+
+  geom_raster()+
+  scale_fill_gradient2()+
+  coord_equal(expand = FALSE)
+
+print(bird_global_fitted_plot)
