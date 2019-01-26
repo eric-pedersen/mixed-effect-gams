@@ -645,7 +645,7 @@ This means that some groups will have a different range of potential deviations 
 This has the effect of also somewhat altering the shape of the global smooth relative to what it would be based on model *G* (the average curve through all the data); this will be a larger issue when the number of basis functions in the global smooth and the number of group levels are small. 
 We have tested the effect of this issue on our simulated `bird_move` data set and did not find that it lead to substantial bias in estimating the shape of the global smoother, relative to the amount of bias inherent in any smooth estimation method[^global_note]. However, more work on when these models accurately reconstruct global effects is still needed.
 
-[^global_note] It is also important to consider here that the concept of a "global function" is a bit fuzzy itself, and there are many possible ways to define what a global function is (as we discussed in section III).
+[^global_note]: It is also important to consider here that the concept of a "global function" is a bit fuzzy itself, and there are many possible ways to define what a global function is (as we discussed in section III).
 In our view, the global function fitted in these models should generally be viewed as a useful summary of an average trend across a wide range of groups. 
 The global function would only represent an actual average relationship if the grouping levels were drawn at random from some underlying population, and if there was scientific reasons to believe that individual groups should differ from the mean only via some additive function. 
 
