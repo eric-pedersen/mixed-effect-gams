@@ -226,14 +226,11 @@ ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
        y=expression(CO[2] ~ uptake ~ (mu*mol ~ m^{-2})))
 ```
 
-The factor-smoother interaction-based approach mentioned above does not work for higher-dimensional tensor product smoothers. Instead, the group-specific term can be specified with a tensor product of the continuous smoothers and a random effect for the grouping parameter[^fs_note]. e.g.: `y ~ te(x1, x2, bs="tp", m=2) + t2(x1, x2, fac, bs=c("tp","tp","re"), m=2, full=TRUE)`. We illustrate this approach below on the bird migration data. 
+The factor-smoother interaction-based approach mentioned above does not work for higher-dimensional tensor product smoothers (`fs()` does still work for higher dimensional isotropic smoothers). Instead, the group-specific term can be specified with a tensor product of the continuous smoothers and a random effect for the grouping parameter[^fs_note]. e.g.: `y ~ te(x1, x2, bs="tp", m=2) + t2(x1, x2, fac, bs=c("tp","tp","re"), m=2, full=TRUE)`. We illustrate this approach below on the bird migration data. 
 
-[^fs_note]: As mentioned in section II, these terms can be specified either with
-`te()` or `t2()` terms. Using `t2` as above (with `full=TRUE`) is essentially a
-multivariate equivalent of the factor-smoother interaction; it requires more smooth terms than
-`te()`, but can be fit using other mixed effects software such as **lme4**, which
-is useful when fitting models with a large number of group levels (see Section
-V on computational issues for details).
+[^fs_note]: As mentioned in section II, these terms can be specified either with `te()` or `t2()` terms. 
+Using `t2` as above (with `full=TRUE`) is essentially a multivariate equivalent of the factor-smoother interaction; it requires more smooth terms than `te()`, but can be fit using other mixed effects software such as **lme4**, which is useful when fitting models with a large number of group levels (see Section V on computational issues for details).
+We have generally found that `t2(full=TRUE)`  is the best approach for multidimensional *GS* models when the goal is to accurately estimate the global smoother in the presense of a group-level smoother; other approaches (using `te()`) tend to result in the global smoother being overly penalized toward the flat function, and the bulk of the variance being assigned to the group-level smoother. 
 
 ```{r bird_modGS}
 bird_modGS <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
