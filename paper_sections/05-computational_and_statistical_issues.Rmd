@@ -643,7 +643,7 @@ For tensor-product smoothers, `gam.side` will generally drop $\le k$ terms from 
 The total number of terms dropped will depend on the smoothers used for the global and groupwise terms, and will be dropped essentially at random from different grouping levels. 
 This means that some groups will have a different range of potential deviations from the global smoother than others.
 This has the effect of also somewhat altering the shape of the global smooth relative to what it would be based on model *G* (the average curve through all the data); this will be a larger issue when the number of basis functions in the global smooth and the number of group levels are small. 
-We have tested the effect of this issue on our simulated `bird_move` data set and did not find that it lead to substantial bias in estimating the shape of the global smoother, relative to the amount of bias inherent in any smooth estimation method[^global_note].
+We have tested the effect of this issue on our simulated `bird_move` data set and did not find that it lead to substantial bias in estimating the shape of the global smoother, relative to the amount of bias inherent in any smooth estimation method[^global_note]. However, more work on when these models accurately reconstruct global effects is still needed.
 
 [^global_note] It is also important to consider here that the concept of a "global function" is a bit fuzzy itself, and there are many possible ways to define what a global function is (as we discussed in section III).
 In our view, the global function fitted in these models should generally be viewed as a useful summary of an average trend across a wide range of groups. 
