@@ -28,7 +28,7 @@ knitr::opts_chunk$set(echo = TRUE,
                       fig.path = "../figures/")
 ```
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, cache=FALSE}
 ####Setup ####
 #all the packages needed for this tutorial are listed here
 library(mgcv)
