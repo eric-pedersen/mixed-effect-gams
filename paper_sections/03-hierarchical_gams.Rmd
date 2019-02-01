@@ -336,7 +336,7 @@ CO2_modS <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5, bs="fs", m=2),
                 data=CO2, method="REML")
 
 bird_modS <- gam(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
-                            k=c(10, 10, 6), m=2, full=TRUE), #FIXME
+                            k=c(10, 10, 6), m=2, full=TRUE),
                  data=bird_move, method="REML", family="poisson",
                  knots=list(week=c(0, 52)))
 ```
