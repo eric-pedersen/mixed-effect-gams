@@ -64,17 +64,12 @@ First, we demonstrate how to model community-level variability in seasonality, b
 
 ### Model *S*:
 
-```{r zoo_comm_modS, echo=TRUE, message=FALSE,  cache=TRUE, fig.width=8, fig.height=5}
-zoo_comm_modS <- gam(density_adj ~ s(day, taxon,
-                                     bs="fs",
-                                     k=10,
-                                     xt=list(bs="cc"))+
-                                   s(taxon, year_f, bs="re"),
-                     data=zoo_train,
-                     knots = list(day =c(0, 365)),
-                     family = Gamma(link ="log"), 
-                     method = "REML",
-                     drop.unused.levels = FALSE)
+```{r zoo_comm_modS, echo=TRUE, message=FALSE, cache=TRUE, fig.width=8, fig.height=5}
+zoo_comm_modS <- gam(density_adj ~ s(taxon, year_f, bs="re") +
+                       s(day, taxon, bs="fs", k=10, xt=list(bs="cc")),
+                     data=zoo_train, knots=list(day=c(0, 365)),
+                     family=Gamma(link="log"), method="REML",
+                     drop.unused.levels=FALSE)
 ```
 
 
@@ -82,16 +77,12 @@ zoo_comm_modS <- gam(density_adj ~ s(day, taxon,
 
 ```{r zoo_comm_modI, echo=TRUE, message=FALSE,  cache=TRUE, fig.width=8, fig.height=5}
 # Note that  s(taxon, bs="re") has to be explicitly included here, as the 
-# day  by taxon smoother does not include an intercept
-zoo_comm_modI <- gam(density_adj ~ s(day, by=taxon,
-                                     k=10, bs="cc") + 
-                                   s(taxon, bs="re") +
-                                   s(taxon, year_f, bs="re"),
-                     data=zoo_train,
-                     knots = list(day =c(0, 365)),
-                     family = Gamma(link ="log"), 
-                     method = "REML",
-                     drop.unused.levels = FALSE)
+# day by taxon smoother does not include an intercept
+zoo_comm_modI <- gam(density_adj ~ s(day, by=taxon, k=10, bs="cc") + 
+                       s(taxon, bs="re") + s(taxon, year_f, bs="re"),
+                     data=zoo_train, knots=list(day=c(0, 365)),
+                     family=Gamma(link="log"), method="REML",
+                     drop.unused.levels=FALSE)
 ```
 
 At this stage of the analysis (prior to model comparisons), it is useful to determine if any of the fitted models adequately describe patterns in the data (i.e. goodness of fit testing). 
@@ -107,7 +98,7 @@ For the sake of brevity, and as fitted versus response plots are generally less 
 These plots (Fig. \ref{fig:zoo_comm_diag_plot}) indicate that the Gamma distribution seems to fit the observed data well except at low values, where the deviance residuals are larger than predicted by the theoretical quantiles (Fig. \ref{fig:zoo_comm_diag_plot} left). 
 There also does not seem to be a pattern in the residual versus fitted values (Fig. \ref{fig:zoo_comm_diag_plot} right), except for a line of residuals at the lowest values, which correspond to all of those observations where a given taxon was absent from the sample.
 
-```{r zoo_comm_diag, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=6, fig.height=3, fig.cap = "\\label{fig:zoo_comm_diag_plot} Diagnostic plots for model *I* fitted to zooplankton community data in Lake Mendota. a) QQ-plot of residuals (black). Red line indicates the 1-1 line and grey bands correspond to the expected 95% CI for the QQ plot, assuming the distribution is correct.  b) Deviance residuals versus fitted values (on the link scale)."}
+```{r zoo_comm_diag, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=8, fig.height=3, fig.cap = "\\label{fig:zoo_comm_diag_plot} Diagnostic plots for model *I* fitted to zooplankton community data in Lake Mendota. a) QQ-plot of residuals (black). Red line indicates the 1-1 line and grey bands correspond to the expected 95% CI for the QQ plot, assuming the distribution is correct.  b) Deviance residuals versus fitted values (on the link scale)."}
 #Checking residuals and qqplots for GAM fits
 
 #QQ-plot, using gratia's qq_plot function, with simulated confidence intervals.
@@ -133,7 +124,7 @@ round(k.check(zoo_comm_modI),2)
 ```
 
 
-```{r zoo_comm_check_k_kable, echo=FALSE, message=FALSE,  cache=TRUE,purl=FALSE}
+```{r zoo_comm_check_k_kable, echo=FALSE, message=FALSE, cache=TRUE, purl=FALSE}
 k.check_table <-round(k.check(zoo_comm_modI),2) %>%
   as.data.frame()%>%
   rownames_to_column()%>%
@@ -141,8 +132,8 @@ k.check_table <-round(k.check(zoo_comm_modI),2) %>%
          EDF = edf)
 
 kable(k.check_table, 
-      format = table_out_format, 
-      caption='Results from running \\texttt{k.check} on \\texttt{zoo\\_comm\\_modI}. Each row corresponds to a single model term. The notation for term names uses `mgcv` syntax. For instance, "s(day):taxonC. sphaericus" refers to the the smoother for day for the taxon "C. sphaericus".', 
+      format = table_out_format,
+      caption='Results from running \\texttt{k.check} on \\texttt{zoo\\_comm\\_modI}. Each row corresponds to a single model term. The notation for term names uses \\textbf{mgcv} syntax. For instance, "s(day):taxonC. sphaericus" refers to the the smoother for day for the taxon \\textit{C. sphaericus}.', 
       booktabs = TRUE,
       escape = TRUE)%>%
   kable_styling(full_width = FALSE) %>%
@@ -275,47 +266,37 @@ Here, we will compare models *G*, *GS*, and *GI* to determine if a single global
 ### Model *G*:
 
 ```{r zoo_daph_modG, echo=TRUE, message=FALSE, cache=TRUE}
-zoo_daph_modG <- gam(density_adj ~ s(day, bs="cc", k=10)+
-                       s(lake, bs="re") + 
-                       s(lake, year_f,bs="re"),
-                     data=daphnia_train,
-                     knots=list(day =c(0, 365)),
-                     family=Gamma(link ="log"),
-                     method="REML",
-                     drop.unused.levels = FALSE)
+zoo_daph_modG <- gam(density_adj ~ s(day, bs="cc", k=10) + s(lake, bs="re") +
+                       s(lake, year_f, bs="re"),
+                     data=daphnia_train, knots=list(day=c(0, 365)),
+                     family=Gamma(link="log"), method="REML",
+                     drop.unused.levels=FALSE)
 ```
 
 ### Model *GS*:
 ```{r zoo_daph_modGS, echo=TRUE, message=FALSE,  cache=TRUE}
-zoo_daph_modGS <-
-  gam(density_adj ~ s(day, bs="cc", k=10) + 
-        s(day, lake, k=10, bs="fs", xt=list(bs="cc")) + 
-        s(lake, year_f,bs="re"),
-      data=daphnia_train, 
-      knots=list(day=c(0, 365)), 
-      family=Gamma(link ="log"),
-      drop.unused.levels = FALSE,
-      method="REML")
+zoo_daph_modGS <- gam(density_adj ~ s(day, bs="cc", k=10) +
+                        s(day, lake, k=10, bs="fs", xt=list(bs="cc")) +
+                        s(lake, year_f, bs="re"),
+                      data=daphnia_train, knots=list(day=c(0, 365)),
+                      family=Gamma(link="log"), method="REML",
+                      drop.unused.levels=FALSE)
 ```
 
 ### Model *GI*:
 
 ```{r zoo_daph_modGI, echo=TRUE, message=FALSE,  cache=TRUE}
-zoo_daph_modGI <- gam(density_adj~s(day, bs="cc", k=10) +
-                             s(day, by=lake, k=10, bs="cc")+
-                             s(lake, bs="re") + 
-                             s(lake, year_f,bs="re"),
-                     data=daphnia_train,
-                     knots=list(day =c(0, 365)),
-                     family=Gamma(link ="log"),
-                     method="REML",
-                     drop.unused.levels = FALSE)
+zoo_daph_modGI <- gam(density_adj~s(day, bs="cc", k=10) + s(lake, bs="re") +
+                        s(day, by=lake, k=10, bs="cc") + s(lake, year_f, bs="re"),
+                      data=daphnia_train, knots=list(day=c(0, 365)),
+                      family=Gamma(link ="log"), method="REML",
+                      drop.unused.levels=FALSE)
 ```
 
 Diagnostic plots from `gam.check` indicate that there are no substantial patterns comparing residuals to fitted values (not shown), and QQ-plots are similiar to the those from the zooplankton community models; the residuals for all three models closely correspond to the expected (Gamma) distribution, except at small values, where the observed residuals are generally larger than expected (Fig. \ref{fig:zoo_daph_diag_plot}). 
 As with the community data, this is likely an artifact of the assumption we made of assigning zero observations a value of 1000 (the lowest possible value), imposing an artifical lower bound on the observed counts. There was also some evidence that the largest observed values were smaller than expected given the theoretical distribution , but these fell within the 95% CI for expected deviations from the 1-1 line (Fig. \ref{fig:zoo_daph_diag_plot}). 
 
-```{r zoo_daph_diag, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=7, fig.height=2.5, fig.cap = "\\label{fig:zoo_daph_diag_plot} QQ-plots for model *G* (a) , *GS* (b), and *GI* (c) fitted to Daphnia data across the four lakes. Red line indicates the 1-1 line, black points are observed model residuals, and grey bands correspond to the expected 95% CI for the QQ plot, assuming the distribution is correct."}
+```{r zoo_daph_diag, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=9, fig.height=3, fig.cap = "\\label{fig:zoo_daph_diag_plot} QQ-plots for model *G* (a) , *GS* (b), and *GI* (c) fitted to Daphnia data across the four lakes. Red line indicates the 1-1 line, black points are observed model residuals, and grey bands correspond to the expected 95% CI for the QQ plot, assuming the distribution is correct."}
 #Checking residuals and qqplots for GAM fits
 
 #qqplot, using gratia's qq_plot function, with simulated confidence intervals

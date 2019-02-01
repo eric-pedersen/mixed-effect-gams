@@ -302,6 +302,7 @@ comp_resources[2,"time"] = system.time(
                    data= bird_move, 
                    method="REML", 
                    family= poisson,
+                   knots=list(week=c(0, 52)),
                    control = list(keepData=TRUE))
   )[3]
 
@@ -316,9 +317,9 @@ comp_resources[3,"time"] = system.time(
 
 comp_resources[4,"time"] = system.time(
   bird_modGS <- gam(count ~ te(week,latitude, bs= c("cc", "tp"),
-                              k=c(10,10),m=c(2,2))+
-                            te(week,latitude,species, bs= c("cc", "tp","re"),
-                               k=c(10,10,6),m = c(1,1,1)),
+                              k=c(10,10),m=2)+
+                    t2(week, latitude, species, bs=c("cc", "tp", "re"),
+                       k=c(10, 10, 6), m=2, full=TRUE),
                    data= bird_move, 
                    method="REML", 
                    family= poisson,
@@ -338,9 +339,9 @@ comp_resources[5,"time"] = system.time(
 
 comp_resources[6,"time"] = system.time(
   bird_modGI <- gam(count ~ te(week,latitude, bs= c("cc", "tp"),
-                               k=c(10,10),m=c(2,2)) +
+                               k=c(10,10),m=2) +
                             te(week,latitude, bs= c("cc", "tp"),
-                               k=c(10,10),m=c(1,1),by= species),
+                               k=c(10,10),m=1,by= species),
                    data= bird_move, 
                    method="REML", 
                    family= poisson,
@@ -356,8 +357,8 @@ comp_resources[7,"time"] = system.time(
 
 
 comp_resources[8,"time"] = system.time(
-  bird_modS <- gam(count ~ te(week,latitude,species, bs= c("cc", "tp","re"),
-                              k=c(10,10,6),m = 2),
+  bird_modS <- gam(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
+                            k=c(10, 10, 6), m=2, full=TRUE),
                    data= bird_move, 
                    method="REML", 
                    family= poisson,
@@ -404,38 +405,37 @@ comp_resources = comp_resources %>%
 comp_resources_table =comp_resources %>%
   ungroup()%>%
   arrange(data_source,model_number)%>%
-  transmute(data_source =data_source, model=model_number,
-            `relative time` = time,`coefficients` = n_coef,
-            `penalties` = n_smooths
+  transmute(data_source =data_source, Model=model_number,
+            `Relative Time` = time,`Coefficients` = n_coef,
+            `Penalties` = n_smooths
             )%>%
   group_by(data_source) %>%
   mutate(#scales processing time relative to model *G*
-         `relative time` = `relative time`/`relative time`[1],
+         `Relative Time` = `Relative Time`/`Relative Time`[1],
          #rounds to illustrate differences in timing.
-         `relative time` = ifelse(`relative time`<10, 
-                                  signif(`relative time`,1), 
-                                  signif(`relative time`, 2)) 
+         `Relative Time` = ifelse(`Relative Time`<10, 
+                                  signif(`Relative Time`,1), 
+                                  signif(`Relative Time`, 2)) 
          )%>%
   ungroup() %>%
   dplyr::select( - data_source)
 ```
 
 ```{r comp_time_kable, echo=FALSE, fig.width=4, fig.height=6, message=FALSE, warning=FALSE, cache=TRUE,purl=FALSE}
-kable(comp_resources_table,format ="latex", caption="Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model *G* takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smoothers is the total number of unique penalty values estimated by the model.", booktabs = TRUE)%>% 
+kable(comp_resources_table,format ="latex", caption="Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model \\emph{G} takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smoothers is the total number of unique penalty values estimated by the model.", booktabs = TRUE)%>% 
   #NOTE: change format to "latex" when compiling to pdf, 
   #"html" when compiling html
-  kable_styling(full_width = FALSE)%>%
-  add_header_above(c(" " = 1," "=1, "# of terms"=2))%>%
-  group_rows("A. CO2 data", 1,5)%>%
-  group_rows("B. bird movement data", 6,10)
-
+  kable_styling(full_width = FALSE) %>%
+  add_header_above(c(" " = 1," "=1, "Number of terms"=2)) %>%
+  group_rows("A. CO2 data", 1,5) %>%
+  group_rows("B. Bird movement data", 6,10)
 ```
 
 ## Alternative formulations: `bam()`, `gamm()`, and `gamm4()`
 
 When fitting models with large numbers of groups, it is often possible to speed up computation substantially by using one of the alternative fitting routines available through **mgcv**.
 
-The first option is the function `bam()`, this requires the least changes to existing code written using the `gam()` function. `bam()` is designed to improve  performance when fitting large data sets via two mechanisms. First, it saves on memory needed to compute a given model by using a random subset of the data to calculate the basis functions. It then blocks the data and updates model fit within each block [@wood_generalized_2015]. While this is primarily designed to reduce memory usage, it can also substantially reduce computation time. Second, when using `bam()`'s default fREML ("Fast REML") method, you can use the `discrete=TRUE` option: this first bins continuous covariates into a smaller number of discrete values before estimating the model, substantially reducing the amount of computation needed (@Wood2017-iy; see `?mgcv::bam` for more details). Setting up the five model types (Fig. \ref{fig:models}) in `bam()` uses the same code as we have previously covered;
+The first option is the function `bam()`, this requires the least changes to existing code written using the `gam()` function. `bam()` is designed to improve  performance when fitting large data sets via two mechanisms. First, it saves on memory needed to compute a given model by using a random subset of the data to calculate the basis functions. It then blocks the data and updates model fit within each block [@wood_generalized_2015]. While this is primarily designed to reduce memory usage, it can also substantially reduce computation time. Second, when using `bam()`'s default `method="fREML"` ("Fast REML") method, you can use the `discrete=TRUE` option: this first bins continuous covariates into a smaller number of discrete values before estimating the model, substantially reducing the amount of computation needed (@Wood2017-iy; see `?mgcv::bam` for more details). Setting up the five model types (Fig. \ref{fig:models}) in `bam()` uses the same code as we have previously covered;
 the only difference is that you use the `bam()` instead of `gam()` function, and
 have the additional option of discretizing your covariates.
 
@@ -573,16 +573,17 @@ timing_plot = ggplot(aes(n_groups, timing, color=model, linetype= model),
                      data=fit_timing_long)+
   geom_line()+
   geom_point(show.legend = FALSE)+
-  scale_color_manual(values = c("black", 
+  scale_color_manual(name = "Model",
+                     values = c("black", 
                                 "#1b9e77",
                                 "#1b9e77", 
                                 "#d95f02", 
                                 "#7570b3"))+
-  scale_linetype_manual(values =c(1,1,2,1,1))+
-  scale_y_log10("run time (seconds)", 
+  scale_linetype_manual(name = "Model", values =c(1,1,2,1,1)) +
+  scale_y_log10("Run time (seconds)", 
                 breaks = c(0.1,1,10,100), 
                 labels = c("0.1", "1","10", "100"))+
-  scale_x_log10("number of groups", 
+  scale_x_log10("Number of groups", 
                 breaks = c(2,8,32,128))+
   guides(color = guide_legend(nrow = 2, byrow = TRUE))+
   theme(legend.position = "top")
@@ -595,10 +596,9 @@ issues with how random effects are specified in the **lme4** package, making it 
 bird movement data we discussed in section III would need to be coded as:
 
 ```
-bird_modS_gamm4 <-
-  gamm4(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
-                   k=c(10, 10, 6), m=2),
-        data=bird_move, family="poisson")
+bird_modS <- gamm4(count ~ t2(week, latitude, species, k=c(10, 10, 6), m=2,
+                              bs=c("cc", "tp", "re")),
+                   data=bird_move, family="poisson")
 ```
 
 These packages also do not support the same range of families for the dependent
@@ -679,7 +679,4 @@ We have deliberately focused our paper on these simpler classes of functional re
 
 However, there is an extensive literature dedicated to the estimation of more complex functional regression models for any interested reader (see @morris_functional_2015 and  @greven_general_2017 for a good introduction and overview of more recent work in this field). The `refund` package [@greven_general_2017] uses the statistical machinery of **mgcv** to fit these models, and should be usable by anyone familiar with **mgcv** modelling syntax.
 Functional regression is also a major area of study in Bayesian statistics (e.g., @kaufman_bayesian_2010).
-
-
-
 

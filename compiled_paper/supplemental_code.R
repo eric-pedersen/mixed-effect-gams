@@ -262,7 +262,7 @@ ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
 ## # distinct marginal smoother (see ?mgcv::te for details)
 bird_modG <- gam(count ~ te(week, latitude, bs=c("cc", "tp"), k=c(10, 10)),
                  data=bird_move, method="REML", family="poisson",
-                 knots = list(week = c(0, 52)))
+                 knots=list(week=c(0, 52)))
 #gratia draw plot for the two-dimensional tensor product smoother for bird_modG.
 draw(bird_modG)
 #add the predicted values from the model to bird_move
@@ -272,10 +272,10 @@ ggplot(bird_move, aes(x=modG, y=count)) +
   facet_wrap(~species) +
   geom_point(alpha=0.1) +
   geom_abline() +
-  labs(x="Predicted count", y= "Observed count")
+  labs(x="Predicted count", y="Observed count")
 CO2_modGS <- gam(log(uptake) ~ s(log(conc), k=5, m=2) + 
-                  s(log(conc), Plant_uo, k=5,  bs="fs", m=2),
-                data=CO2, method="REML")
+                   s(log(conc), Plant_uo, k=5,  bs="fs", m=2),
+                 data=CO2, method="REML")
 #gratia draw() plot for CO2_modGS
 draw(CO2_modGS)
 CO2_modGS_pred <- predict(CO2_modGS, se.fit=TRUE)
@@ -290,11 +290,11 @@ ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
   labs(x=expression(CO[2] ~ concentration ~ (mL ~ L^{-1})),
        y=expression(CO[2] ~ uptake ~ (mu*mol ~ m^{-2})))
 bird_modGS <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
-                            k=c(10, 10), m=2) +
-                   t2(week, latitude, species, bs=c("cc", "tp", "re"),
-                      k=c(10, 10, 6), m=2, full=TRUE),
-                 data=bird_move, method="REML", family="poisson", 
-                 knots = list(week = c(0, 52)))
+                             k=c(10, 10), m=2) +
+                    t2(week, latitude, species, bs=c("cc", "tp", "re"),
+                       k=c(10, 10, 6), m=2, full=TRUE),
+                  data=bird_move, method="REML", family="poisson", 
+                  knots=list(week=c(0, 52)))
 bird_move <- transform(bird_move, modGS = predict(bird_modGS, type="response"))
 
 bird_modGS_indiv <- ggplot(data=bird_move, 
@@ -322,36 +322,34 @@ plot_grid(bird_modGS_indiv, bird_modGS_indiv_fit, ncol=1, align="vh", axis = "lr
 ##                 data=CO2, method="REML")
 #Fitting CO2_modGI 
 CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
-                  s(log(conc), by= Plant_uo, k=5, m=1, bs="tp") +
-                  s(Plant_uo, bs="re", k=12),
-                data=CO2, method="REML")
+                   s(log(conc), by= Plant_uo, k=5, m=1, bs="tp") +
+                   s(Plant_uo, bs="re", k=12),
+                 data=CO2, method="REML")
 
 #plotting CO2_modGI 
 draw(CO2_modGI, select = c(1,14,3,5,10,13), scales = "fixed")
 bird_modGI <- gam(count ~ species +
-                   te(week, latitude, bs=c("cc", "tp"),
-                      k=c(10, 10), m=2) +
-                   te(week, latitude, by=species, bs= c("cc", "tp"),
-                      k=c(10, 10), m=1),
+                    te(week, latitude, bs=c("cc", "tp"), k=c(10, 10), m=2) +
+                    te(week, latitude, by=species, bs= c("cc", "tp"),
+                       k=c(10, 10), m=1),
                  data=bird_move, method="REML", family="poisson",
-                 knots = list(week = c(0, 52)))
+                 knots=list(week=c(0, 52)))
 CO2_modS <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5, bs="fs", m=2),
                 data=CO2, method="REML")
 
 bird_modS <- gam(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
-                            k=c(10, 10, 6), m=2),
+                            k=c(10, 10, 6), m=2, full=TRUE), #FIXME
                  data=bird_move, method="REML", family="poisson",
-                 knots = list(week = c(0, 52)))
+                 knots=list(week=c(0, 52)))
 CO2_modI <- gam(log(uptake) ~ s(log(conc), by=Plant_uo, k=5, bs="tp", m=2) +
-                              s(Plant_uo, bs="re", k=12),
-                data= CO2, method="REML")
+                  s(Plant_uo, bs="re", k=12),
+                data=CO2, method="REML")
 
 
-bird_modI <- gam(count ~ species + 
-                   te(week, latitude, by=species, bs= c("cc", "tp"), 
-                      k=c(10, 10), m=2),
+bird_modI <- gam(count ~ species + te(week, latitude, by=species,
+                                      bs=c("cc", "tp"), k=c(10, 10), m=2),
                  data=bird_move, method="REML", family="poisson",
-                 knots = list(week = c(0, 52)))
+                 knots=list(week=c(0, 52)))
 
 AIC_table <- AIC(CO2_modG,CO2_modGS, CO2_modGI, CO2_modS, CO2_modI,
              bird_modG, bird_modGS, bird_modGI, bird_modS, bird_modI)%>%
@@ -399,27 +397,18 @@ get_deviance <- function(model, y_pred, y_obs, weights = NULL){
   dev_residuals = model$family$dev.resids(y_obs, y_pred, weights)
   return(sum(dev_residuals))
 }
-zoo_comm_modS <- gam(density_adj ~ s(day, taxon,
-                                     bs="fs",
-                                     k=10,
-                                     xt=list(bs="cc"))+
-                                   s(taxon, year_f, bs="re"),
-                     data=zoo_train,
-                     knots = list(day =c(0, 365)),
-                     family = Gamma(link ="log"), 
-                     method = "REML",
-                     drop.unused.levels = FALSE)
+zoo_comm_modS <- gam(density_adj ~ s(taxon, year_f, bs="re") +
+                       s(day, taxon, bs="fs", k=10, xt=list(bs="cc")),
+                     data=zoo_train, knots=list(day=c(0, 365)),
+                     family=Gamma(link="log"), method="REML",
+                     drop.unused.levels=FALSE)
 # Note that  s(taxon, bs="re") has to be explicitly included here, as the 
-# day  by taxon smoother does not include an intercept
-zoo_comm_modI <- gam(density_adj ~ s(day, by=taxon,
-                                     k=10, bs="cc") + 
-                                   s(taxon, bs="re") +
-                                   s(taxon, year_f, bs="re"),
-                     data=zoo_train,
-                     knots = list(day =c(0, 365)),
-                     family = Gamma(link ="log"), 
-                     method = "REML",
-                     drop.unused.levels = FALSE)
+# day by taxon smoother does not include an intercept
+zoo_comm_modI <- gam(density_adj ~ s(day, by=taxon, k=10, bs="cc") + 
+                       s(taxon, bs="re") + s(taxon, year_f, bs="re"),
+                     data=zoo_train, knots=list(day=c(0, 365)),
+                     family=Gamma(link="log"), method="REML",
+                     drop.unused.levels=FALSE)
 ## gam.check(zoo_comm_modS)
 ## gam.check(zoo_comm_modI)
 #Checking residuals and qqplots for GAM fits
@@ -521,32 +510,22 @@ zoo_test_summary = zoo_test %>%
                        scientific = FALSE, 
                        digits=3))
 
-zoo_daph_modG <- gam(density_adj ~ s(day, bs="cc", k=10)+
-                       s(lake, bs="re") + 
-                       s(lake, year_f,bs="re"),
-                     data=daphnia_train,
-                     knots=list(day =c(0, 365)),
-                     family=Gamma(link ="log"),
-                     method="REML",
-                     drop.unused.levels = FALSE)
-zoo_daph_modGS <-
-  gam(density_adj ~ s(day, bs="cc", k=10) + 
-        s(day, lake, k=10, bs="fs", xt=list(bs="cc")) + 
-        s(lake, year_f,bs="re"),
-      data=daphnia_train, 
-      knots=list(day=c(0, 365)), 
-      family=Gamma(link ="log"),
-      drop.unused.levels = FALSE,
-      method="REML")
-zoo_daph_modGI <- gam(density_adj~s(day, bs="cc", k=10) +
-                             s(day, by=lake, k=10, bs="cc")+
-                             s(lake, bs="re") + 
-                             s(lake, year_f,bs="re"),
-                     data=daphnia_train,
-                     knots=list(day =c(0, 365)),
-                     family=Gamma(link ="log"),
-                     method="REML",
-                     drop.unused.levels = FALSE)
+zoo_daph_modG <- gam(density_adj ~ s(day, bs="cc", k=10) + s(lake, bs="re") +
+                       s(lake, year_f, bs="re"),
+                     data=daphnia_train, knots=list(day=c(0, 365)),
+                     family=Gamma(link="log"), method="REML",
+                     drop.unused.levels=FALSE)
+zoo_daph_modGS <- gam(density_adj ~ s(day, bs="cc", k=10) +
+                        s(day, lake, k=10, bs="fs", xt=list(bs="cc")) +
+                        s(lake, year_f, bs="re"),
+                      data=daphnia_train, knots=list(day=c(0, 365)),
+                      family=Gamma(link="log"), method="REML",
+                      drop.unused.levels=FALSE)
+zoo_daph_modGI <- gam(density_adj~s(day, bs="cc", k=10) + s(lake, bs="re") +
+                        s(day, by=lake, k=10, bs="cc") + s(lake, year_f, bs="re"),
+                      data=daphnia_train, knots=list(day=c(0, 365)),
+                      family=Gamma(link ="log"), method="REML",
+                      drop.unused.levels=FALSE)
 #Checking residuals and qqplots for GAM fits
 
 #qqplot, using gratia's qq_plot function, with simulated confidence intervals
@@ -979,17 +958,17 @@ comp_resources = comp_resources %>%
 comp_resources_table =comp_resources %>%
   ungroup()%>%
   arrange(data_source,model_number)%>%
-  transmute(data_source =data_source, model=model_number,
-            `relative time` = time,`coefficients` = n_coef,
-            `penalties` = n_smooths
+  transmute(data_source =data_source, Model=model_number,
+            `Relative Time` = time,`Coefficients` = n_coef,
+            `Penalties` = n_smooths
             )%>%
   group_by(data_source) %>%
   mutate(#scales processing time relative to model *G*
-         `relative time` = `relative time`/`relative time`[1],
+         `Relative Time` = `Relative Time`/`Relative Time`[1],
          #rounds to illustrate differences in timing.
-         `relative time` = ifelse(`relative time`<10, 
-                                  signif(`relative time`,1), 
-                                  signif(`relative time`, 2)) 
+         `Relative Time` = ifelse(`Relative Time`<10, 
+                                  signif(`Relative Time`,1), 
+                                  signif(`Relative Time`, 2)) 
          )%>%
   ungroup() %>%
   dplyr::select( - data_source)
@@ -1094,16 +1073,17 @@ timing_plot = ggplot(aes(n_groups, timing, color=model, linetype= model),
                      data=fit_timing_long)+
   geom_line()+
   geom_point(show.legend = FALSE)+
-  scale_color_manual(values = c("black", 
+  scale_color_manual(name = "Model",
+                     values = c("black", 
                                 "#1b9e77",
                                 "#1b9e77", 
                                 "#d95f02", 
                                 "#7570b3"))+
-  scale_linetype_manual(values =c(1,1,2,1,1))+
-  scale_y_log10("run time (seconds)", 
+  scale_linetype_manual(name = "Model", values =c(1,1,2,1,1)) +
+  scale_y_log10("Run time (seconds)", 
                 breaks = c(0.1,1,10,100), 
                 labels = c("0.1", "1","10", "100"))+
-  scale_x_log10("number of groups", 
+  scale_x_log10("Number of groups", 
                 breaks = c(2,8,32,128))+
   guides(color = guide_legend(nrow = 2, byrow = TRUE))+
   theme(legend.position = "top")
