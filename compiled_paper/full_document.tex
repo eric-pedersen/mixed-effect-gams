@@ -138,6 +138,21 @@ with mgcv}
 \affil[6]{Department of Biology, University of Regina, Regina, SK, Canada}
 \affil[7]{Ecohealth Alliance, New York, NY, USA}
 \affil[*]{Corresponding author. Email: eric.j.pedersen@gmail.com}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+
+\usepackage{lineno} \usepackage{placeins} \linenumbers
 
 \begin{document}
 \maketitle
@@ -511,7 +526,7 @@ These three choices result in five possible models (Fig.
 \item
   A global smoother plus group-level smoothers with differing
   wiggliness. We will refer to this as model \emph{GI} (for Global
-  smoother with individiual effects with Individual penalties)
+  smoother with individual effects with Individual penalties)
 \item
   Group-specific smoothers without a global smoother, but with all
   smoothers having the same wiggliness. We will refer to this as model
@@ -524,9 +539,9 @@ These three choices result in five possible models (Fig.
 \begin{figure}
 \centering
 \includegraphics{../figures/alternate_models.png}
-\caption{\label{fig:models}Alternate types of functional variation f(x)
-that can be fitted with HGAMs. The dashed line indicates the average
-function value for all groups, and each solid line indicates the
+\caption{\label{fig:models}Alternate types of functional variation
+\(f(x)\) that can be fitted with HGAMs. The dashed line indicates the
+average function value for all groups, and each solid line indicates the
 functional value at a given predictor value for an individual group
 level. The null model (of no functional relationship between the
 covariate and outcome, top right), is not explicitly assigned a model
@@ -709,7 +724,7 @@ shown in Figure \ref{fig:co2_modG_predict} (see supplemental code for
 more details on how to generate these predictions).
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/co2_modG_ggplot-1} \caption{\label{fig:co2_modG_predict} Predicted uptake function ($\pm$ 2 s.e.) for each plant, based on model *G* (a single global function for uptake plus a individual-level random effect intercept). Model predictions are for log-uptake, but are transformed here to show the fitted function on the original scale of the data.}\label{fig:co2_modG_ggplot}
+\includegraphics[width=\linewidth]{../figures/co2_modG_ggplot-1} \caption{\label{fig:co2_modG_predict} Predicted uptake function ($\pm$ 2 s.e.) for each plant, based on model \emph{G} (a single global function for uptake plus a individual-level random effect intercept). Model predictions are for log-uptake, but are transformed here to show the fitted function on the original scale of the data.}\label{fig:co2_modG_ggplot}
 \end{figure}
 
 Examining these plots, we see that while functional responses among
@@ -747,7 +762,7 @@ splines had basis complexity (\texttt{k}) of 10.
 \begin{Highlighting}[]
 \NormalTok{bird_modG <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{), }\DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{)),}
                  \DataTypeTok{data=}\NormalTok{bird_move, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{, }\DataTypeTok{family=}\StringTok{"poisson"}\NormalTok{,}
-                 \DataTypeTok{knots =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{week =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{52}\NormalTok{)))}
+                 \DataTypeTok{knots=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{week=}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{52}\NormalTok{)))}
 \end{Highlighting}
 \end{Shaded}
 
@@ -823,8 +838,8 @@ smoother for concentration for the given plant. In R we then have:
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{CO2_modGS <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(}\KeywordTok{log}\NormalTok{(uptake) }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), }\DataTypeTok{k=}\DecValTok{5}\NormalTok{, }\DataTypeTok{m=}\DecValTok{2}\NormalTok{) }\OperatorTok{+}\StringTok{ }
-\StringTok{                  }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), Plant_uo, }\DataTypeTok{k=}\DecValTok{5}\NormalTok{,  }\DataTypeTok{bs=}\StringTok{"fs"}\NormalTok{, }\DataTypeTok{m=}\DecValTok{2}\NormalTok{),}
-                \DataTypeTok{data=}\NormalTok{CO2, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{)}
+\StringTok{                   }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), Plant_uo, }\DataTypeTok{k=}\DecValTok{5}\NormalTok{,  }\DataTypeTok{bs=}\StringTok{"fs"}\NormalTok{, }\DataTypeTok{m=}\DecValTok{2}\NormalTok{),}
+                 \DataTypeTok{data=}\NormalTok{CO2, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -843,7 +858,7 @@ individual plants. We see that, unlike in the single global smoother
 case above, none of the curves deviate from the data systematically.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/co2_modGS_ggplot-1} \caption{\label{fig:co2_modGS_pred}Predicted uptake values (lines) versus observed uptake for each plant, based on model *GS*.}\label{fig:co2_modGS_ggplot}
+\includegraphics[width=\linewidth]{../figures/co2_modGS_ggplot-1} \caption{\label{fig:co2_modGS_pred}Predicted uptake values (lines) versus observed uptake for each plant, based on model \emph{GS}.}\label{fig:co2_modGS_ggplot}
 \end{figure}
 
 The factor-smoother interaction-based approach mentioned above does not
@@ -864,18 +879,20 @@ parameter\footnote{As mentioned in section II, these terms can be
   smoother in the presense of a group-level smoother; other approaches
   (using \texttt{te()}) tend to result in the global smoother being
   overly penalized toward the flat function, and the bulk of the
-  variance being assigned to the group-level smoother.}. e.g.:
+  variance being assigned to the group-level smoother. We discuss this
+  further in section V, ``estimation issues when fitting both global and
+  group-level smoothers''.}. e.g.:
 \texttt{y\ \textasciitilde{}\ te(x1,\ x2,\ bs="tp",\ m=2)\ +\ t2(x1,\ x2,\ fac,\ bs=c("tp","tp","re"),\ m=2,\ full=TRUE)}.
 We illustrate this approach below on the bird migration data.
 
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{bird_modGS <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{),}
-                            \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\DecValTok{2}\NormalTok{) }\OperatorTok{+}
-\StringTok{                   }\KeywordTok{t2}\NormalTok{(week, latitude, species, }\DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{, }\StringTok{"re"}\NormalTok{),}
-                      \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{, }\DecValTok{6}\NormalTok{), }\DataTypeTok{m=}\DecValTok{2}\NormalTok{, }\DataTypeTok{full=}\OtherTok{TRUE}\NormalTok{),}
-                 \DataTypeTok{data=}\NormalTok{bird_move, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{, }\DataTypeTok{family=}\StringTok{"poisson"}\NormalTok{, }
-                 \DataTypeTok{knots =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{week =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{52}\NormalTok{)))}
+                             \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\DecValTok{2}\NormalTok{) }\OperatorTok{+}
+\StringTok{                    }\KeywordTok{t2}\NormalTok{(week, latitude, species, }\DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{, }\StringTok{"re"}\NormalTok{),}
+                       \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{, }\DecValTok{6}\NormalTok{), }\DataTypeTok{m=}\DecValTok{2}\NormalTok{, }\DataTypeTok{full=}\OtherTok{TRUE}\NormalTok{),}
+                  \DataTypeTok{data=}\NormalTok{bird_move, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{, }\DataTypeTok{family=}\StringTok{"poisson"}\NormalTok{, }
+                  \DataTypeTok{knots=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{week=}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{52}\NormalTok{)))}
 \end{Highlighting}
 \end{Shaded}
 
@@ -974,12 +991,11 @@ bird model:
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{bird_modGI <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\NormalTok{species }\OperatorTok{+}
-\StringTok{                   }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{),}
-                      \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\DecValTok{2}\NormalTok{) }\OperatorTok{+}
-\StringTok{                   }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{by=}\NormalTok{species, }\DataTypeTok{bs=} \KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{),}
-                      \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\DecValTok{1}\NormalTok{),}
+\StringTok{                    }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{), }\DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\DecValTok{2}\NormalTok{) }\OperatorTok{+}
+\StringTok{                    }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{by=}\NormalTok{species, }\DataTypeTok{bs=} \KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{),}
+                       \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\DecValTok{1}\NormalTok{),}
                  \DataTypeTok{data=}\NormalTok{bird_move, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{, }\DataTypeTok{family=}\StringTok{"poisson"}\NormalTok{,}
-                 \DataTypeTok{knots =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{week =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{52}\NormalTok{)))}
+                 \DataTypeTok{knots=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{week=}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{52}\NormalTok{)))}
 \end{Highlighting}
 \end{Shaded}
 
@@ -987,7 +1003,7 @@ As above, we have set (\texttt{m=1}) for the latitude marginal effect to
 avoid issues of collinearity between the global and groupwise smoother.
 Note that switching \texttt{m=1} to \texttt{m=2} does not have any
 effect on the marginal basis for \texttt{week}, where we are using a
-cyclic smoother instead of a tprs.
+cyclic smoother instead of a TPRS.
 
 The fitted model for \texttt{bird\_modGI} is visually indistinguishable
 from \texttt{bird\_modGS} (Fig. \ref{fig:bird_modGS}) so we do not
@@ -1028,9 +1044,9 @@ different models.
                 \DataTypeTok{data=}\NormalTok{CO2, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{)}
 
 \NormalTok{bird_modS <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\KeywordTok{t2}\NormalTok{(week, latitude, species, }\DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{, }\StringTok{"re"}\NormalTok{),}
-                            \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{, }\DecValTok{6}\NormalTok{), }\DataTypeTok{m=}\DecValTok{2}\NormalTok{),}
+                            \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{, }\DecValTok{6}\NormalTok{), }\DataTypeTok{m=}\DecValTok{2}\NormalTok{, }\DataTypeTok{full=}\OtherTok{TRUE}\NormalTok{),}
                  \DataTypeTok{data=}\NormalTok{bird_move, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{, }\DataTypeTok{family=}\StringTok{"poisson"}\NormalTok{,}
-                 \DataTypeTok{knots =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{week =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{52}\NormalTok{)))}
+                 \DataTypeTok{knots=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{week=}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{52}\NormalTok{)))}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1044,15 +1060,14 @@ very similar to model \emph{GI}).
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{CO2_modI <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(}\KeywordTok{log}\NormalTok{(uptake) }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(}\KeywordTok{log}\NormalTok{(conc), }\DataTypeTok{by=}\NormalTok{Plant_uo, }\DataTypeTok{k=}\DecValTok{5}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"tp"}\NormalTok{, }\DataTypeTok{m=}\DecValTok{2}\NormalTok{) }\OperatorTok{+}
-\StringTok{                              }\KeywordTok{s}\NormalTok{(Plant_uo, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{, }\DataTypeTok{k=}\DecValTok{12}\NormalTok{),}
-                \DataTypeTok{data=}\NormalTok{ CO2, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{)}
+\StringTok{                  }\KeywordTok{s}\NormalTok{(Plant_uo, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{, }\DataTypeTok{k=}\DecValTok{12}\NormalTok{),}
+                \DataTypeTok{data=}\NormalTok{CO2, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{)}
 
 
-\NormalTok{bird_modI <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\NormalTok{species }\OperatorTok{+}\StringTok{ }
-\StringTok{                   }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{by=}\NormalTok{species, }\DataTypeTok{bs=} \KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{), }
-                      \DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\DecValTok{2}\NormalTok{),}
+\NormalTok{bird_modI <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(count }\OperatorTok{~}\StringTok{ }\NormalTok{species }\OperatorTok{+}\StringTok{ }\KeywordTok{te}\NormalTok{(week, latitude, }\DataTypeTok{by=}\NormalTok{species,}
+                                      \DataTypeTok{bs=}\KeywordTok{c}\NormalTok{(}\StringTok{"cc"}\NormalTok{, }\StringTok{"tp"}\NormalTok{), }\DataTypeTok{k=}\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{10}\NormalTok{), }\DataTypeTok{m=}\DecValTok{2}\NormalTok{),}
                  \DataTypeTok{data=}\NormalTok{bird_move, }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{, }\DataTypeTok{family=}\StringTok{"poisson"}\NormalTok{,}
-                 \DataTypeTok{knots =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{week =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{52}\NormalTok{)))}
+                 \DataTypeTok{knots=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{week=}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{52}\NormalTok{)))}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1129,11 +1144,11 @@ Model & df & AIC & deltaAIC\\
 \hspace{1em}CO2\_modI & 56 & -220 & 0\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. bird\_move models}}\\
-\hspace{1em}bird\_modG & 51 & 3374 & 1820\\
-\hspace{1em}bird\_modGS & 140 & 1554 & 0\\
-\hspace{1em}bird\_modGI & 208 & 1682 & 128\\
-\hspace{1em}bird\_modS & 130 & 1555 & 1\\
-\hspace{1em}bird\_modI & 200 & 1634 & 80\\
+\hspace{1em}bird\_modG & 51 & 3374 & 1823\\
+\hspace{1em}bird\_modGS & 140 & 1554 & 4\\
+\hspace{1em}bird\_modGI & 208 & 1682 & 132\\
+\hspace{1em}bird\_modS & 127 & 1550 & 0\\
+\hspace{1em}bird\_modI & 200 & 1634 & 84\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1253,16 +1268,11 @@ levels corresponding to those in the held-out test data set.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{zoo_comm_modS <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(density_adj }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(day, taxon,}
-                                     \DataTypeTok{bs=}\StringTok{"fs"}\NormalTok{,}
-                                     \DataTypeTok{k=}\DecValTok{10}\NormalTok{,}
-                                     \DataTypeTok{xt=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{))}\OperatorTok{+}
-\StringTok{                                   }\KeywordTok{s}\NormalTok{(taxon, year_f, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{),}
-                     \DataTypeTok{data=}\NormalTok{zoo_train,}
-                     \DataTypeTok{knots =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{day =}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{365}\NormalTok{)),}
-                     \DataTypeTok{family =} \KeywordTok{Gamma}\NormalTok{(}\DataTypeTok{link =}\StringTok{"log"}\NormalTok{), }
-                     \DataTypeTok{method =} \StringTok{"REML"}\NormalTok{,}
-                     \DataTypeTok{drop.unused.levels =} \OtherTok{FALSE}\NormalTok{)}
+\NormalTok{zoo_comm_modS <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(density_adj }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(taxon, year_f, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{) }\OperatorTok{+}
+\StringTok{                       }\KeywordTok{s}\NormalTok{(day, taxon, }\DataTypeTok{bs=}\StringTok{"fs"}\NormalTok{, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{, }\DataTypeTok{xt=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{)),}
+                     \DataTypeTok{data=}\NormalTok{zoo_train, }\DataTypeTok{knots=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{day=}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{365}\NormalTok{)),}
+                     \DataTypeTok{family=}\KeywordTok{Gamma}\NormalTok{(}\DataTypeTok{link=}\StringTok{"log"}\NormalTok{), }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{,}
+                     \DataTypeTok{drop.unused.levels=}\OtherTok{FALSE}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1272,16 +1282,12 @@ levels corresponding to those in the held-out test data set.
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{# Note that  s(taxon, bs="re") has to be explicitly included here, as the }
-\CommentTok{# day  by taxon smoother does not include an intercept}
-\NormalTok{zoo_comm_modI <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(density_adj }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(day, }\DataTypeTok{by=}\NormalTok{taxon,}
-                                     \DataTypeTok{k=}\DecValTok{10}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{) }\OperatorTok{+}\StringTok{ }
-\StringTok{                                   }\KeywordTok{s}\NormalTok{(taxon, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{) }\OperatorTok{+}
-\StringTok{                                   }\KeywordTok{s}\NormalTok{(taxon, year_f, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{),}
-                     \DataTypeTok{data=}\NormalTok{zoo_train,}
-                     \DataTypeTok{knots =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{day =}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{365}\NormalTok{)),}
-                     \DataTypeTok{family =} \KeywordTok{Gamma}\NormalTok{(}\DataTypeTok{link =}\StringTok{"log"}\NormalTok{), }
-                     \DataTypeTok{method =} \StringTok{"REML"}\NormalTok{,}
-                     \DataTypeTok{drop.unused.levels =} \OtherTok{FALSE}\NormalTok{)}
+\CommentTok{# day by taxon smoother does not include an intercept}
+\NormalTok{zoo_comm_modI <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(density_adj }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(day, }\DataTypeTok{by=}\NormalTok{taxon, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\StringTok{                       }\KeywordTok{s}\NormalTok{(taxon, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{s}\NormalTok{(taxon, year_f, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{),}
+                     \DataTypeTok{data=}\NormalTok{zoo_train, }\DataTypeTok{knots=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{day=}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{365}\NormalTok{)),}
+                     \DataTypeTok{family=}\KeywordTok{Gamma}\NormalTok{(}\DataTypeTok{link=}\StringTok{"log"}\NormalTok{), }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{,}
+                     \DataTypeTok{drop.unused.levels=}\OtherTok{FALSE}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1348,7 +1354,7 @@ not significant.
 
 \begin{table}[t]
 
-\caption{\label{tab:zoo_comm_check_k_kable}Results from running \texttt{k.check} on \texttt{zoo\_comm\_modI}. Each row corresponds to a single model term. The notation for term names uses `mgcv` syntax. For instance, "s(day):taxonC. sphaericus" refers to the the smoother for day for the taxon "C. sphaericus".}
+\caption{\label{tab:zoo_comm_check_k_kable}Results from running \texttt{k.check} on \texttt{zoo\_comm\_modI}. Each row corresponds to a single model term. The notation for term names uses \textbf{mgcv} syntax. For instance, "s(day):taxonC. sphaericus" refers to the the smoother for day for the taxon \textit{C. sphaericus}.}
 \centering
 \begin{tabular}{lrrrr}
 \toprule
@@ -1449,14 +1455,11 @@ smoothers.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{zoo_daph_modG <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(density_adj }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(day, }\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{)}\OperatorTok{+}
-\StringTok{                       }\KeywordTok{s}\NormalTok{(lake, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{) }\OperatorTok{+}\StringTok{ }
-\StringTok{                       }\KeywordTok{s}\NormalTok{(lake, year_f,}\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{),}
-                     \DataTypeTok{data=}\NormalTok{daphnia_train,}
-                     \DataTypeTok{knots=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{day =}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{365}\NormalTok{)),}
-                     \DataTypeTok{family=}\KeywordTok{Gamma}\NormalTok{(}\DataTypeTok{link =}\StringTok{"log"}\NormalTok{),}
-                     \DataTypeTok{method=}\StringTok{"REML"}\NormalTok{,}
-                     \DataTypeTok{drop.unused.levels =} \OtherTok{FALSE}\NormalTok{)}
+\NormalTok{zoo_daph_modG <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(density_adj }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(day, }\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{s}\NormalTok{(lake, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{) }\OperatorTok{+}
+\StringTok{                       }\KeywordTok{s}\NormalTok{(lake, year_f, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{),}
+                     \DataTypeTok{data=}\NormalTok{daphnia_train, }\DataTypeTok{knots=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{day=}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{365}\NormalTok{)),}
+                     \DataTypeTok{family=}\KeywordTok{Gamma}\NormalTok{(}\DataTypeTok{link=}\StringTok{"log"}\NormalTok{), }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{,}
+                     \DataTypeTok{drop.unused.levels=}\OtherTok{FALSE}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1465,15 +1468,12 @@ smoothers.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{zoo_daph_modGS <-}
-\StringTok{  }\KeywordTok{gam}\NormalTok{(density_adj }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(day, }\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{) }\OperatorTok{+}\StringTok{ }
-\StringTok{        }\KeywordTok{s}\NormalTok{(day, lake, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"fs"}\NormalTok{, }\DataTypeTok{xt=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{)) }\OperatorTok{+}\StringTok{ }
-\StringTok{        }\KeywordTok{s}\NormalTok{(lake, year_f,}\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{),}
-      \DataTypeTok{data=}\NormalTok{daphnia_train, }
-      \DataTypeTok{knots=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{day=}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{365}\NormalTok{)), }
-      \DataTypeTok{family=}\KeywordTok{Gamma}\NormalTok{(}\DataTypeTok{link =}\StringTok{"log"}\NormalTok{),}
-      \DataTypeTok{drop.unused.levels =} \OtherTok{FALSE}\NormalTok{,}
-      \DataTypeTok{method=}\StringTok{"REML"}\NormalTok{)}
+\NormalTok{zoo_daph_modGS <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(density_adj }\OperatorTok{~}\StringTok{ }\KeywordTok{s}\NormalTok{(day, }\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{) }\OperatorTok{+}
+\StringTok{                        }\KeywordTok{s}\NormalTok{(day, lake, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"fs"}\NormalTok{, }\DataTypeTok{xt=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{)) }\OperatorTok{+}
+\StringTok{                        }\KeywordTok{s}\NormalTok{(lake, year_f, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{),}
+                      \DataTypeTok{data=}\NormalTok{daphnia_train, }\DataTypeTok{knots=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{day=}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{365}\NormalTok{)),}
+                      \DataTypeTok{family=}\KeywordTok{Gamma}\NormalTok{(}\DataTypeTok{link=}\StringTok{"log"}\NormalTok{), }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{,}
+                      \DataTypeTok{drop.unused.levels=}\OtherTok{FALSE}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1482,15 +1482,11 @@ smoothers.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{zoo_daph_modGI <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(density_adj}\OperatorTok{~}\KeywordTok{s}\NormalTok{(day, }\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{) }\OperatorTok{+}
-\StringTok{                             }\KeywordTok{s}\NormalTok{(day, }\DataTypeTok{by=}\NormalTok{lake, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{)}\OperatorTok{+}
-\StringTok{                             }\KeywordTok{s}\NormalTok{(lake, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{) }\OperatorTok{+}\StringTok{ }
-\StringTok{                             }\KeywordTok{s}\NormalTok{(lake, year_f,}\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{),}
-                     \DataTypeTok{data=}\NormalTok{daphnia_train,}
-                     \DataTypeTok{knots=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{day =}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{365}\NormalTok{)),}
-                     \DataTypeTok{family=}\KeywordTok{Gamma}\NormalTok{(}\DataTypeTok{link =}\StringTok{"log"}\NormalTok{),}
-                     \DataTypeTok{method=}\StringTok{"REML"}\NormalTok{,}
-                     \DataTypeTok{drop.unused.levels =} \OtherTok{FALSE}\NormalTok{)}
+\NormalTok{zoo_daph_modGI <-}\StringTok{ }\KeywordTok{gam}\NormalTok{(density_adj}\OperatorTok{~}\KeywordTok{s}\NormalTok{(day, }\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{s}\NormalTok{(lake, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{) }\OperatorTok{+}
+\StringTok{                        }\KeywordTok{s}\NormalTok{(day, }\DataTypeTok{by=}\NormalTok{lake, }\DataTypeTok{k=}\DecValTok{10}\NormalTok{, }\DataTypeTok{bs=}\StringTok{"cc"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{s}\NormalTok{(lake, year_f, }\DataTypeTok{bs=}\StringTok{"re"}\NormalTok{),}
+                      \DataTypeTok{data=}\NormalTok{daphnia_train, }\DataTypeTok{knots=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{day=}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{365}\NormalTok{)),}
+                      \DataTypeTok{family=}\KeywordTok{Gamma}\NormalTok{(}\DataTypeTok{link =}\StringTok{"log"}\NormalTok{), }\DataTypeTok{method=}\StringTok{"REML"}\NormalTok{,}
+                      \DataTypeTok{drop.unused.levels=}\OtherTok{FALSE}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1772,7 +1768,7 @@ HGAM will depend (roughly) on four factors: \emph{(i)} the number of
 coefficients to be estimated (and thus the number of basis functions
 chosen), \emph{(ii)} the number of smoothing parameters to be estimated,
 \emph{(iii)} whether the model needs to estimate both a global smoother
-and groupwise smoothers, and \emph{(iv)} the algorithm and fitting
+and group-level smoothers, and \emph{(iv)} the algorithm and fitting
 criteria used to estimate parameters.
 
 The most straightforward factor that will affect the amount of
@@ -1824,28 +1820,28 @@ movement data than model \emph{S} does (Table
 
 \begin{table}[t]
 
-\caption{\label{tab:comp_time_kable}Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model *G* takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smoothers is the total number of unique penalty values estimated by the model.}
+\caption{\label{tab:comp_time_kable}Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model \emph{G} takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smoothers is the total number of unique penalty values estimated by the model.}
 \centering
 \begin{tabular}{lrrr}
 \toprule
-\multicolumn{1}{c}{ } & \multicolumn{1}{c}{ } & \multicolumn{2}{c}{\# of terms} \\
+\multicolumn{1}{c}{ } & \multicolumn{1}{c}{ } & \multicolumn{2}{c}{Number of terms} \\
 \cmidrule(l{2pt}r{2pt}){3-4}
-model & relative time & coefficients & penalties\\
+Model & Relative Time & Coefficients & Penalties\\
 \midrule
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{A. CO2 data}}\\
 \hspace{1em}G & 1 & 17 & 2\\
-\hspace{1em}GS & 11 & 65 & 14\\
-\hspace{1em}GI & 6 & 65 & 3\\
-\hspace{1em}S & 14 & 61 & 13\\
-\hspace{1em}I & 3 & 61 & 3\\
+\hspace{1em}GS & 23 & 65 & 14\\
+\hspace{1em}GI & 8 & 65 & 3\\
+\hspace{1em}S & 27 & 61 & 13\\
+\hspace{1em}I & 7 & 61 & 3\\
 \addlinespace[0.3em]
-\multicolumn{4}{l}{\textbf{B. bird movement data}}\\
+\multicolumn{4}{l}{\textbf{B. Bird movement data}}\\
 \hspace{1em}G & 1 & 90 & 2\\
-\hspace{1em}GS & 360 & 624 & 14\\
-\hspace{1em}GI & 160 & 540 & 5\\
-\hspace{1em}S & 69 & 535 & 12\\
-\hspace{1em}I & 140 & 541 & 3\\
+\hspace{1em}GS & 380 & 624 & 14\\
+\hspace{1em}GI & 470 & 540 & 8\\
+\hspace{1em}S & 83 & 535 & 12\\
+\hspace{1em}I & 950 & 541 & 6\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1866,16 +1862,16 @@ compute a given model by using a random subset of the data to calculate
 the basis functions. It then blocks the data and updates model fit
 within each block (Wood, Goude \& Shaw, 2015). While this is primarily
 designed to reduce memory usage, it can also substantially reduce
-computation time. Second, when using \texttt{bam()}'s default fREML
-(``Fast REML'') method, you can use the \texttt{discrete=TRUE} option:
-this first bins continuous covariates into a smaller number of discrete
-values before estimating the model, substantially reducing the amount of
-computation needed (Wood et al. (2017); see \texttt{?mgcv::bam} for more
-details). Setting up the five model types (Fig. \ref{fig:models}) in
-\texttt{bam()} uses the same code as we have previously covered; the
-only difference is that you use the \texttt{bam()} instead of
-\texttt{gam()} function, and have the additional option of discretizing
-your covariates.
+computation time. Second, when using \texttt{bam()}'s default
+\texttt{method="fREML"} (``Fast REML'') method, you can use the
+\texttt{discrete=TRUE} option: this first bins continuous covariates
+into a smaller number of discrete values before estimating the model,
+substantially reducing the amount of computation needed (Wood et al.
+(2017); see \texttt{?mgcv::bam} for more details). Setting up the five
+model types (Fig. \ref{fig:models}) in \texttt{bam()} uses the same code
+as we have previously covered; the only difference is that you use the
+\texttt{bam()} instead of \texttt{gam()} function, and have the
+additional option of discretizing your covariates.
 
 \texttt{bam()} has a larger computational overhead than \texttt{gam()},
 so for small numbers of groups, it can be slower than \texttt{gam()}
@@ -1964,10 +1960,9 @@ model \emph{GS} for the bird movement data we discussed in section III
 would need to be coded as:
 
 \begin{verbatim}
-bird_modS_gamm4 <-
-  gamm4(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
-                   k=c(10, 10, 6), m=2),
-        data=bird_move, family="poisson")
+bird_modS <- gamm4(count ~ t2(week, latitude, species, k=c(10, 10, 6), m=2,
+                              bs=c("cc", "tp", "re")),
+                   data=bird_move, family="poisson")
 \end{verbatim}
 
 These packages also do not support the same range of families for the
@@ -1983,33 +1978,33 @@ supports several of the extended families available through
 \textbf{mgcv}, such as zero-inflated, negative binomial, or ordered
 categorical and multinomial distributions.
 
-\subsection{Estimation issues when fitting both global and groupwise
-smoothers}\label{estimation-issues-when-fitting-both-global-and-groupwise-smoothers}
+\subsection{Estimation issues when fitting both global and group-level
+smoothers}\label{estimation-issues-when-fitting-both-global-and-group-level-smoothers}
 
-When fitting models with separate global and groupwise smoothers (models
-\emph{GS} and \emph{GI}), one issue to be aware of is concurvity between
-the global smoother and groupwise terms. Concurvity measures how well
-one smooth term can be approximated by some combination of the other
-smooth terms in the model (see \texttt{?mgcv::concurvity} for details).
-For models \emph{GS} and \emph{GI}, the global term is either entirely
-or almost entirely\footnote{There is an important caveat here. When
-  fitting \emph{GS} models using tensor products in \textbf{mgcv}, the
-  global and group-level terms will not be entirely concurve because
+When fitting models with separate global and group-level smoothers
+(models \emph{GS} and \emph{GI}), one issue to be aware of is concurvity
+between the global smoother and group-level terms. Concurvity measures
+how well one smooth term can be approximated by some combination of the
+other smooth terms in the model (see \texttt{?mgcv::concurvity} for
+details). For models \emph{GS} and \emph{GI}, the global term is either
+entirely or almost entirely\footnote{There is an important caveat here.
+  When fitting \emph{GS} models using tensor products in \textbf{mgcv},
+  the global and group-level terms will not be entirely concurve because
   \textbf{mgcv} will automatically drop basis functions from the
   group-level smoother to ensure that these terms are not perfectly
   concurve. That is, so that no basis function in the global term could
   be formed from a linear combination of group-level basis functions
   (see \texttt{?mgcv::gam.side} for how terms to be dropped are
-  selected). Group-level terms fit \texttt{bs="fs"} smoothers will not
-  have any basis functions dropped, as \texttt{mgcv} disables checking
-  for side-constraints for these smoothers (since all basis functions
-  are fully penalized for this type of smoother, in principle concurvity
-  should not be an issue; see
+  selected). Group-level terms fit using \texttt{bs="fs"} smoothers will
+  not have any basis functions dropped, as \texttt{mgcv} disables
+  checking for side-constraints for these smoothers (since all basis
+  functions are fully penalized for this type of smoother, in principle
+  concurvity should not be an issue; see
   \texttt{?mgcv::smooth.construct.fs.smooth.spec} for details).}
-concurved with the groupwise smoothers. This is because, in the absence
-of the global smooth term, it would be possible to recreate that average
-effect by shifting all the groupwise smoothers so they were centered
-around the global mean.
+concurved with the group-level smoothers. This is because, in the
+absence of the global smooth term, it would be possible to recreate that
+average effect by shifting all the group-level smoothers so they were
+centered around the global mean.
 
 In practical terms, this has the consequence of increasing uncertainty
 around the global mean relative to a model with only a global smoother.
@@ -2029,31 +2024,31 @@ occasionally finds solutions with simulated data where the global term
 is over-smoothed.
 
 To avoid this issue, we recommend both careful choice of basis and
-setting model degrees of freedom so that groupwise terms are either
+setting model degrees of freedom so that group-level terms are either
 slightly less flexible than the global term or have a smaller null
 space. In the examples in section III, we used smoothers with an
 unpenalized null space for the global smoother and ones with no null
-space for the groupwise terms{[}\^{}gsnull{]}. When using thin plate
-splines, this can be done with splines with a lower order of derivative
-penalized in the groupwise smoothers than the global smoothers, as
-lower-order ``tp'' splines have fewer basis functions in the null space.
-For example, we used \texttt{m=2} (penalizing squared second
-derivatives) for the global smoother, and \texttt{m=1} (penalizing
-squared first derivatives) for groupwise smoothers in models \emph{GS}
-and \emph{GI}. Another option is to use a lower number of basis
-functions (\texttt{k}) for groupwise relative to global terms. This will
-reduce the maximum flexibility possible in the groupwise terms. We do
-caution that these are just rules of thumb.
+space for the group-level terms. When using thin plate splines, this can
+be done with splines with a lower order of derivative penalized in the
+group-level smoothers than the global smoothers, as lower-order TPRS
+splines have fewer basis functions in the null space. For example, we
+used \texttt{m=2} (penalizing squared second derivatives) for the global
+smoother, and \texttt{m=1} (penalizing squared first derivatives) for
+group-level smoothers in models \emph{GS} and \emph{GI}. Another option
+is to use a lower number of basis functions (\texttt{k}) for group-level
+relative to global terms. This will reduce the maximum flexibility
+possible in the group-level terms. We do caution that these are just
+rules of thumb.
 
 As noted above, interpreting the shape of global terms and group-wise
 deviations seperately for \emph{GS} models fit using tensor-product
 group-level terms is complicated by the fact that \textbf{mgcv} will
-drop some basis-functions for the group-level term to prevent perfect
-concurvity. For tensor-product smoothers, \texttt{gam.side} will
-generally drop \(\le k\) terms from the group-level smoother, where
-\(k\) is the number of basis functions in the global smoother. The total
-number of terms dropped will depend on the smoothers used for the global
-and groupwise terms, and will be dropped essentially at random from
+drop some basis-functions from the group-level terms to prevent perfect
+concurvity. For tensor-product smoothers, \textbf{mgcv} will generally
+drop \(\le k\) terms from the group-level smoother, where \(k\) is the
+number of basis functions in the global smoother. The total number of
+terms dropped will depend on the smoothers used for the global and
+group-level terms, and will be dropped essentially at random from
 different grouping levels. This means that some groups will have a
 different range of potential deviations from the global smoother than
 others. This has the effect of also somewhat altering the shape of the
@@ -2073,8 +2068,14 @@ method\footnote{It is also important to consider here that the concept
   represent an actual average relationship if the grouping levels were
   drawn at random from some underlying population, and if there was
   scientific reasons to believe that individual groups should differ
-  from the mean only via some additive function.}. However, more work on
-when these models accurately reconstruct global effects is still needed.
+  from the mean only via some additive function.}. As noted in section
+III, we found that \texttt{t2()} tensor product smoothers with full
+penalties (\texttt{full\ =\ TRUE} in the \texttt{t2} function) for
+group-level smoothers showed the best performance at recreating the true
+global function from our simulated \texttt{bird\_move} data set,
+compared to other possible types of tensor product. However, more work
+on when these models accurately reconstruct global effects is still
+needed.
 
 There is currently no way to disable dropping side constraints for these
 terms in \textbf{mgcv}. In cases where accurately estimating the global
@@ -2087,8 +2088,8 @@ there is specialized functional regression software such as the
 Greven, 2014), which does not impose these side constraints; instead the
 package uses a modified type of tensor-product to ensure that
 group-level terms sum to zero at each level of the predictor (Scheipl,
-Staicu \& Greven, 2014). Also, see below for more information on
-functional regression.
+Staicu \& Greven, 2014). See below for more information on functional
+regression.
 
 \subsection{A brief foray into the land of
 Bayes}\label{a-brief-foray-into-the-land-of-bayes}
