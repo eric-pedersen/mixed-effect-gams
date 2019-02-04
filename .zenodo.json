@@ -13,7 +13,7 @@
       "orcid":"0000-0002-9640-6755"
     },
     {
-      "name":"Gavin L. Simson",
+      "name":"Gavin L. Simpson",
       "affiliation":"Institute of Environmental Change and Society, University Regina",
       "orcid":"0000-0002-9084-8413"
     },
@@ -23,13 +23,18 @@
       "orcid":"0000-0002-2136-0000"
     }
   ],
-  "description":"This (in progress) repository includes the code, data, documentation, metadata and figure source files that accompany this research.",
+  "description":"This repository includes the code, data, documentation, metadata and figure source files that accompany this research.",
   "access_right":"open",
   "related_identifiers":[
     {
       "identifier":"https://github.com/eric-pedersen/mixed-effect-gams",
       "relation":"isIdenticalTo",
       "scheme":"url"
+    },
+    {
+      "identifier": "10.7287/peerj.preprints.27320v1",
+      "relation": "isSupplementTo",
+      "scheme": "doi"
     }
   ]
 }
