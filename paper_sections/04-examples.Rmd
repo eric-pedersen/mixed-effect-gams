@@ -148,8 +148,8 @@ In this table, each row corresponds to a single smooth term, `k'` corresponds to
 
 Differences between models *S* (shared smoothness between taxa) and *I* (different smoothness for each taxa) seem to be driven by the low seasonality of *L. siciloides* relative to the other species, and how this is captured by the more flexible model *I* (Fig. \ref{fig:zoo_comp}). Still, both models show very similar fits to the training data. This implies that the added complexity of different penalties for each species (model *I*) is unnecessary here, which is consistent with the fact that model *S* has a lower AIC (`r round(AIC(zoo_comm_modS), 0)`) than model *I* (`r round(AIC(zoo_comm_modI), 0)`), and that model *S* is somewhat better at predicting out-of-sample fits for all taxa than model *I* (Table \ref{tab:zoo_comm_outofsample_kable}). Both models show significant predictive improvement compared to the intercept-only model for all species except *K. cochlearis* (Table \ref{tab:zoo_comm_outofsample_kable}). This may be driven by changing timing of the spring bloom for this species between training  and out-of-sample years (Fig. \ref{fig:zoo_comp}). 
 
-<!-- I changed the caption  to reflect the image, but different colors (blue-orange?) would provide better robustness to colorblindness -->
-```{r zoo_comm_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=6, fig.height=6, fig.cap = "\\label{fig:zoo_comp}Species-specific seasonal dynamics for the eight zooplankon species tracked in Lake Mendota. Black points indicate individual plankton observations in the training data, and grey points are observations in held-out years used for model validation. Lines indicate predicted average values for model *S* (green) and model *I* (red). Ribbons indicate $\\pm$ 2 standard errors around the mean."}
+
+```{r zoo_comm_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=6, fig.height=6, fig.cap = "\\label{fig:zoo_comp}Species-specific seasonal dynamics for the eight zooplankon species tracked in Lake Mendota. Black points indicate individual plankton observations in the training data, and grey points are observations in held-out years used for model validation. Lines indicate predicted average values for model *S* (red) and model *I* (blue). Ribbons indicate $\\pm$ 2 standard errors around the mean."}
 #Create synthetic data to use to compare predictions
 zoo_plot_data <- expand.grid(day = 1:365, 
                              taxon = factor(levels(zoo_train$taxon)), 
@@ -196,10 +196,10 @@ zoo_plot <- ggplot(zoo_plot_data) +
   labs(y = expression(atop(Population~density,("10 000"~individuals~m^{-2}))), 
        x = "Day of Year") +
   scale_y_log10(breaks = c(0.1,1,10,100, 1000), labels = c("0.1","1","10","100","1000"))+
-  scale_fill_brewer(name = "", palette = "Set1",
+  scale_fill_brewer(name = "", palette = "Dark2",
                       labels = zoo_plot_model_labels) +
   scale_colour_brewer(name = "",
-                        palette = "Set1", labels = zoo_plot_model_labels)+
+                        palette = "Dark2", labels = zoo_plot_model_labels)+
   theme(legend.position = "top")
 
 zoo_plot
@@ -320,9 +320,6 @@ but model *GI* fits somewhat better than model *GS* [^AIC_note].  There does not
 
 [^AIC_note]: When comparing models via AIC, we use the standard rule of thumb from @burnham_model_1998, where models that differ by 2 units or less from the lowest AIC model have substantial support, and those differing by more than 4 units have less support. 
 
-<!-- It is extremely hard to see the more pronounced spring bloom in these plots.  I suggest
-plotting the in a single row to accentuate the vertical differences, and truncating the y-axis
-at a much lower value - 15? -->
 
 ```{r zoo_daph_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE, fig.width=6, fig.height=4, fig.cap="\\label{fig:daph_smooth}Raw data (points) and fitted models (lines) for \\textit{D. mendota} data.  Black points indicate individual plankton observations in the training data, and grey points are observations in held-out years used for model validation. Green line: model *G* (no inter-lake variation in dynamics); orange line: model *GS* (interlake variation with similar smoothness); purple line: model *GI* (varying smoothness among lakes). Shaded bands are drawn at $\\pm$ 2 standard errors around each model."}
 #Create synthetic data to use to compare predictions

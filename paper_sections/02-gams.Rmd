@@ -17,7 +17,7 @@ f_j(x_j) = \sum_{k=1}^K \beta_{j,k} b_{j,k}(x_j).
 $$
 $K$, referred to as "basis size", "basis complexity" or "basis richness", determines the maximum complexity of each smoother. 
 
-It would seem that large basis size could lead to overfitting, but this counteracted by a *smoothing penalty* that influences basis function coefficients so as to prevent excess wiggliness and ensure that appropriate complexity of each smoother.  For each smoother, one or more *penalty matrices* $(\mathbf{S})$, specific to the form of the basis functions, is pre- and post-multiplied by the parameter vector $\boldsymbol{\beta}$ to calculate the penalty $(\boldsymbol{\beta}^T \mathbf{S} \boldsymbol{\beta})$.  A penalty term is then subtracted from <!-- seems more straight forward --> the model log-likelihood $L$, controlling the trade-off via a *smoothing parameter* ($\lambda$).  The penalized log-likelihood used to fit the model is thus:
+It would seem that large basis size could lead to overfitting, but this counteracted by a *smoothing penalty* that influences basis function coefficients so as to prevent excess wiggliness and ensure that appropriate complexity of each smoother.  For each smoother, one or more *penalty matrices* $(\mathbf{S})$, specific to the form of the basis functions, is pre- and post-multiplied by the parameter vector $\boldsymbol{\beta}$ to calculate the penalty $(\boldsymbol{\beta}^T \mathbf{S} \boldsymbol{\beta})$.  A penalty term is then subtracted from the model log-likelihood $L$, controlling the trade-off via a *smoothing parameter* ($\lambda$).  The penalized log-likelihood used to fit the model is thus:
 $$
 L - \boldsymbol{\lambda} \boldsymbol{\beta}^T \mathbf{S} \boldsymbol{\beta}
 $$
