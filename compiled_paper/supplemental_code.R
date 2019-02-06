@@ -472,9 +472,10 @@ zoo_plot <- ggplot(zoo_plot_data) +
   geom_line(aes(x = day, y = fit, color = model))+
   labs(y = expression(atop(Population~density,("10 000"~individuals~m^{-2}))), 
        x = "Day of Year") +
-    scale_fill_brewer(name = "", palette = "Dark2",
+  scale_y_log10(breaks = c(0.1,1,10,100, 1000), labels = c("0.1","1","10","100","1000"))+
+  scale_fill_brewer(name = "", palette = "Dark2",
                       labels = zoo_plot_model_labels) +
-    scale_colour_brewer(name = "",
+  scale_colour_brewer(name = "",
                         palette = "Dark2", labels = zoo_plot_model_labels)+
   theme(legend.position = "top")
 
@@ -601,6 +602,7 @@ daph_plot <- ggplot(daph_plot_data, aes(x=day))+
                            ("10 000"~individuals~m^{-2}))), 
        x = "Day of Year") +
   scale_x_continuous(expand = c(0,0))+
+  scale_y_log10()+
     scale_fill_brewer(name = "", 
                       palette = "Dark2",
                       labels = daph_plot_model_labels) +
@@ -837,7 +839,8 @@ get_n_iter = function(model) model$outer.info$iter
 get_n_out_iter = function(model) model$iter
 
 #combine results into a single table
-comp_resources = crossing(model_number = c("G","GS","GI","S","I"),
+comp_resources = crossing(model_number = factor(c("G","GS","GI","S","I"),
+                                                levels = c("G","GS","GI","S","I")),     
                           data_source = factor(c("CO2","bird_move"),
                                                levels = c("CO2","bird_move")),
                           time = 0, n_smooths = 0,
