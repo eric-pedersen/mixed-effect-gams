@@ -2024,21 +2024,25 @@ occasionally finds solutions with simulated data where the global term
 is over-smoothed.
 
 To avoid this issue, we recommend both careful choice of basis and
-setting model degrees of freedom so that group-level terms are either
-slightly less flexible than the global term or have a smaller null
-space. In the examples in section III, we used smoothers with an
-unpenalized null space for the global smoother and ones with no null
-space for the group-level terms. When using thin plate splines, this can
-be done with splines with a lower order of derivative penalized in the
-group-level smoothers than the global smoothers, as lower-order TPRS
-splines have fewer basis functions in the null space. For example, we
-used \texttt{m=2} (penalizing squared second derivatives) for the global
+relative degrees of freedom of global and group-level terms. In the
+examples in section III, we used smoothers with an unpenalized null
+space for the global smoother and ones with no null space for the
+group-level terms. When using thin plate splines, this can be done with
+splines with a lower order of derivative penalized in the group-level
+smoothers than the global smoothers, as lower-order TPRS splines have
+fewer basis functions in the null space. For example, we used
+\texttt{m=2} (penalizing squared second derivatives) for the global
 smoother, and \texttt{m=1} (penalizing squared first derivatives) for
 group-level smoothers in models \emph{GS} and \emph{GI}. Another option
-is to use a lower number of basis functions (\texttt{k}) for group-level
-relative to global terms. This will reduce the maximum flexibility
-possible in the group-level terms. We do caution that these are just
-rules of thumb.
+is to specify the maximum degrees of freedom (\texttt{k}) for the
+group-level smoother either substantially higher or lower than the
+global smoother; this is in effect an approximate way to specify a prior
+belief in the relative smoothness of the global versus group-level
+functions. If the group-level term is set to have greater \texttt{k}
+compared to the gobal term, this encodes the assumption that the global
+function should not be very wiggly, but group-level deviations from that
+smooth might vary from that, and vice versa if \texttt{k} is set lower
+for group-level terms than for the global smoother.
 
 As noted above, interpreting the shape of global terms and group-wise
 deviations seperately for \emph{GS} models fit using tensor-product
@@ -2048,34 +2052,51 @@ concurvity. For tensor-product smoothers, \textbf{mgcv} will generally
 drop \(\le k\) terms from the group-level smoother, where \(k\) is the
 number of basis functions in the global smoother. The total number of
 terms dropped will depend on the smoothers used for the global and
-group-level terms, and will be dropped essentially at random from
-different grouping levels. This means that some groups will have a
-different range of potential deviations from the global smoother than
-others. This has the effect of also somewhat altering the shape of the
-global smooth relative to what it would be based on model \emph{G} (the
-average curve through all the data); this will be a larger issue when
-the number of basis functions in the global smooth and the number of
-group levels are small. We have tested the effect of this issue on our
-simulated \texttt{bird\_move} data set and did not find that it lead to
+group-level terms. This means that some groups will have a different
+range of potential deviations from the global smoother than others. This
+has the effect of also somewhat altering the shape of the global smooth
+relative to what it would be based on model \emph{G} (the average curve
+through all the data); this will be a larger issue when the number of
+basis functions in the global smooth and the number of group levels are
+small. We have tested the effect of this issue on our simulated
+\texttt{bird\_move} data set and did not find that it lead to
 substantial bias in estimating the shape of the global smoother,
 relative to the amount of bias inherent in any smooth estimation
 method\footnote{It is also important to consider here that the concept
   of a ``global function'' is a bit fuzzy itself, and there are many
   possible ways to define what a global function is (as we discussed in
-  section III). In our view, the global function fitted in these models
-  should generally be viewed as a useful summary of an average trend
-  across a wide range of groups. The global function would only
-  represent an actual average relationship if the grouping levels were
-  drawn at random from some underlying population, and if there was
-  scientific reasons to believe that individual groups should differ
-  from the mean only via some additive function.}. As noted in section
-III, we found that \texttt{t2()} tensor product smoothers with full
-penalties (\texttt{full\ =\ TRUE} in the \texttt{t2} function) for
-group-level smoothers showed the best performance at recreating the true
-global function from our simulated \texttt{bird\_move} data set,
-compared to other possible types of tensor product. However, more work
-on when these models accurately reconstruct global effects is still
-needed.
+  section III). The global function being fit in all of these models is
+  actually an average function, and the shape of it will depend on the
+  sampling structure of any given study. In our view, the global
+  function fitted in these models should generally be viewed as a useful
+  summary of an average trend across a wide range of groups, and would
+  only represent an actual average relationship if the grouping levels
+  were drawn at random from some underlying population and if there was
+  scientific reason to believe that individual groups should differ from
+  the mean only via some additive function.} (Figure
+\ref{fig:global_bias}). As noted in section III, we found that
+\texttt{t2()} tensor product smoothers with full penalties
+(\texttt{full\ =\ TRUE} in the \texttt{t2} function) for group-level
+smoothers showed the best performance at recreating the true global
+function from our simulated \texttt{bird\_move} data set, compared to
+other possible types of tensor product. Using \texttt{te()} tensor
+products for the group-level terms lead to the global smoother being
+heavily smoothed relative to the actual average function, used to
+simulate the data (Figure \ref{fig:global_bias}). However, more work on
+when these models accurately reconstruct global effects is still needed.
+
+\begin{figure}
+\centering
+\includegraphics{../figures/global_bias_plot-1.pdf}
+\caption{\label{fig:global_bias}Average global function used for
+simulating bird\_move data set (left) compared to the fitted global
+function for a \emph{GS} model estimated with either a \texttt{te()}
+smoother (middle) or a \texttt{t2()} smoother with
+\texttt{full=TRUE\ (right)} for group-level terms. Both group-level
+smoothers used the same model specification as in section III except for
+the type of tensor product used. Colors indicate the value of the linear
+predictor of bird density at each location in each week.}
+\end{figure}
 
 There is currently no way to disable dropping side constraints for these
 terms in \textbf{mgcv}. In cases where accurately estimating the global
