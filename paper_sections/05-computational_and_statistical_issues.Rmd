@@ -137,7 +137,7 @@ We then fit both model *S* (where all curves were assumed to be equally smooth) 
 
 A sample of the fits for each group for three of the replicates for each model are shown in Fig. \ref{fig:var_pen}a, with model *S* in red and model *I* in blue. 
 Figure \ref{fig:var_pen}b illustrates how well each model fared across the range of replicates at accurately estimating the true smoothness of the highest frequency terms as measured by the squared second derivative of the smooth fit versus that of the true function, with the distance to the black one-to-one line indicating the degree to which the estimated function for each group over- or under-estimated the smoothness of the true signal. 
-In general, under low noise conditions (Fig. \ref{fig:var_pen}, signal-to-noise ratio of 2), model *S* tendeded to overfit the smoothest, lowest-frequency, groups, while accurately fitting the highest frequency groups. 
+In general, under low noise conditions (Fig. \ref{fig:var_pen}, signal-to-noise ratio of 2), model *S* tended to overfit the smoothest, lowest-frequency, groups, while accurately fitting the highest frequency groups. 
 Under moderate signal-to-noise ratios,  model *S* tended to over-penalize high-frequency groups and under-penalize low frequency groups, and in the lowest signal-to-noise ratio tested (0.125), model *S* tended to penalize all groups towards very smooth functions (Fig. \ref{fig:var_pen}b). 
 Curves estimated by model *I*, on the other hand, tended to accurately capture the true wiggliness of the function across the whole range of frequencies and noises, except for the lowest-frequency groups, and the highest frequency groups it the presence of high noise; 
 in both cases, model *I* tended to over-smooth (Fig. \ref{fig:var_pen}b). 
@@ -239,7 +239,7 @@ The choice to include a global term should be made based on scientific considera
 
 ## Complexity-computation trade-offs
 
-The more flexible a model is, the larger an effective parameter space any fitting software has to search. It can be surprisingly easy to use massive computational resources trying to fit models to even small datasets. While we typically want to select models based on their fit and our inferential goals, computing resources can often act as an effective upper bound on model complexity. For a given data set, assuming a fixed family and link function, the time taken to estimate an HGAM will depend (roughly) on four factors: *(i)* the number of coefficients to be estimated (and thus the number of basis functions chosen), *(ii)* the number of smoothing parameters to be estimated, *(iii)* whether the model needs to estimate both a global smoother and groupwise smoothers, and *(iv)* the algorithm and fitting criteria used to estimate parameters.
+The more flexible a model is, the larger an effective parameter space any fitting software has to search. It can be surprisingly easy to use massive computational resources trying to fit models to even small datasets. While we typically want to select models based on their fit and our inferential goals, computing resources can often act as an effective upper bound on model complexity. For a given data set, assuming a fixed family and link function, the time taken to estimate an HGAM will depend (roughly) on four factors: *(i)* the number of coefficients to be estimated (and thus the number of basis functions chosen), *(ii)* the number of smoothing parameters to be estimated, *(iii)* whether the model needs to estimate both a global smoother and group-level smoothers, and *(iv)* the algorithm and fitting criteria used to estimate parameters.
 
 The most straightforward factor that will affect the amount of computational resources is the number of parameters in the model. Adding group-level smoothers (moving from model *G* to the other models) means that there will be more regression parameters to estimate. For a dataset with $g$ different groups and $n$ data points, fitting a model with just a global smoother, `y~s(x,k=k)` will require $k$ coefficients, and takes $\mathcal{O}(nk^2)$ operations to evaluate.  Fitting the same data using a group-level smoother (model *S*, `y~s(x,fac,bs="fs",k=k)`) will require $\mathcal{O}(nk^2g^2)$ operations to evaluate.  In effect, adding a group-level smoother will increase computational cost by an order of the number of groups squared. The effect of this is visible in the examples we fit in section III.  Table \ref{tab:comp_time_kable} compares the relative time it takes to compute model *G* versus the other models.
 
@@ -435,12 +435,12 @@ kable(comp_resources_table,format ="latex", caption="Relative computational time
 
 When fitting models with large numbers of groups, it is often possible to speed up computation substantially by using one of the alternative fitting routines available through **mgcv**.
 
-The first option is the function `bam()`, this requires the least changes to existing code written using the `gam()` function. `bam()` is designed to improve  performance when fitting large data sets via two mechanisms. First, it saves on memory needed to compute a given model by using a random subset of the data to calculate the basis functions. It then blocks the data and updates model fit within each block [@wood_generalized_2015]. While this is primarily designed to reduce memory usage, it can also substantially reduce computation time. Second, when using `bam()`'s default `method="fREML"` ("Fast REML") method, you can use the `discrete=TRUE` option: this first bins continuous covariates into a smaller number of discrete values before estimating the model, substantially reducing the amount of computation needed (@Wood2017-iy; see `?mgcv::bam` for more details). Setting up the five model types (Fig. \ref{fig:models}) in `bam()` uses the same code as we have previously covered;
+The first option is the function `bam()`, which requires the least changes to existing code written using the `gam()` function. `bam()` is designed to improve  performance when fitting large data sets via two mechanisms. First, it saves on memory needed to compute a given model by using a random subset of the data to calculate the basis functions. It then blocks the data and updates model fit within each block [@wood_generalized_2015]. While this is primarily designed to reduce memory usage, it can also substantially reduce computation time. Second, when using `bam()`'s default `method="fREML"` ("Fast REML") method, you can use the `discrete=TRUE` option: this first bins continuous covariates into a smaller number of discrete values before estimating the model, substantially reducing the amount of computation needed (@Wood2017-iy; see `?mgcv::bam` for more details). Setting up the five model types (Fig. \ref{fig:models}) in `bam()` uses the same code as we have previously covered;
 the only difference is that you use the `bam()` instead of `gam()` function, and
 have the additional option of discretizing your covariates.
 
 `bam()` has a larger computational overhead than `gam()`, so for small numbers of groups, it can be slower than `gam()` (Fig. \ref{fig:alt_timing}). As the number of groups increases, computational time for `bam()` increases more slowly than for `gam()`; in our simulation tests, when the number of groups is greater than 16, `bam()` can be upward of an order of magnitude faster (Fig. \ref{fig:alt_timing}). Note that `bam()` can be somewhat less computationally stable when estimating these models (i.e., less likely to converge). 
-While base `bam()` (not fit using `discrete=TRUE`) is slower than the other approaches shown in Fig. \ref{fig:alt_timing}, that does not imply that `bam()` is  a worse choice in general, as it is designed to avoid memory limitations when working with big data rather than explicitly speeding up model fitting. 
+While base `bam()` (not fit using `discrete=TRUE`) is slower than the other approaches shown in Fig. \ref{fig:alt_timing}, that does not imply that `bam()` is  a worse choice in general; it is designed to avoid memory limitations when working with big data rather than explicitly speeding up model fitting. 
 The `bam()` functions would likely show much better relative performance when the number of individuals per group were large (in the hundreds to thousands, compared to the 20 individuals per group used in Fig. \ref{fig:alt_timing}).
 
 The second option is to fit models using one of two dedicated mixed effect
@@ -606,16 +606,24 @@ variable; `gamm()` only supports non-Gaussian families by using a fitting method
 called penalized quasi-likelihood (PQL) that is slower and not as numerically
 stable as the methods used in `gam()`, `bam()`, and `gamm4()`. Non-Gaussian families are well supported by **lme4** (and thus **gamm4**), but can only fit them using marginal likelihood (ML) rather than REML, so may tend to over-smooth relative to `gam()` using REML estimation. Further, neither `gamm()` nor `gamm4()` supports several of the extended families available through **mgcv**, such as zero-inflated, negative binomial, or ordered categorical and multinomial distributions.
 
-## Estimation issues when fitting both global and groupwise smoothers
+## Estimation issues when fitting both global and group-level smoothers
 
-When fitting models with separate global and groupwise smoothers (models *GS* and *GI*),
-one issue to be aware of is concurvity between the global smoother and groupwise
+When fitting models with separate global and group-level smoothers (models *GS* and *GI*),
+one issue to be aware of is concurvity between the global smoother and group-level
 terms. Concurvity measures how well one smooth term can be approximated by some
 combination of the other smooth terms in the model (see `?mgcv::concurvity` for
-details). For models *GS* and *GI*, the global term is entirely concurved with the
-groupwise smoothers. This is because, in the absence of the global smooth term, it
-would be possible to recreate that average effect by shifting all the groupwise
-smoothers so they were centered around the global mean. In practical terms, this
+details). For models *GS* and *GI*, the global term is either entirely or almost entirely[^te_concurvity] concurved with the group-level smoothers.
+This is because, in the absence of the global smooth term, it
+would be possible to recreate that average effect by shifting all the group-level
+smoothers so they were centered around the global mean. 
+
+[^te_concurvity]: There is an important caveat here. 
+When fitting *GS* models using tensor products in **mgcv**, the global and group-level terms will not be entirely concurve because **mgcv** will automatically drop basis functions from the group-level smoother to ensure that these terms are not perfectly concurve. 
+That is, so that no basis function in the global term could be formed from a linear combination of group-level basis functions (see `?mgcv::gam.side` for how terms to be dropped are selected).
+Group-level terms fit using `bs="fs"` smoothers will not have any basis functions dropped, as `mgcv` disables checking for side-constraints for these smoothers (since all basis functions are fully penalized for this type of smoother, in principle concurvity should not be an issue; see `?mgcv::smooth.construct.fs.smooth.spec` for details). 
+ 
+
+In practical terms, this
 has the consequence of increasing uncertainty around the global mean relative to
 a model with only a global smoother. In some cases, it can result in the estimated
 global smoother being close to flat, even in simulated examples with a known
@@ -628,15 +636,76 @@ to balance penalties between nested smooth terms (this is why nested random
 effects can be fitted). We have observed that **mgcv** still occasionally
 finds solutions with simulated data where the global term is over-smoothed.
 
-To avoid this issue, we recommend both careful choice of basis and setting model degrees of freedom so that groupwise terms are either slightly less flexible than the global term or have a smaller null space. In the examples in section III, we used smoothers with an unpenalized null space (standard thin plate splines) for the global smoother and ones with no null space for the groupwise terms[^gsnull]. When using thin plate splines, it may also help to use splines with a lower order of derivative penalized in the groupwise smoothers than the global smoothers, as lower-order "tp" splines have fewer basis functions in the null space. For example, we used `m=2` (penalizing squared second derivatives) for the global smoother, and `m=1` (penalizing squared first derivatives) for groupwise smoothers in models *GS* and *GI*. Another option is to use a lower number of basis functions (`k`) for groupwise relative to global terms.  This will reduce the maximum flexibility possible in the groupwise terms. We do caution that these are just rules of thumb. In cases where an accurately estimated global smoother is essential, we recommend either fitting model *G* or using specialized functional regression software such as the `fosr` function in the *refund* package [@scheipl_functional_2014], which allows the user to enforce constraints on the groupwise smoothers so that they always sum to zero at any given point (avoiding the collinearity issue). Also, see below for more information on functional regression.
 
-[^gsnull]: For model *GS* both the factor-smoother, and tensor products of random effect ("re") and other smooth terms do not have a penalized nullspace by construction (they are full rank), as noted above. For model *GI* groupwise terms, we used basis types that had a penalty added to the nullspace, so called "shrinkage" methods: `bs="ts"`, `"cs"`, or `"ps"` have this property.
+To avoid this issue, we recommend both careful choice of basis and relative degrees of freedom of global and group-level terms. In the examples in section III, we used smoothers with an unpenalized null space for the global smoother and ones with no null space for the group-level terms. When using thin plate splines, this can be done with splines with a lower order of derivative penalized in the group-level smoothers than the global smoothers, as lower-order TPRS splines have fewer basis functions in the null space. For example, we used `m=2` (penalizing squared second derivatives) for the global smoother, and `m=1` (penalizing squared first derivatives) for group-level smoothers in models *GS* and *GI*. Another option is to specify the maximum degrees of freedom (`k`) for the group-level smoother either substantially higher or lower than the global smoother; 
+this is in effect an approximate way to specify a prior belief in the relative smoothness of the global versus group-level functions. 
+If the group-level term is set to have greater `k` compared to the gobal term, this encodes the assumption that the global function should not be very wiggly, but group-level deviations from that smooth might vary from that, and vice versa if `k` is set lower for group-level terms than for the global smoother. 
+
+
+As noted above, interpreting the shape of global terms and group-wise deviations seperately for  *GS* models fit using tensor-product group-level terms is complicated by the fact that **mgcv** will drop some basis-functions from the group-level terms to prevent perfect concurvity. 
+For tensor-product smoothers, **mgcv** will generally drop $\le k$ terms from the group-level smoother, where $k$ is the number of basis functions in the global smoother.
+The total number of terms dropped will depend on the smoothers used for the global and group-level terms. 
+This means that some groups will have a different range of potential deviations from the global smoother than others.
+This has the effect of also somewhat altering the shape of the global smooth relative to what it would be based on model *G* (the average curve through all the data); this will be a larger issue when the number of basis functions in the global smooth and the number of group levels are small. 
+We have tested the effect of this issue on our simulated `bird_move` data set and did not find that it lead to substantial bias in estimating the shape of the global smoother, relative to the amount of bias inherent in any smooth estimation method[^global_note] (Figure \ref{fig:global_bias}). As noted in section III, we found that `t2()` tensor product smoothers with full penalties (`full = TRUE` in the `t2` function) for group-level smoothers showed the best performance at recreating the true global function from our simulated `bird_move` data set, compared to other possible types of tensor product. Using `te()` tensor products for the group-level terms lead to the global smoother being heavily smoothed relative to the actual average function, used to simulate the data (Figure \ref{fig:global_bias}).
+However, more work on when these models accurately reconstruct global effects is still needed.
+
+[^global_note]: It is also important to consider here that the concept of a "global function" is a bit fuzzy itself, and there are many possible ways to define what a global function is (as we discussed in section III). The global function being fit in all of these models is actually an average function, and the shape of it will depend on the sampling structure of any given study.
+In our view, the global function fitted in these models should generally be viewed as a useful summary of an average trend across a wide range of groups, and would only represent an actual average relationship if the grouping levels were drawn at random from some underlying population and if there was scientific reason to believe that individual groups should differ from the mean only via some additive function. 
+
+
+```{r global_bias_plot, echo=FALSE, fig.width=7, fig.height=3, message=FALSE, warning=FALSE, cache=TRUE, purl=TRUE, fig.cap = "\\label{fig:global_bias}Average global function used for simulating bird_move data set (left) compared to the fitted global function for a *GS* model estimated with either a `te()` smoother (middle) or a `t2()` smoother with `full=TRUE (right)` for group-level terms. Both group-level smoothers used the same model specification as in section III except for the type of tensor product used. Colors indicate the value of the linear predictor of bird density at each location in each week."}
+
+#Load the global function for the bird_move dataset
+bird_move_global <- read.csv("../data/bird_move_global.csv")
+
+
+#Simple te() model 
+bird_modGS_te <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
+                                k=c(10, 10), m=2) +
+                             te(week, latitude, species, bs=c("cc", "tp", "re"),
+                                k=c(10, 10, 6), m=2),
+                     data=bird_move, method="REML", family="poisson", 
+                     knots = list(week = c(0, 52)))
+
+bird_mod_predict = bird_move_global %>%
+  mutate(species = "sp1")%>%
+  mutate(`te` = predict(bird_modGS_te,
+                                               newdata = ., 
+                                               type="terms")[,1],
+         `t2` =  predict(bird_modGS,
+                                             newdata = ., 
+                                             type="terms")[,1])%>%
+  mutate(`true global function` = `global_scaled_function`)%>%
+  gather(key = model, value =`fitted value`, `te`:`true global function`)%>%
+  mutate(model = factor(model, 
+                        levels = c("true global function",
+                                   "te",
+                                   "t2")))
+
+
+bird_global_fitted_plot <- ggplot(bird_mod_predict, 
+                                aes(x=week, 
+                                    y=latitude,
+                                    fill = `fitted value`))+
+  facet_grid(~model)+
+  geom_raster()+
+  scale_x_continuous(expand = c(0,0))+
+  scale_y_continuous(expand = c(0,0))+
+  scale_fill_viridis_c(name="linear predictor")+
+  theme(legend.position = "bottom")
+
+print(bird_global_fitted_plot)
+```
+
+There is currently no way to disable dropping side constraints for these terms in **mgcv**. In cases where accurately estimating the global smoother or group-level deviations is essential, we recommend either fitting model *G*,  *GS* using factor-smooth group-level terms (`bs="fs"`, which can also be used to model multi-dimensional isotropic group-level smoothers), or model *GI*. Alternatively, there is specialized functional regression software such as the `fosr` function in the *refund* package [@scheipl_functional_2014], which does not impose these side constraints; instead the package uses a modified type of tensor-product to ensure that group-level terms sum to zero at each level of the predictor [@scheipl_functional_2014].
+See below for more information on functional regression.
 
 ## A brief foray into the land of Bayes
 
 As mentioned in section II, the penalty matrix can also be treated as the inverse of a prior covariance matrix for model parameters $\boldsymbol{\beta}$.
 Intuitively, the basis functions and penalty we use form a prior (in the informal sense) on how we'd like our model term to behave. REML gives an empirical Bayes estimate of the smooth model [@laird_random-effects_1982], where terms in the
-null space of the smoother have improper, flat priors (i.e., any value for these terms are considered equally likely), any terms in the range space are treated as having a multivariate normal distribution, and the penalty terms are treated as having an improper flat prior (see
+null space of the smoother have improper, flat priors (i.e., any value for these terms are considered equally likely). Any terms in the range space are treated as having a multivariate normal distribution, and the penalty terms are treated as having an improper flat prior (see
 -@wood_generalized_2017 Section 5.8 for more details on this connection). The large-sample approximation of the posterior Bayesian covariance matrix  [@wood_confidence_2006] for model parameters can be extracted from any fitted `gam()` or `bam()` model with `vcov(model)`. This can in turn be used
 to generate samples from the posterior distribution of the model, as the approximate Bayesian covariance matrix already incorporates the uncertainty from having to
 estimate the covariance matrix into it [the standard confidence intervals used in

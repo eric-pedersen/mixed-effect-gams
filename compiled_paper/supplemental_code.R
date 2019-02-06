@@ -338,7 +338,7 @@ CO2_modS <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5, bs="fs", m=2),
                 data=CO2, method="REML")
 
 bird_modS <- gam(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
-                            k=c(10, 10, 6), m=2, full=TRUE), #FIXME
+                            k=c(10, 10, 6), m=2, full=TRUE),
                  data=bird_move, method="REML", family="poisson",
                  knots=list(week=c(0, 52)))
 CO2_modI <- gam(log(uptake) ~ s(log(conc), by=Plant_uo, k=5, bs="tp", m=2) +
@@ -860,6 +860,7 @@ comp_resources[2,"time"] = system.time(
                    data= bird_move, 
                    method="REML", 
                    family= poisson,
+                   knots=list(week=c(0, 52)),
                    control = list(keepData=TRUE))
   )[3]
 
@@ -874,9 +875,9 @@ comp_resources[3,"time"] = system.time(
 
 comp_resources[4,"time"] = system.time(
   bird_modGS <- gam(count ~ te(week,latitude, bs= c("cc", "tp"),
-                              k=c(10,10),m=c(2,2))+
-                            te(week,latitude,species, bs= c("cc", "tp","re"),
-                               k=c(10,10,6),m = c(1,1,1)),
+                              k=c(10,10),m=2)+
+                    t2(week, latitude, species, bs=c("cc", "tp", "re"),
+                       k=c(10, 10, 6), m=2, full=TRUE),
                    data= bird_move, 
                    method="REML", 
                    family= poisson,
@@ -896,9 +897,9 @@ comp_resources[5,"time"] = system.time(
 
 comp_resources[6,"time"] = system.time(
   bird_modGI <- gam(count ~ te(week,latitude, bs= c("cc", "tp"),
-                               k=c(10,10),m=c(2,2)) +
+                               k=c(10,10),m=2) +
                             te(week,latitude, bs= c("cc", "tp"),
-                               k=c(10,10),m=c(1,1),by= species),
+                               k=c(10,10),m=1,by= species),
                    data= bird_move, 
                    method="REML", 
                    family= poisson,
@@ -914,8 +915,8 @@ comp_resources[7,"time"] = system.time(
 
 
 comp_resources[8,"time"] = system.time(
-  bird_modS <- gam(count ~ te(week,latitude,species, bs= c("cc", "tp","re"),
-                              k=c(10,10,6),m = 2),
+  bird_modS <- gam(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
+                            k=c(10, 10, 6), m=2, full=TRUE),
                    data= bird_move, 
                    method="REML", 
                    family= poisson,
@@ -1088,3 +1089,44 @@ timing_plot = ggplot(aes(n_groups, timing, color=model, linetype= model),
   guides(color = guide_legend(nrow = 2, byrow = TRUE))+
   theme(legend.position = "top")
 timing_plot
+
+#Load the global function for the bird_move dataset
+bird_move_global <- read.csv("../data/bird_move_global.csv")
+
+
+#Simple te() model 
+bird_modGS_te <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
+                                k=c(10, 10), m=2) +
+                             te(week, latitude, species, bs=c("cc", "tp", "re"),
+                                k=c(10, 10, 6), m=2),
+                     data=bird_move, method="REML", family="poisson", 
+                     knots = list(week = c(0, 52)))
+
+bird_mod_predict = bird_move_global %>%
+  mutate(species = "sp1")%>%
+  mutate(`te` = predict(bird_modGS_te,
+                                               newdata = ., 
+                                               type="terms")[,1],
+         `t2` =  predict(bird_modGS,
+                                             newdata = ., 
+                                             type="terms")[,1])%>%
+  mutate(`true global function` = `global_scaled_function`)%>%
+  gather(key = model, value =`fitted value`, `te`:`true global function`)%>%
+  mutate(model = factor(model, 
+                        levels = c("true global function",
+                                   "te",
+                                   "t2")))
+
+
+bird_global_fitted_plot <- ggplot(bird_mod_predict, 
+                                aes(x=week, 
+                                    y=latitude,
+                                    fill = `fitted value`))+
+  facet_grid(~model)+
+  geom_raster()+
+  scale_x_continuous(expand = c(0,0))+
+  scale_y_continuous(expand = c(0,0))+
+  scale_fill_viridis_c(name="linear predictor")+
+  theme(legend.position = "bottom")
+
+print(bird_global_fitted_plot)

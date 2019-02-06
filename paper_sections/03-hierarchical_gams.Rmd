@@ -20,7 +20,7 @@ These three choices result in five possible models (Fig. \ref{fig:models}):
 4. Group-specific smoothers without a global smoother, but with all smoothers having the same wiggliness. We will refer to this as model *S*.
 5. Group-specific smoothers with different wiggliness. We will refer to this as model *I*. 
 
-![\label{fig:models}Alternate types of functional variation $f(x)$ that can be fitted with HGAMs. The dashed line indicates the average function value for all groups, and each solid line indicates the functional value at a given predictor value for an  individual group level. The null model (of no functional relationship between the covariate and outcome, top right), is not explicitly assigned a model number.](../figures/alternate_models.png)
+![\label{fig:models}Alternate types of functional variation $f(x)$ that can be fitted with HGAMs. The dashed line indicates the average function value for all groups, and each solid line indicates the functional value at a given predictor value for an  individual group level. The null model (of no functional relationship between the covariate and outcome, top right), is not explicitly assigned a model name.](../figures/alternate_models.png)
 
 It is important to note that "similar wiggliness" and "similar shape" are two distinct concepts; functions can have very similar wiggliness but very different shapes. Wiggliness measures how quickly a function changes across its range, and it is easy to construct two functions that differ in shape but have the same wiggliness. For this paper, we consider two functions to have similar shape if the average squared distance between the functions is small (assuming the functions have been scaled to have a mean value of zero across their ranges). This definition is somewhat restricted; for instance, a cyclic function would not be considered to have the same shape as a phase-shifted version of the same function, nor would two normal distributions with the same mean but different standard deviations. The benefit of this definition of shape, however, is that it is straightforward to translate into penalties akin to those described in section II. Figure \ref{fig:models}, model *S* illustrates the case where models have different shapes. Similarly, two curves could have very similar overall shape, but differ in their wiggliness. For instance, one function could be equal to another plus a high-frequency oscillation term. Figure \ref{fig:models}, model *GI* illustrates this.
 
@@ -72,14 +72,14 @@ plot_grid(CO2_vis_plot, bird_vis_plot, nrow=1, labels=c("a","b"),
           align = "hv", axis = "lrtb")
 ```
 
-Throughout the examples we use Restricted Maximum Likelihood (REML) to estimate model coefficients and smoothing parameters. We strongly recommend using either REML or marginal likelihood (ML) rather than the default GCV criteria when fitting GAMs, for the reasons outlined in @wood_fast_2011. In each case some data processing and manipulation has been done to obtain the graphics and results below. See supplemental code for details on data processing steps. To illustrate plots, we will be using the `draw` function from the **gratia** package; this package was developed by one of the authors [@simpson_gratia_2018] as a set of tools to extend plotting and analysis of **mgcv** models.
-While **mgcv** does have default plotting capabilities (through `plot(<model_name>)`), **gratia** expands these by creating **ggplot2** objects [@wickham_ggplot2_2016] that can be more easily extended and modified. 
+Throughout the examples we use Restricted Maximum Likelihood (REML) to estimate model coefficients and smoothing parameters. We strongly recommend using either REML or marginal likelihood (ML) rather than the default generalized cross-validation (GCV) criteria when fitting GAMs, for the reasons outlined in @wood_fast_2011. In each case some data processing and manipulation has been done to obtain the graphics and results below. See supplemental code for details on data processing steps. To illustrate plots, we will be using the `draw` function from the **gratia** package. This package was developed by one of the authors [@simpson_gratia_2018] as a set of tools to extend plotting and analysis of **mgcv** models.
+While **mgcv** has plotting capabilities (through `plot()` methods), **gratia** expands these by creating **ggplot2** objects [@wickham_ggplot2_2016] that can be more easily extended and modified. 
 
 ### A single common (global) smoother for all observations (Model *G*)
 
-We start with the simplest model we can in our framework and include many details here to ensure that readers are comfortable with the terminology and R functions we are going to use later.
+We start with the simplest model from framework and include many details here to ensure that readers are comfortable with the terminology and R functions.
 
-For our `CO2` data set, we will model $\log_e(\texttt{uptake})$ as a function of two smoothers: a thin plate regression spline of $\log_e$-concentration, and a random effect for plant to model plant-specific intercepts. Mathematically:
+For our `CO2` data set, we will model $\log_e(\texttt{uptake})$ as a function of two smoothers: a thin plate regression spline of $\log_e$-concentration, and a random effect for `Plant_uo` to model plant-specific intercepts. Mathematically:
 
 $$
 \log_e(\texttt{uptake}_i) = f(\log_e(\texttt{conc}_i)) + \zeta_\texttt{Plant\_uo} + \varepsilon_i
@@ -95,7 +95,7 @@ CO2_modG <- gam(log(uptake) ~ s(log(conc), k=5, bs="tp") +
                 data=CO2, method="REML", family="gaussian")
 ```
 
-This is a common GAM structure, with a single smooth term for each variable. Specifying the model is similar to specifying a GLM in R via `glm()`, with the addition of `s()` terms to include one-dimensional or isotropic multidimensional smoothers. The first argument to `s()` are the terms to be smoothed, the type of smoother to be used for the term is specified by the `bs` argument, and the maximum number of basis functions is specified by `k`. There are different defaults in **mgcv** for k, depending on the type of smoother chosen; here we use a tprs smoother (`bs="tp"`) for the concentration smoother, and set `k=5` as there are only 7 separate values of concentration measured, so the default `k=10` (for tprs) would be too high; further, setting `k=5` saves on computational time (see section V). The random effect smoother (`bs="re"`) that we used for the `Plant_uo` factor has a default `k` equal to the number of levels in the grouping variable (here, 12). We specified `k=12` just to make this connection apparent. 
+This is a common GAM structure, with a single smooth term for each variable. Specifying the model is similar to specifying a GLM in R via `glm()`, with the addition of `s()` terms to include one-dimensional or isotropic multidimensional smoothers. The first argument to `s()` are the terms to be smoothed, the type of smoother to be used for the term is specified by the `bs` argument, and the maximum number of basis functions is specified by `k`. There are different defaults in **mgcv** for k, depending on the type of smoother chosen; here we use a TPRS smoother (`bs="tp"`) for the concentration smoother, and set `k=5` as there are only 7 separate values of concentration measured, so the default `k=10` (for TPRS) would be too high; further, setting `k=5` saves on computational time (see section V). The random effect smoother (`bs="re"`) that we used for the `Plant_uo` factor always has a `k` value equal to the number of levels in the grouping variable (here, 12). We specified `k=12` just to make this connection apparent. 
 
 ```{r co2_modG, echo=FALSE, fig.width=6, fig.height=3, dev.args=list(pointsize=10), fig.cap="\\label{fig:co2_modG}**gratia** plotting output for model *G* applied to the CO2 dataset. Left shows the smoother of $\\log_e$ concentration and right plot shows a quantile-quantile plot of the random effects against Gaussian quantiles, used to check the appropriateness of the normal random effect assumption. Numbers in the vertical axis of the left figure and the title of the right give the effective degrees of freedom of the smoothers."}
 <<co2_modG_unrun>>
@@ -181,9 +181,9 @@ ggplot(bird_move, aes(x=modG, y=count)) +
 
 ### A single common smoother plus group-level smoothers that have the same wiggliness (model *GS*)
 
-model *GS* is a close analogue to a GLMM with varying slopes: all groups have similar functional responses, but inter-group variation in responses is allowed. This approach works by allowing each grouping level to have its own functional response, but penalizing functions that are too far from the average.
+Model *GS* is a close analogue to a GLMM with varying slopes: all groups have similar functional responses, but inter-group variation in responses is allowed. This approach works by allowing each grouping level to have its own functional response, but penalizing functions that are too far from the average.
 
-This can be coded in **mgcv** by explicitly specifying one term for the global smoother (as in model *G* above) then adding a second smooth term specifying the group-level smooth terms, using a penalty term that tends to draw these group-level smoothers to zero. For one-dimensional smoothers, **mgcv** provides an explicit basis type to do this, the factor-smoother interaction or `"fs"` basis (see `?mgcv::factor.smooth.interaction` for details). This smoother creates a copy of each set of basis functions for each level of the grouping variable, but only estimates one smoothing parameter for all groups. To ensure that all parts of the smoother can be shrunk towards zero effect, each component of the penalty null space is given its own penalty[^intercept_note].
+This can be coded in **mgcv** by explicitly specifying one term for the global smoother (as in model *G* above) then adding a second smooth term specifying the group-level smooth terms, using a penalty term that tends to draw these group-level smoothers towards zero. <!-- "fs" works in higher dimenions, right -->  **mgcv** provides an explicit basis type to do this, the factor-smoother interaction or `"fs"` basis (see `?mgcv::factor.smooth.interaction` for details). This smoother creates a copy of each set of basis functions for each level of the grouping variable, but only estimates one smoothing parameter for all groups. To ensure that all parts of the smoother can be shrunk towards zero effect, each component of the penalty null space is given its own penalty[^intercept_note].
 
 [^intercept_note]: As part of the penalty construction, each group will also have its own intercept (part of the penalized null space), so there is no need to add a separate term for group specific intercepts as we did in model *G*.
 
@@ -222,14 +222,17 @@ ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
        y=expression(CO[2] ~ uptake ~ (mu*mol ~ m^{-2})))
 ```
 
-The factor-smoother interaction-based approach mentioned above does not work for higher-dimensional tensor product smoothers. Instead, the group-specific term can be specified with a tensor product of the continuous smoothers and a random effect for the grouping parameter[^fs_note]. e.g.: `y ~ te(x1, x2, bs="tp", m=2) + t2(x1, x2, fac, bs=c("tp","tp","re"), m=2, full=TRUE)`. We illustrate this approach below on the bird migration data. 
+The factor-smoother interaction-based approach mentioned above does not work for higher-dimensional tensor product smoothers (`fs()` does still work for higher dimensional isotropic smoothers). Instead, the group-specific term can be specified with a tensor product of the continuous smoothers and a random effect for the grouping parameter[^fs_note]. e.g.: 
 
-[^fs_note]: As mentioned in section II, these terms can be specified either with
-`te()` or `t2()` terms. Using `t2` as above (with `full=TRUE`) is essentially a
-multivariate equivalent of the factor-smoother interaction; it requires more smooth terms than
-`te()`, but can be fit using other mixed effects software such as **lme4**, which
-is useful when fitting models with a large number of group levels (see Section
-V on computational issues for details).
+```
+y ~ te(x1, x2, bs="tp", m=2) + t2(x1, x2, fac, bs=c("tp","tp","re"), m=2, full=TRUE)
+```
+We illustrate this approach below on the bird migration data. 
+
+[^fs_note]: As mentioned in section II, these terms can be specified either with `te()` or `t2()` terms. 
+Using `t2` as above (with `full=TRUE`) is essentially a multivariate equivalent of the factor-smoother interaction; it requires more smooth terms than `te()`, but can be fit using other mixed effects software such as **lme4**, which is useful when fitting models with a large number of group levels (see Section V on computational issues for details).
+We have generally found that `t2(full=TRUE)`  is the best approach for multidimensional *GS* models when the goal is to accurately estimate the global smoother in the presense of group-level smoothers; other approaches (using `te()`) tend to result in the global smoother being overly penalized toward the flat function, and the bulk of the variance being assigned to the group-level smoother. 
+We discuss this further in section V, "Estimation issues when fitting both global and group-level smoothers".
 
 ```{r bird_modGS}
 bird_modGS <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
@@ -323,12 +326,12 @@ The fitted model for `bird_modGI` is visually indistinguishable from `bird_modGS
 
 ### Models without global smoothers (models *S* and *I*)
 
-We can modify the above models to exclude the global term (which is generally faster; see section V). When we do not model the global term, we are allowing each factor to be different, though there may be some similarities in the shape of the functions.
+We can modify the above models to exclude the global term (which is generally faster; see section V). When we do not model the global term, we are allowing each factor to be differently shaped without restriction. Though there may be some similarities in the shape of the functions, these models' underlying assumption is that group-level smooth terms do not share or deviate from a common form.
 
 #### Model *S*:
 
-Model *S* (shared smoothers) is simply model *GS* without the global smoother; this type of model takes the form: `y~s(x, fac, bs="fs")` or `y~te(x1, x2, fac, bs=c("tp", "tp", "re")` in `mgcv`. This model assumes all groups have the same smoothness, but that the individual shapes of the smooth terms are not related. Here we just show how to code these models; plotting them works in the same way as for models *G*,*GS*, and *GI* above, the plots for these datasets are very similar to the plots for model *GS*. This will not always be the case; if in a given study there are very few data points in each grouping level (relative to the strength of the functional relationship of interest), estimates from model *S*
-will typically be much more variable than from model *GS*, as there is no way for the model to share information on function shape between grouping levels without the global smoother. See section V on computational issues for more on how to choose between different models.
+Model *S* (shared smoothers) is model *GS* without the global smoother term; this type of model takes the form: `y~s(x, fac, bs="fs")` or `y~te(x1, x2, fac, bs=c("tp", "tp", "re")` in `mgcv`. This model assumes all groups have the same smoothness, but that the individual shapes of the smooth terms are not related. Here we do not plot these models; the model plots are very similar to the plots for model *GS*. This will not always be the case. If in a study there are very few data points in each grouping level (relative to the strength of the functional relationship of interest), estimates from model *S*
+will typically be much more variable than from model *GS*; there is no way for the model to share information on function shape between grouping levels without the global smoother. See section V on computational issues for more on how to choose between different models.
 
 
 ```{r modS}
@@ -343,7 +346,7 @@ bird_modS <- gam(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
 
 #### Model *I*:
 
-Model *I* is simply model *GI* without the first term: `y~fac+s(x, by=fac)` or `y~fac+te(x1,x2, by=fac)` (as above, plots are very similar to model *GI*).
+Model *I* is model *GI* without the first term: `y~fac+s(x, by=fac)` or `y~fac+te(x1,x2, by=fac)` (as above, plots are very similar to model *GI*).
 
 ```{r modI}
 CO2_modI <- gam(log(uptake) ~ s(log(conc), by=Plant_uo, k=5, bs="tp", m=2) +
@@ -365,8 +368,8 @@ Comparing models based on AIC is a more robust approach to comparing the differe
 
 For the `bird_move` dataset (Table \ref{tab:AIC_table_kable}B), model *GS* (global smoother plus group-level smoothers with a shared penalty) gives the best fit for all models including a global smooth (which is good as we simulated the data from a model with this structure!). However, model *S* (without a global term) still fits this data better than model *GS* based on AIC. This highlights an issue with AIC for selecting between models with and without a global smooth: as it is possible to fully recreate the global term by just allowing each group-level smoother to have a similar shape to one another (that is, the global term is totally concurve with the group-level smoothers; see section V) model selection criteria such as AIC may indicate that the extra parameters required to fit the global smoother are unnecessary[^select_note].
 
-[^select_note]: If it is important for a given study to determine if there is evidence for a significant global smooth effect, we recommend refitting model *GS* or *GI*, including the argument `select = TRUE` in the `gam` model. 
-This has the effect of adding an extra penalty to each smooth term, that penalizes functions in the null space of the other penalty matrices for each smooth. 
+[^select_note]: If it is important for a given study to determine if there is evidence for a significant global smooth effect, we recommend fitting model *GS* or *GI*, including the argument `select = TRUE` in the `gam` function. 
+This has the effect of adding an extra penalty to each smooth term, that penalizes functions in the null space of the penalty matrices for each smooth. 
 By doing this, it is possible for `mgcv` to penalize all model terms to a zero effect, in effect doing variable selection [@marra_practical_2011].
 When `select=TRUE`, the significance of the global term can be found by looking at the significance of the term in `summary.gam(model)`. 
 Note that this can increase the amount of time it takes to fit a model significantly for data sets with a large number of penalty terms (such as model *GI* when the number of groups is high). 
@@ -396,6 +399,6 @@ kable(AIC_table, format =table_out_format,
 
 Given this issue with selecting global terms, we strongly recommend not selecting models based purely on AIC. Instead, model selection should be based on expert subject knowledge about the system, computational time, and most importantly, the inferential goals of the study. Table \ref{tab:AIC_table_kable}A indicates that models *S* and *I* (which do not have a global function) fit the `CO2` data better than models with a global function, and that model *S* fits the `bird_move` data better than model *GS*. However, it is the shape of the global function that we are actually interested in here, as models *S* and *I* cannot be used to predict the concentration-uptake relationship for plants that are not part of the training set, or the average migration path for birds. The same consideration holds when choosing between model *GS* and *GI*: while model *GI* fits the `CO2` data better than model *GS* (as measured by AIC), model *GS* can be used to simulate functional variation for unobserved group levels, whereas this is not possible within the framework of model *GI*. The next section works through two examples to show how to choose between different models, and section V discusses these and other model fitting issues in more depth.
 
-It also is important to recognize that AIC, like any function of the data, is a random variable and should be expected to have some sampling error [@forster_aic_2011]. In cases when the goal is to select the model that has the best predictive ability, we recommend holding some fraction of the data out prior to the analysis and comparing how well different models fit that data or using $k$-fold cross validation as a more accurate guide to how well a given model may predict out of sample. 
+It also is important to recognize that AIC, like any function of the data, is a random variable and should be expected to have some sampling error [@forster_aic_2011]. In cases when the goal is to select the model that has the best predictive ability, we recommend holding some fraction of the data out prior to the analysis and comparing how well different models fit that data, or using $k$-fold cross validation as a more accurate guide to how well a given model may predict out of sample. 
 Predictive accuracy may also be substantially improved by averaging over multiple models [@dormann_model_2018]. 
 
