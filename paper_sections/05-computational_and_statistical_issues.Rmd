@@ -2,6 +2,8 @@
 # V: Computational and statistical issues when fitting HGAMs
 
 ```{r part_5_premble, include=FALSE}
+
+
 #### Code for V: Computational and statistical issues when fitting HGAMs ####
 ```
 Which of the five model formulations (Fig. \ref{fig:models}) should you choose for a given data set? There are two major trade-offs to consider. The first is the bias-variance trade-off: more complex models can account for more fluctuations in the data, but also tend to give more variable predictions, and can overfit.  The second trade-off is model complexity versus computational cost: more complex models can include more potential sources of variation and give more information about a given data set, but will generally take more time and computational resources to fit and debug. We discuss both of these trade-offs in this section. We also discuss
@@ -31,6 +33,7 @@ least variable group levels, over-smoothed (biased) estimates for the most
 wiggly terms, or a mixture of these two, depending on the fitting criteria.
 
 ```{r single_smooth_bias, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+
 #This code will generate the bias-variance tradeoff plot
 set.seed(1)
 
@@ -254,9 +257,8 @@ This means that models *GS* and *S* will generally be substantially faster than 
 
 
 ```{r comp_calc, echo=FALSE,  fig.width=4, fig.height=6, message=FALSE, warning=FALSE, cache=TRUE}
-#Note: this code takes quite a long time to run! It's fitting all 10 models. Run
-#once if possible, then rely on the cached code. There's a reason it's split off
-#from the rest of the chunks of code.
+
+#Note: this code takes quite a long time to run, as it's fitting all 10 models.
 
 #This function extracts the number of penalties used in a model. For Gamma and
 #Gaussian families, you need to remove the penalty (i.e. variance) associated

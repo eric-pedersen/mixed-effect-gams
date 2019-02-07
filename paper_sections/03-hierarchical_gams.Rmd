@@ -20,7 +20,7 @@ These three choices result in five possible models (Fig. \ref{fig:models}):
 4. Group-specific smoothers without a global smoother, but with all smoothers having the same wiggliness. We will refer to this as model *S*.
 5. Group-specific smoothers with different wiggliness. We will refer to this as model *I*. 
 
-![\label{fig:models}Alternate types of functional variation $f(x)$ that can be fitted with HGAMs. The dashed line indicates the average function value for all groups, and each solid line indicates the functional value at a given predictor value for an  individual group level. The null model (of no functional relationship between the covariate and outcome, top right), is not explicitly assigned a model name.](../figures/alternate_models.png)
+![\label{fig:models}Alternate types of functional variation $f(x)$ that can be fitted with HGAMs. The dashed line indicates the average function value for all groups, and each solid line indicates the functional value at a given predictor value for an  individual group level. The null model (of no functional relationship between the covariate and outcome, top right), is not explicitly assigned a model name.](figures/alternate_models.png)
 
 It is important to note that "similar wiggliness" and "similar shape" are two distinct concepts; functions can have very similar wiggliness but very different shapes. Wiggliness measures how quickly a function changes across its range, and it is easy to construct two functions that differ in shape but have the same wiggliness. For this paper, we consider two functions to have similar shape if the average squared distance between the functions is small (assuming the functions have been scaled to have a mean value of zero across their ranges). This definition is somewhat restricted; for instance, a cyclic function would not be considered to have the same shape as a phase-shifted version of the same function, nor would two normal distributions with the same mean but different standard deviations. The benefit of this definition of shape, however, is that it is straightforward to translate into penalties akin to those described in section II. Figure \ref{fig:models}, model *S* illustrates the case where models have different shapes. Similarly, two curves could have very similar overall shape, but differ in their wiggliness. For instance, one function could be equal to another plus a high-frequency oscillation term. Figure \ref{fig:models}, model *GI* illustrates this.
 
@@ -90,6 +90,7 @@ where $\zeta_\texttt{Plant\_uo}$ is the random effect for plant and $\varepsilon
 
 In R we can write our model as:
 ```{r co2_modG_unrun, echo=TRUE, eval=FALSE, purl=FALSE}
+
 CO2_modG <- gam(log(uptake) ~ s(log(conc), k=5, bs="tp") +
                   s(Plant_uo, k=12, bs="re"),
                 data=CO2, method="REML", family="gaussian")
@@ -99,6 +100,7 @@ This is a common GAM structure, with a single smooth term for each variable. Spe
 
 ```{r co2_modG, echo=FALSE, fig.width=6, fig.height=3, dev.args=list(pointsize=10), fig.cap="\\label{fig:co2_modG}**gratia** plotting output for model *G* applied to the CO2 dataset. Left shows the smoother of $\\log_e$ concentration and right plot shows a quantile-quantile plot of the random effects against Gaussian quantiles, used to check the appropriateness of the normal random effect assumption. Numbers in the vertical axis of the left figure and the title of the right give the effective degrees of freedom of the smoothers."}
 <<co2_modG_unrun>>
+  
 #plot the default gratia plot for the CO2 model
 draw(CO2_modG)
 ```
@@ -117,14 +119,19 @@ CO2_modG_pred <- with(CO2,
 # make the prediction, add this and a column of standard errors to the prediction
 # data.frame. Predictions are on the log scale.
 CO2_modG_pred <- cbind(CO2_modG_pred,
-                       predict(CO2_modG, CO2_modG_pred, se.fit=TRUE, type="response"))
+                       predict(CO2_modG, 
+                               CO2_modG_pred, 
+                               se.fit=TRUE, 
+                               type="response"))
 
 # make the plot. Note here the use of the exp() function to back-transform the
 # predictions (which are for log-uptake) to the original scale
 ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
   facet_wrap(~Plant_uo) +
   geom_ribbon(aes(ymin=exp(fit - 2*se.fit), ymax=exp(fit + 2*se.fit), x=conc),
-              data=CO2_modG_pred, alpha=0.3, inherit.aes=FALSE) +
+              data=CO2_modG_pred, 
+              alpha=0.3, 
+              inherit.aes=FALSE) +
   geom_line(aes(y=exp(fit)), data=CO2_modG_pred) +
   geom_point() +
   labs(x=expression(CO[2] ~ concentration ~ (mL ~ L^{-1})),
@@ -141,14 +148,17 @@ $$
 
 where we assume that $\texttt{count}_i \sim\text{Poisson}$. For the smooth term, $f$, we employ a tensor product of `latitude` and `week`, using a thin plate regression spline (TPRS) for the marginal latitude effect, and a cyclic cubic regression spline for the marginal week effect to account for the cyclic nature of weekly effects (we expect week 1 and week 52 to have very similar values)[^cyclic], both splines had basis complexity (`k`) of 10. 
 
-```{r bird_modG_comments, echo=FALSE, eval=FALSE}
-# Note for specifying tensor products: you can either specify bs (basis) and
-# k (number of basis functions) as single values, which would assign the same
-# basis and k to each marginal value, or pass them as vectors, one value for each
-# distinct marginal smoother (see ?mgcv::te for details)
+```{r bird_modG_comments, echo=FALSE}
+
+# Note for specifying tensor products: you can either specify bs (basis) and k
+# (number of basis functions) as single values, which would assign the same
+# basis and k to each marginal value, or pass them as vectors, one value for
+# each distinct marginal smoother (see ?mgcv::te for details)
+
 ```
 
 ```{r bird_modG,  outwidth="\\linewidth", dev.args = list(pointsize=10)}
+
 bird_modG <- gam(count ~ te(week, latitude, bs=c("cc", "tp"), k=c(10, 10)),
                  data=bird_move, method="REML", family="poisson",
                  knots=list(week=c(0, 52)))
@@ -160,6 +170,7 @@ In the absence of a specified start and end point, `gam` will assume the end poi
 Note that in `bird_modG` we have specified week 0 and week 52 as the endpoints, as the first (week 1) and last weeks (week 52) of the year should not have exactly the same expected value. 
 
 ```{r bird_modG_plot, echo=FALSE, fig.width = 5, fig.height = 4, outwidth="\\linewidth", dev.args = list(pointsize=10), fig.cap="\\label{fig:bird_modG} Plot illustrating the average log-abundance of all bird species at each latitude for each week, with yellow colours indicating more individuals and red colours fewer."}
+
 #gratia draw plot for the two-dimensional tensor product smoother for bird_modG.
 draw(bird_modG)
 ```
@@ -169,6 +180,7 @@ Fig, \ref{fig:bird_modG} shows the default `draw(bird_modG)` plot for the week-b
 All six species in Fig. \ref{fig:vis_data}b show relatively precise migration patterns, but they differ in the timing of when they leave their winter grounds and the amount of time they spend at their summer grounds. Averaging over all of this variation results in a relatively imprecise (diffuse) estimate of migration timing (Fig. \ref{fig:bird_modG}), and viewing species-specific plots of observed versus predicted values (Fig. \ref{fig:bird-fitted-modG}), it is apparent that the model fits some of the species better than others. This model could potentially be improved by adding inter-group variation in migration timing. The rest of this section will focus on how to model this type of variation.
 
 ```{r bird-fitted-modG,echo=FALSE, fig.width=6, fig.height=4, out.width="\\linewidth", fig.cap="\\label{fig:bird-fitted-modG}Observed counts by species versus predicted counts from \\texttt{bird\\_modG} (1-1 line added as reference). If our model fitted well we would expect that all species should show similiar patterns of dispersion around the 1-1 line (and as we are assuming the data is Poisson, the variance around the mean should equal the mean). Instead we see that variance around the predicted value is much higher for species 1 and 6."}
+
 #add the predicted values from the model to bird_move
 bird_move <- transform(bird_move, modG = predict(bird_modG, type="response"))
 
@@ -196,12 +208,14 @@ $$
 where $f_{\texttt{Plant\_uo}_i}(\log_e(\texttt{conc}_i))$ is the smoother for concentration for the given plant. In R we then have:
 
 ```{r co2_modGS, echo=TRUE}
+
 CO2_modGS <- gam(log(uptake) ~ s(log(conc), k=5, m=2) + 
                    s(log(conc), Plant_uo, k=5,  bs="fs", m=2),
                  data=CO2, method="REML")
 ```
 
 ```{r co2_modGS_plot, fig.width=6, fig.height=3, dev.args=list(pointsize=10), out.width="\\linewidth", echo=FALSE, fig.cap="\\label{fig:co2_modGS}Global function (left) and group-specific deviations from the global function (right) for \\texttt{CO2\\_modGS}"}
+
 #gratia draw() plot for CO2_modGS
 draw(CO2_modGS)
 ```
@@ -209,8 +223,11 @@ draw(CO2_modGS)
 Figure \ref{fig:co2_modGS} shows the fitted smoothers for `CO2_modGS`. The plots of group-specific smoothers indicate that plants differ not only in average log-uptake (which would correspond to each plant having a straight line at different levels for the group-level smoother), but differ slightly in the shape of their functional responses. Figure \ref{fig:co2_modGS_pred} shows how the global and group-specific smoothers combine to predict uptake rates for individual plants.  We see that, unlike in the single global smoother case above, none of the curves deviate from the data systematically.
 
 ```{r co2_modGS_ggplot,echo=FALSE, fig.width=6, fig.height=4, out.width="\\linewidth", fig.cap="\\label{fig:co2_modGS_pred}Predicted uptake values (lines) versus observed uptake for each plant, based on model \\emph{GS}."}
+
 CO2_modGS_pred <- predict(CO2_modGS, se.fit=TRUE)
-CO2 <- transform(CO2, modGS = CO2_modGS_pred$fit, modGS_se = CO2_modGS_pred$se.fit)
+CO2 <- transform(CO2, 
+                 modGS = CO2_modGS_pred$fit, 
+                 modGS_se = CO2_modGS_pred$se.fit)
 
 ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
   facet_wrap(~Plant_uo) +
@@ -235,6 +252,7 @@ We have generally found that `t2(full=TRUE)`  is the best approach for multidime
 We discuss this further in section V, "Estimation issues when fitting both global and group-level smoothers".
 
 ```{r bird_modGS}
+
 bird_modGS <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
                              k=c(10, 10), m=2) +
                     t2(week, latitude, species, bs=c("cc", "tp", "re"),
@@ -244,6 +262,7 @@ bird_modGS <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
 ```
 
 ```{r bird_modGS_ggplot, fig.width=8, fig.height=4, echo=FALSE, out.width="\\linewidth", fig.cap="\\label{fig:bird_modGS}a) Predicted migration paths for each species based on \\texttt{bird\\_modGS}, with lighter colors corresponding to higher predicted counts. b) Observed counts versus predictions from \\texttt{bird\\_modGS}."}
+
 bird_move <- transform(bird_move, modGS = predict(bird_modGS, type="response"))
 
 bird_modGS_indiv <- ggplot(data=bird_move, 
@@ -263,8 +282,12 @@ bird_modGS_indiv_fit <- ggplot(data=bird_move, aes(x=modGS, y=count)) +
   geom_abline() +
   labs(x="Predicted count (model *GS*)", y= "Observed count")
 
-plot_grid(bird_modGS_indiv, bird_modGS_indiv_fit, ncol=1, align="vh", axis = "lrtb",
-          labels=c("a","b"), rel_heights= c(1,1))
+plot_grid(bird_modGS_indiv, bird_modGS_indiv_fit, 
+          ncol=1, 
+          align="vh", 
+          axis = "lrtb",
+          labels=c("a","b"), 
+          rel_heights= c(1,1))
 ```
 
 Model *GS* is able to effectively capture the observed patterns of interspecific
@@ -290,6 +313,7 @@ Note two major differences here from how model *GS* was specified:
 We modify the `CO2` model to follow this approach like so:
 
 ```{r modGI_CO2-norun, eval=FALSE}
+
 CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                   s(log(conc), by=Plant_uo, k=5, m=1, bs="tp") +
                   s(Plant_uo, bs="re", k=12),
@@ -297,6 +321,7 @@ CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
 ```
 
 ```{r modGI_CO2, fig.width=9, fig.height=5, echo=FALSE, fig.cap="\\label{fig:co2_modGI}Functional relationships for the CO2 data estimated for model \\emph{GI}. Top left: the global smoother; Top middle: species-specific random effect intercepts. The remaining plots are a selected subset of the plant-specific smoothers, indicating how the functional response of that plant differs from the global smoother."}
+
 #Fitting CO2_modGI 
 CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                    s(log(conc), by= Plant_uo, k=5, m=1, bs="tp") +
@@ -312,6 +337,7 @@ Figure \ref{fig:co2_modGI} shows a subsample of the group-specific smoothers fro
 Using model *GI* with higher-dimensional data is also straightforward; `by` terms work just as well in tensor-product smoothers as they do with isotropic smoothers. We can see this with our bird model:
 
 ```{r modGI_bird}
+
 bird_modGI <- gam(count ~ species +
                     te(week, latitude, bs=c("cc", "tp"), k=c(10, 10), m=2) +
                     te(week, latitude, by=species, bs= c("cc", "tp"),
@@ -335,6 +361,7 @@ will typically be much more variable than from model *GS*; there is no way for t
 
 
 ```{r modS}
+
 CO2_modS <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5, bs="fs", m=2),
                 data=CO2, method="REML")
 
@@ -349,6 +376,7 @@ bird_modS <- gam(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
 Model *I* is model *GI* without the first term: `y~fac+s(x, by=fac)` or `y~fac+te(x1,x2, by=fac)` (as above, plots are very similar to model *GI*).
 
 ```{r modI}
+
 CO2_modI <- gam(log(uptake) ~ s(log(conc), by=Plant_uo, k=5, bs="tp", m=2) +
                   s(Plant_uo, bs="re", k=12),
                 data=CO2, method="REML")
@@ -389,6 +417,7 @@ AIC_table <- AIC(CO2_modG,CO2_modGS, CO2_modGI, CO2_modS, CO2_modI,
 ```
 
 ```{r AIC_table_kable, echo=FALSE,  fig.width=4, fig.height=6, message=FALSE, warning=FALSE, cache=TRUE, purl=FALSE}
+
 kable(AIC_table, format =table_out_format, 
       caption="AIC table comparing model fits for example datasets", 
       booktabs = TRUE)%>% 

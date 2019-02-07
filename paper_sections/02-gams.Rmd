@@ -212,9 +212,13 @@ basis_sample_plot = ggplot(data= tp_example_curve, aes(x, value))+
   guides(color = "none")
 
 #This is a nessecary step to make sure the top left plot is aligned with the 
-#bottom plot. See https://cran.r-project.org/web/packages/cowplot/vignettes/plot_grid.html
+#bottom plot. See
+# https://cran.r-project.org/web/packages/cowplot/vignettes/plot_grid.html
 #for details
-aligned_plots = align_plots(basis_func_plot, basis_sample_plot, align = 'v', axis = 'l')
+aligned_plots = align_plots(basis_func_plot, 
+                            basis_sample_plot, 
+                            align = 'v', 
+                            axis = 'l')
 
 top_row_plot = plot_grid(aligned_plots[[1]],basis_penalty_plot,
                          ncol=2,
