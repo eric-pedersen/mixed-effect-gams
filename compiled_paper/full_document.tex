@@ -450,7 +450,7 @@ in that term; in \textbf{mgcv}, these are created using the
 2013) separates each penalty into penalized (range space) and
 unpenalized components (null space; components that don't have
 derivatives, such as intercept and linear terms in a one-dimensional
-cubic spline). This approacch creates new basis functions and penalties
+cubic spline). This approach creates new basis functions and penalties
 for all pair-wise combinations of penalized and unpenalized components
 between all pairs of marginal bases; in \textbf{mgcv}, these are created
 using the \texttt{t2()} function. The advantage of the first method is
@@ -600,7 +600,7 @@ modified from the default version available with R, to recode the
   raise an error message if passed data coded as characters. It is also
   important to know whether the factor is coded as ordered or unordered
   (see \texttt{?factor} for more details on this). This matters when
-  fitting groupwise smoothers using the \texttt{by=} argument (as is
+  fitting group-level smoothers using the \texttt{by=} argument (as is
   used for fitting models \emph{GI} and \emph{I}, shown below). If the
   factor is unordered, \textbf{mgcv} will set up a model with one
   smoother for each grouping level. If the factor is ordered,
@@ -878,7 +878,7 @@ parameter\footnote{As mentioned in section II, these terms can be
   on computational issues for details). We have generally found that
   \texttt{t2(full=TRUE)} is the best approach for multidimensional
   \emph{GS} models when the goal is to accurately estimate the global
-  smoother in the presense of group-level smoothers; other approaches
+  smoother in the presence of group-level smoothers; other approaches
   (using \texttt{te()}) tend to result in the global smoother being
   overly penalized toward the flat function, and the bulk of the
   variance being assigned to the group-level smoother. We discuss this
@@ -947,7 +947,7 @@ Note two major differences here from how model \emph{GS} was specified:
   incorporated into factor \texttt{by} variable smoothers (as would be
   the case with a factor smoother or a tensor product random effect).
 \item
-  We specify \texttt{m=1} instead of \texttt{m=2} for the groupwise
+  We specify \texttt{m=1} instead of \texttt{m=2} for the group-level
   smoothers, which means the marginal TPRS basis for this term will
   penalize the squared 1st derivative of the function, rather than the
   second derivative. This, also, reduces co-linearity between the global
@@ -1006,9 +1006,9 @@ bird model:
 \end{Shaded}
 
 As above, we have set (\texttt{m=1}) for the latitude marginal effect to
-avoid issues of collinearity between the global and groupwise smoother.
-Note that switching \texttt{m=1} to \texttt{m=2} does not have any
-effect on the marginal basis for \texttt{week}, where we are using a
+avoid issues of collinearity between the global and group-level
+smoother. Note that switching \texttt{m=1} to \texttt{m=2} does not have
+any effect on the marginal basis for \texttt{week}, where we are using a
 cyclic smoother instead of a TPRS.
 
 The fitted model for \texttt{bird\_modGI} is visually indistinguishable
@@ -1084,7 +1084,7 @@ These models can be compared using standard model comparison tools.
 Model \emph{GS} and model \emph{GI} will generally be nested in model
 \emph{G} (depending on how each model is specified) so comparisons using
 generalized likelihood ratio tests (GLRTs) may be used to test if
-groupwise smoothers are necessary. However, we do not currently
+group-level smoothers are necessary. However, we do not currently
 recommend this method. There is not sufficient theory on how accurate
 parametric p-values are for comparing these models; there is uncertainty
 about what degrees of freedom to assign to models with varying
@@ -1242,9 +1242,9 @@ deviance of the out-of-sample data that we had previously held out.\\
 The deviance is equal to two times the sum of the difference between the
 log-likelihood of the out-of-sample data (as predicted by each model)
 and a saturated model, that has one predictor for each data point, all
-multipled by the scale parameter for the family of interest. It can be
-interpreted similiarly to the residual sum of squares for a simple
-linear regression (Wood, 2017a, p. 109).
+multiplied by the scale parameter for the family of interest. It can be
+interpreted similarly to the residual sum of squares for a simple linear
+regression (Wood, 2017a, p. 109).
 
 First, we demonstrate how to model community-level variability in
 seasonality, by regressing scaled density on day of year with
@@ -1495,14 +1495,14 @@ smoothers.
 
 Diagnostic plots from \texttt{gam.check} indicate that there are no
 substantial patterns comparing residuals to fitted values (not shown),
-and QQ-plots are similiar to the those from the zooplankton community
+and QQ-plots are similar to the those from the zooplankton community
 models; the residuals for all three models closely correspond to the
 expected (Gamma) distribution, except at small values, where the
 observed residuals are generally larger than expected (Fig.
 \ref{fig:zoo_daph_diag_plot}). As with the community data, this is
 likely an artifact of the assumption we made of assigning zero
 observations a value of 1000 (the lowest possible value), imposing an
-artifical lower bound on the observed counts. There was also some
+artificial lower bound on the observed counts. There was also some
 evidence that the largest observed values were smaller than expected
 given the theoretical distribution , but these fell within the 95\% CI
 for expected deviations from the 1-1 line (Fig.
@@ -1554,7 +1554,7 @@ model (Table \ref{tab:zoo_daph_outofsample_kable}). None of the models
 did well in terms of predicting Lake Waubesa dynamics out-of-sample
 compared to a simple model with only a lake-specific intercept and no
 intra-annual variability, but this was due to the influence of a single
-large outlier in the out-of-sample data that occured after the spring
+large outlier in the out-of-sample data that occurred after the spring
 bloom, at day 243 (Fig. \ref{fig:daph_smooth} bottom right; note that
 the y-axis is log-transformed). However, baring a more detailed
 investigation into the cause of this large value, we cannot arbitrarily
@@ -1835,17 +1835,17 @@ Model & Relative Time & Coefficients & Penalties\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{A. CO2 data}}\\
 \hspace{1em}G & 1 & 17 & 2\\
-\hspace{1em}GS & 3 & 65 & 3\\
-\hspace{1em}GI & 6 & 65 & 14\\
-\hspace{1em}S & 2 & 61 & 3\\
-\hspace{1em}I & 7 & 61 & 13\\
+\hspace{1em}GS & 17 & 65 & 3\\
+\hspace{1em}GI & 55 & 65 & 14\\
+\hspace{1em}S & 13 & 61 & 3\\
+\hspace{1em}I & 39 & 61 & 13\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. Bird movement data}}\\
 \hspace{1em}G & 1 & 90 & 2\\
-\hspace{1em}GS & 500 & 540 & 8\\
-\hspace{1em}GI & 390 & 624 & 14\\
-\hspace{1em}S & 870 & 541 & 6\\
-\hspace{1em}I & 76 & 535 & 12\\
+\hspace{1em}GS & 540 & 540 & 8\\
+\hspace{1em}GI & 430 & 624 & 14\\
+\hspace{1em}S & 900 & 541 & 6\\
+\hspace{1em}I & 73 & 535 & 12\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -2043,13 +2043,13 @@ group-level smoother either substantially higher or lower than the
 global smoother; this is in effect an approximate way to specify a prior
 belief in the relative smoothness of the global versus group-level
 functions. If the group-level term is set to have greater \texttt{k}
-compared to the gobal term, this encodes the assumption that the global
+compared to the global term, this encodes the assumption that the global
 function should not be very wiggly, but group-level deviations from that
 smooth might vary from that, and vice versa if \texttt{k} is set lower
 for group-level terms than for the global smoother.
 
 As noted above, interpreting the shape of global terms and group-wise
-deviations seperately for \emph{GS} models fit using tensor-product
+deviations separately for \emph{GS} models fit using tensor-product
 group-level terms is complicated by the fact that \textbf{mgcv} will
 drop some basis-functions from the group-level terms to prevent perfect
 concurvity. For tensor-product smoothers, \textbf{mgcv} will generally
@@ -2119,31 +2119,33 @@ regression.
 \subsection{A brief foray into the land of
 Bayes}\label{a-brief-foray-into-the-land-of-bayes}
 
-As mentioned in section II, the penalty matrix can also be treated as
-the inverse of a prior covariance matrix for model parameters
-\(\boldsymbol{\beta}\). Intuitively, the basis functions and penalty we
-use form a prior (in the informal sense) on how we'd like our model term
-to behave. REML gives an empirical Bayes estimate of the smooth model
-(Laird \& Ware, 1982), where terms in the null space of the smoother
-have improper, flat priors (i.e., any value for these terms are
-considered equally likely). Any terms in the range space are treated as
-having a multivariate normal distribution, and the penalty terms are
-treated as having an improper flat prior (see Wood (2017a) Section 5.8
-for more details on this connection). The large-sample approximation of
-the posterior Bayesian covariance matrix (Wood, 2006b) for model
-parameters can be extracted from any fitted \texttt{gam()} or
-\texttt{bam()} model with \texttt{vcov(model)}. This can in turn be used
-to generate samples from the posterior distribution of the model, as the
-approximate Bayesian covariance matrix already incorporates the
-uncertainty from having to estimate the covariance matrix into it (the
-standard confidence intervals used in \textbf{mgcv} are in fact Bayesian
-posterior credible intervals, which happen to have good frequentist
-properties; Wood, 2006b; Marra \& Wood, 2012). Viewing our GAM as
-Bayesian is a somewhat unavoidable consequence of the equivalence of
-random effects and splines --- if we think that there is some true
-smoother that we wish to estimate, we must take a Bayesian view of our
-random effects (splines) as we do not think that the true smoother
-changes each time we collect data (Wood, 2017a, Section 5.8).
+As mentioned in section II, the penalty matrix can be interpreted as the
+prior precision (inverse prior covariance) matrix for the model
+parameters \(\boldsymbol{\beta}\). Intuitively, the basis functions and
+penalty are an informal prior on how we'd like our model term to behave.
+REML gives an empirical Bayes estimate of the smooth model (Laird \&
+Ware, 1982), where terms in the null space of the smoother have
+improper, flat priors (i.e., any value for these terms are considered
+equally likely). Any terms in the range space are treated as having a
+multivariate normal prior, and the smoothing parameters are treated as
+having an improper flat prior (see Wood (2017a) Section 5.8 for more
+details on this connection). The posterior covariance matrix (Wood,
+2006b) for model parameters can be extracted from any fitted
+\texttt{gam()} or \texttt{bam()} model with \texttt{vcov(model)} (this
+is conditional on the estimated smoothing parameters unless the option
+\texttt{unconditional=TRUE} is specified). Given the normal posterior
+for the estimates of \(\boldsymbol{\beta}\), we can sample from a
+multivariate normal with mean \(\hat{\boldsymbol{\beta}}\) and posterior
+covariance matrix. Such samples can be used to estimate uncertainty in
+functions of the predictors. Viewing our GAM as Bayesian is a somewhat
+unavoidable consequence of the equivalence of random effects and splines
+--- if we think that there is some true smoother that we wish to
+estimate, we must take a Bayesian view of our random effects (splines)
+as we do not think that the true smoother changes each time we collect
+data (Wood, 2017a, Section 5.8). The standard confidence intervals used
+in \textbf{mgcv} are in fact Bayesian posterior credible intervals,
+which happen to have good frequentist across-the-function properties
+(Wood, 2006b; Marra \& Wood, 2012).
 
 This also means that HGAMs can be included as components in a more
 complex fully Bayesian model. The \textbf{mgcv} package includes a
@@ -2158,8 +2160,8 @@ complex statistical models using the Bayesian software \textbf{Stan}
 smooth terms as part of the model specification. The \textbf{brms}
 package does not currently support \texttt{te()} tensor products, but
 does support factor-smooth interactions and \texttt{t2()}-style tensor
-products, which means all of the models fitted in this paper can be fit
-by \textbf{brms}.
+products, which means all of the models fitted in this paper can be
+fitted by \textbf{brms}.
 
 \subsection{Beyond HGAMs: functional
 regression}\label{beyond-hgams-functional-regression}
