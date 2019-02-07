@@ -24,8 +24,8 @@ main: paper_sections/full_document.Rmd
 				mv paper_sections/full_document.pdf compiled_paper/full_document.pdf 
 				mv paper_sections/full_document.tex compiled_paper/full_document.tex 
 				
-makezip: compiled_paper/supplemental_code.R data/bird_move.csv data/zooplankton_example.csv data/bird_move_global.csv mixed-effect-gams.Rproj
-				zip compiled_paper/supplemental_info.zip data/bird_move.csv data/zooplankton_example.csv data/bird_move_global.csv mixed-effect-gams.Rproj
+makezip: compiled_paper/supplemental_code.R code/bird_example_data.R data/bird_move.csv data/zooplankton_example.csv data/bird_move_global.csv mixed-effect-gams.Rproj
+				zip compiled_paper/supplemental_info.zip data/bird_move.csv data/zooplankton_example.csv data/bird_move_global.csv code/bird_example_data.R mixed-effect-gams.Rproj
 				cp compiled_paper/supplemental_code.R code/supplemental_code.R 
 				zip -ur compiled_paper/supplemental_info.zip code/supplemental_code.R
 				rm -f code/supplemental_code.R

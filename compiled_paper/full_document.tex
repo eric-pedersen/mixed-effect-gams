@@ -165,13 +165,13 @@ additive model (GAM) and the hierarchical model (HGLM). The hierarchical
 GAM (HGAM), allows modelling of nonlinear functional relationships
 between covariates and outcomes where the shape of the function itself
 varies between different grouping levels. We describe the theoretical
-connection between these models, HGLMs and GAMs, explain how to model
-different assumptions about the degree of inter-group variability in
-functional response, and show how HGAMs can be readily fitted using
-existing GAM software, the \textbf{mgcv} package in R. We also discuss
-computational and statistical issues with fitting these models, and
-demonstrate how to fit HGAMs on example data. All code and data used to
-generate this paper are available at:
+connection between HGAMs, HGLMs and GAMs, explain how to model different
+assumptions about the degree of inter-group variability in functional
+response, and show how HGAMs can be readily fitted using existing GAM
+software, the \textbf{mgcv} package in R. We also discuss computational
+and statistical issues with fitting these models, and demonstrate how to
+fit HGAMs on example data. All code and data used to generate this paper
+are available at:
 \href{https://github.com/eric-pedersen/mixed-effect-gams}{github.com/eric-pedersen/mixed-effect-gams}.
 
 \section{I: Introduction}\label{i-introduction}
@@ -204,7 +204,7 @@ fit highly variable models by ``pooling'' parameter estimates towards
 one another, by penalizing squared deviations from some simpler model.
 In an HGLM, this occurs as group-level effects are pulled towards global
 effects (penalizing the squared differences between each group-level
-parameter estimate and the global effect). In a GAM, this occurs in the
+parameter estimate and the global effect). In a GAM, this occurs via the
 enforcement of a smoothness criterion on the variability of a functional
 relationship, pulling parameters towards some function that is assumed
 to be totally smooth (such as a straight line) by penalizing squared
@@ -707,9 +707,7 @@ number of levels in the grouping variable (here, 12). We specified
 \emph{G} applied to the CO2 dataset. Left shows the smoother of
 \(\log_e\) concentration and right plot shows a quantile-quantile plot
 of the random effects against Gaussian quantiles, used to check the
-appropriateness of the normal random effect assumption. Numbers in the
-vertical axis of the left figure and the title of the right give the
-effective degrees of freedom of the smoothers.}
+appropriateness of the normal random effect assumption.}
 \end{figure}
 
 Figure \ref{fig:co2_modG} illustrates the output of \textbf{gratia}'s
@@ -1133,11 +1131,11 @@ smoother are unnecessary\footnote{If it is important for a given study
   significantly for data sets with a large number of penalty terms (such
   as model \emph{GI} when the number of groups is high).}.
 
-\begin{table}[t]
+\begin{table}
 
 \caption{\label{tab:AIC_table_kable}AIC table comparing model fits for example datasets}
 \centering
-\begin{tabular}{lrrr}
+\begin{tabular}[t]{lrrr}
 \toprule
 Model & df & AIC & deltaAIC\\
 \midrule
@@ -1238,8 +1236,8 @@ size)\footnote{A more appropriate model for this data would be to assume
   be possible to fit this model using that software. We discuss using
   HGAMs in \textbf{brms} in section V.}. To evaluate how well each model
 fit new data (not used to fit the model), we calculated the total
-deviance of the out-of-sample data that we had previously held out.\\
-The deviance is equal to two times the sum of the difference between the
+deviance of the out-of-sample data that we had previously held out. The
+deviance is equal to two times the sum of the difference between the
 log-likelihood of the out-of-sample data (as predicted by each model)
 and a saturated model, that has one predictor for each data point, all
 multiplied by the scale parameter for the family of interest. It can be
@@ -1317,7 +1315,7 @@ model is:
 \end{Shaded}
 
 We have plotted QQ plots and fitted-versus residual plots for model
-\emph{I}. (Fitted versus response plots are generally less useful for
+\emph{I} (fitted versus response plots are generally less useful for
 non-normally distributed data as it can be difficult to visually assess
 if the observed data shows more heteroskedasticity than expected). The
 results for model \emph{S} are virtually indistinguishable to the naked
@@ -1355,11 +1353,11 @@ maximum possible value (\texttt{k\textquotesingle{}}), and the p-value
 for the observed k-index (which measures pattern in the residuals) is
 not significant.
 
-\begin{table}[t]
+\begin{table}
 
 \caption{\label{tab:zoo_comm_check_k_kable}Results from running \texttt{k.check} on \texttt{zoo\_comm\_modI}. Each row corresponds to a single model term. The notation for term names uses \textbf{mgcv} syntax. For instance, "s(day):taxonC. sphaericus" refers to the the smoother for day for the taxon \textit{C. sphaericus}.}
 \centering
-\begin{tabular}{lrrrr}
+\begin{tabular}[t]{lrrrr}
 \toprule
 Model term & k' & EDF & k-index & p-value\\
 \midrule
@@ -1423,11 +1421,11 @@ indicate predicted average values for model \emph{S} (red) and model
 mean.}
 \end{figure}
 
-\begin{table}[t]
+\begin{table}
 
 \caption{\label{tab:zoo_comm_outofsample_kable}Out-of-sample predictive ability for model \textit{S} and \textit{I} applied to the zooplankton community dataset. Deviance values represent the total deviance of model predictions from observations for out-of-sample data. 'Intercept only' results are for a null model with only taxon-level random effect intercepts included.}
 \centering
-\begin{tabular}{llll}
+\begin{tabular}[t]{llll}
 \toprule
 \multicolumn{1}{c}{ } & \multicolumn{3}{c}{Total deviance of out-of-sample data} \\
 \cmidrule(l{2pt}r{2pt}){2-4}
@@ -1556,17 +1554,17 @@ compared to a simple model with only a lake-specific intercept and no
 intra-annual variability, but this was due to the influence of a single
 large outlier in the out-of-sample data that occurred after the spring
 bloom, at day 243 (Fig. \ref{fig:daph_smooth} bottom right; note that
-the y-axis is log-transformed). However, baring a more detailed
-investigation into the cause of this large value, we cannot arbitrarily
-exclude this outlier from the goodness-of-fit analysis; it may be due
-either to measurement error or a true high late-season \emph{Daphnia}
-density that our model was not able to predict.
+the y-axis is log-scaled). However, baring a more detailed investigation
+into the cause of this large value, we cannot arbitrarily exclude this
+outlier from the goodness-of-fit analysis; it may be due either to
+measurement error or a true high late-season \emph{Daphnia} density that
+our model was not able to predict.
 
-\begin{table}[t]
+\begin{table}
 
 \caption{\label{tab:zoo_daph_outofsample_kable}Out-of-sample predictive ability for model \textit{G}, \textit{GS}, and \textit{GI} applied to the \textit{D. mendotae} dataset. Deviance values represent the total deviance of model predictions from observations for out-of-sample data. 'Intercept only' results are for a null model with only lake-level random effect intercepts included.}
 \centering
-\begin{tabular}{lllll}
+\begin{tabular}[t]{lllll}
 \toprule
 \multicolumn{1}{c}{ } & \multicolumn{4}{c}{Total deviance of out-of-sample data} \\
 \cmidrule(l{2pt}r{2pt}){2-5}
@@ -1816,17 +1814,17 @@ faster than \emph{GI} and \emph{I} when the number of groups is large,
 as models \emph{GI} and \emph{I} fit a separate set of penalties for
 each group level. The effect of this is visible in comparing the time it
 takes to fit model \emph{GS} to model \emph{GI} (which has a smoother
-for each group) or models \emph{S} and \emph{I} for the example data
-(Table \ref{tab:comp_time_kable}). Note that this will not hold in all
-cases. For instance, model \emph{I} takes less time to fit the bird
-movement data than model \emph{S} does (Table
-\ref{tab:comp_time_kable}B).
+for each group) or models \emph{S} and \emph{I} for the \texttt{CO2}
+example data (Table \ref{tab:comp_time_kable}). Note that this will not
+hold in all cases. For instance, model \emph{GI} and \emph{I} take less
+time to fit the bird movement data than models \emph{GS} or \emph{S} do
+(Table \ref{tab:comp_time_kable}B).
 
-\begin{table}[t]
+\begin{table}
 
 \caption{\label{tab:comp_time_kable}Relative computational time and model complexity for different HGAM formulations of the two example data sets from section III. All times are scaled relative to the length of time model \emph{G} takes to fit to that data set. The number of coefficients measures the total number of model parameters (including intercepts). The number of smoothers is the total number of unique penalty values estimated by the model.}
 \centering
-\begin{tabular}{lrrr}
+\begin{tabular}[t]{lrrr}
 \toprule
 \multicolumn{1}{c}{ } & \multicolumn{1}{c}{ } & \multicolumn{2}{c}{Number of terms} \\
 \cmidrule(l{2pt}r{2pt}){3-4}
@@ -1835,17 +1833,17 @@ Model & Relative Time & Coefficients & Penalties\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{A. CO2 data}}\\
 \hspace{1em}G & 1 & 17 & 2\\
-\hspace{1em}GS & 17 & 65 & 3\\
-\hspace{1em}GI & 55 & 65 & 14\\
-\hspace{1em}S & 13 & 61 & 3\\
-\hspace{1em}I & 39 & 61 & 13\\
+\hspace{1em}GS & 7 & 65 & 3\\
+\hspace{1em}GI & 14 & 65 & 14\\
+\hspace{1em}S & 5 & 61 & 3\\
+\hspace{1em}I & 15 & 61 & 13\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. Bird movement data}}\\
 \hspace{1em}G & 1 & 90 & 2\\
-\hspace{1em}GS & 540 & 540 & 8\\
-\hspace{1em}GI & 430 & 624 & 14\\
-\hspace{1em}S & 900 & 541 & 6\\
-\hspace{1em}I & 73 & 535 & 12\\
+\hspace{1em}GS & 480 & 540 & 8\\
+\hspace{1em}GI & 390 & 624 & 14\\
+\hspace{1em}S & 830 & 541 & 6\\
+\hspace{1em}I & 74 & 535 & 12\\
 \bottomrule
 \end{tabular}
 \end{table}

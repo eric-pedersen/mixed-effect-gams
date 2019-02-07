@@ -253,7 +253,7 @@ Adding a global term will add at most `k` extra terms.
 It can be substantially less than that, as **mgcv** drops basis functions from co-linear smoothers to ensure that the model matrix is full rank.
 
 Adding additional smoothing parameters (moving from model *GS* to *GI*, or moving from model *S* to *I*) is more costly than increasing the number of coefficients to estimate, as estimating smoothing parameters is computationally intensive [@wood_fast_2011].
-This means that models *GS* and *S* will generally be substantially faster than *GI* and *I* when the number of groups is large, as models *GI* and *I* fit a separate set of penalties for each group level. The effect of this is visible in comparing the time it takes to fit model *GS* to model *GI* (which has a smoother for each group) or models *S* and *I* for the example data (Table \ref{tab:comp_time_kable}). Note that this will not hold in all cases. For instance, model *I* takes less time to fit the bird movement data than model *S* does (Table \ref{tab:comp_time_kable}B).
+This means that models *GS* and *S* will generally be substantially faster than *GI* and *I* when the number of groups is large, as models *GI* and *I* fit a separate set of penalties for each group level. The effect of this is visible in comparing the time it takes to fit model *GS* to model *GI* (which has a smoother for each group) or models *S* and *I* for the `CO2` example data (Table \ref{tab:comp_time_kable}). Note that this will not hold in all cases. For instance, model *GI* and *I* take less time to fit the bird movement data than models *GS* or *S* do (Table \ref{tab:comp_time_kable}B).
 
 
 ```{r comp_calc, echo=FALSE,  fig.width=4, fig.height=6, message=FALSE, warning=FALSE, cache=TRUE}
