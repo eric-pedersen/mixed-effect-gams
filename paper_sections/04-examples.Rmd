@@ -23,7 +23,8 @@ The deviance is equal to two times the sum of the difference between the log-lik
 
 
 ```{r view_zoo, include = FALSE, message=FALSE,  cache=TRUE}
-zooplankton <- read.csv("../data/zooplankton_example.csv")%>%
+
+zooplankton <- read.csv("data/zooplankton_example.csv")%>%
   mutate(year_f = factor(year))
 
 #This is what the data looks like:

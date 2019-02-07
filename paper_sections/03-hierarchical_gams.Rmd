@@ -45,7 +45,7 @@ The data set (`bird_move`) consists of the variables `count`, `latitude`, `week`
 CO2 <- transform(CO2, Plant_uo=factor(Plant, ordered=FALSE))
 
 #Loading simulated bird movement data
-bird_move <- read.csv("../data/bird_move.csv")
+bird_move <- read.csv("data/bird_move.csv")
 
 CO2_vis_plot <- ggplot(CO2, aes(x=conc, 
                                 y=uptake, 

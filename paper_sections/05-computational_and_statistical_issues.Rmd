@@ -656,7 +656,7 @@ In our view, the global function fitted in these models should generally be view
 ```{r global_bias_plot, echo=FALSE, fig.width=7, fig.height=3, message=FALSE, warning=FALSE, cache=TRUE, purl=TRUE, fig.cap = "\\label{fig:global_bias}Average global function used for simulating bird_move data set (left) compared to the fitted global function for a *GS* model estimated with either a `te()` smoother (middle) or a `t2()` smoother with `full=TRUE (right)` for group-level terms. Both group-level smoothers used the same model specification as in section III except for the type of tensor product used. Colors indicate the value of the linear predictor of bird density at each location in each week."}
 
 #Load the global function for the bird_move dataset
-bird_move_global <- read.csv("../data/bird_move_global.csv")
+bird_move_global <- read.csv("data/bird_move_global.csv")
 
 
 #Simple te() model 
