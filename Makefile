@@ -1,4 +1,4 @@
-all: main example_data md fig tex compare
+all: main example_data md fig tex compare makezip
 main: example_data md fig tex 
 compare: main
 makezip: main
@@ -24,6 +24,13 @@ main: paper_sections/full_document.Rmd
 				mv paper_sections/full_document.pdf compiled_paper/full_document.pdf 
 				mv paper_sections/full_document.tex compiled_paper/full_document.tex 
 				
+makezip: compiled_paper/supplemental_code.R data/bird_move.csv data/zooplankton_example.csv data/bird_move_global.csv mixed-effect-gams.Rproj
+				zip compiled_paper/supplemental_info.zip data/bird_move.csv data/zooplankton_example.csv data/bird_move_global.csv mixed-effect-gams.Rproj
+				cp compiled_paper/supplemental_code.R code/supplemental_code.R 
+				zip -ur compiled_paper/supplemental_info.zip code/supplemental_code.R
+				rm -f code/supplemental_code.R
+				
+				
 compare: compiled_paper/full_document.tex compiled_paper/prior_submission.tex
         ifeq ($(run_comparison),true)
 					latexdiff --config="PICTUREENV=(?:picture|DIFnomarkup|table)[\w\d*@]*" compiled_paper/prior_submission.tex compiled_paper/full_document.tex  > compiled_paper/diff.tex
@@ -31,12 +38,3 @@ compare: compiled_paper/full_document.tex compiled_paper/prior_submission.tex
 					-pdflatex -interaction=nonstopmode compiled_paper/diff.tex -output-directory compiled_paper
 					rm compiled_paper/diff.log compiled_paper/diff.aux compiled_paper/diff.out
         endif
-
-makezip: compiled_paper/supplemental_code.R data/bird_move.csv data/zooplankton_example.csv data/bird_move_global.csv mixed-effect-gams.Rproj
-				zip compiled_paper/supplemental_info.zip data/bird_move.csv data/zooplankton_example.csv data/bird_move_global.csv mixed-effect-gams.Rproj
-				cp compiled_paper/supplemental_code.R code/supplemental_code.R 
-				zip -ur compiled_paper/supplemental_info.zip code/supplemental_code.R
-				rm -f compiled_paper/supplemental_code.R
-
-				
-				
