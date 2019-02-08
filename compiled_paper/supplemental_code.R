@@ -356,7 +356,7 @@ CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                  data=CO2, method="REML")
 
 #plotting CO2_modGI 
-draw(CO2_modGI, select = c(1,14,3,5,10,13), scales = "fixed")
+draw(CO2_modGI, select = c(1,14,8,2,11,5), scales = "fixed")
 
 bird_modGI <- gam(count ~ species +
                     te(week, latitude, bs=c("cc", "tp"), k=c(10, 10), m=2) +
@@ -437,7 +437,7 @@ zoo_comm_modS <- gam(density_adj ~ s(taxon, year_f, bs="re") +
                      family=Gamma(link="log"), method="REML",
                      drop.unused.levels=FALSE)
 
-# Note that  s(taxon, bs="re") has to be explicitly included here, as the 
+# Note that s(taxon, bs="re") has to be explicitly included here, as the 
 # day by taxon smoother does not include an intercept
 zoo_comm_modI <- gam(density_adj ~ s(day, by=taxon, k=10, bs="cc") + 
                        s(taxon, bs="re") + s(taxon, year_f, bs="re"),
@@ -567,7 +567,8 @@ zoo_daph_modGS <- gam(density_adj ~ s(day, bs="cc", k=10) +
                       drop.unused.levels=FALSE)
 
 zoo_daph_modGI <- gam(density_adj~s(day, bs="cc", k=10) + s(lake, bs="re") +
-                        s(day, by=lake, k=10, bs="cc") + s(lake, year_f, bs="re"),
+                        s(day, by=lake, k=10, bs="cc") +
+                        s(lake, year_f, bs="re"),
                       data=daphnia_train, knots=list(day=c(0, 365)),
                       family=Gamma(link ="log"), method="REML",
                       drop.unused.levels=FALSE)
