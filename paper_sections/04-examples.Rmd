@@ -14,8 +14,7 @@ For these examples, data are from a long-term study in seasonal dynamics of zoop
 Zooplankton in temperate lakes often undergo seasonal cycles, where the abundance of each species fluctuates up and down across the course of the year, with each species typically showing a distinct pattern of seasonal cycles. The inferential aims of these examples are to *(i)* estimate variability in seasonality among species in the community in a single lake (Mendota), and *(ii)* estimate among-lake variability for the most abundant taxon in the sample (*Daphnia mendotae*) across the four lakes. To enable evaluation of out-of-sample performance, we split the data into testing and training sets. As there are multiple years of data, we used data from the even years to fit (train) models, and the odd years to test the fit.
 
 Each record consists of counts of a given zooplankton taxon taken from a subsample from a single vertical net tow, which was then scaled to account for the relative volume of subsample versus the whole net sample and the area of the net tow, giving  population density per $m^2$.  Values are rounded to the nearest 1000. Observed densities span four orders of magnitude.  We modelled density using a Gamma distribution with a log-link. For any net tow sample where a given taxon was not observed, we set that taxon's density to 1000 (the minimum possible sample size)[^censored]. 
-To evaluate how well each model fit new data (not used to fit the model), we calculated the total deviance of the out-of-sample data that we had previously held out.
-The deviance is equal to two times the sum of the difference between the log-likelihood of the out-of-sample data (as predicted by each model) and a saturated model, that has one predictor for each data point, all multiplied by the scale parameter for the family of interest. It can be interpreted similarly to the residual sum of squares for a simple linear regression [@wood_generalized_2017, page 109]. 
+To evaluate how well each model fits new data (not used to fit the model), we calculated the total deviance of the out-of-sample data that we had previously held out. The deviance is equal to two times the sum of the difference between the log-likelihood of the out-of-sample data (as predicted by each model) and a saturated model, that has one predictor for each data point, all multiplied by the scale parameter for the family of interest. It can be interpreted similarly to the residual sum of squares for a simple linear regression [@wood_generalized_2017, page 109]. 
 
 
 [^censored]: A more appropriate model for this data would be to assume that density is *left censored*, where 1000 is treated as a threshold which the data may lie below, but it is not possible to measure lower than this. However, **mgcv** does not currently have a left-censored family. The **brms** package, for Bayesian model fitting, can fit a left-censored Gamma distribution, so it would be possible to fit this model using that software. We discuss using HGAMs in **brms** in section V. 
@@ -60,7 +59,7 @@ get_deviance <- function(model, y_pred, y_obs, weights = NULL){
 }
 ```
 
-First, we demonstrate how to model community-level variability in seasonality, by regressing scaled density on day of year with species-specific curves. As we are not interested in average seasonal dynamics, we focus on models *S* and *I* (if we wanted to estimate the seasonal dynamics for rarer species, adding a global smooth term might be useful, so we could borrow information from the more common species). As the data are seasonal,  we use cyclic smoothers as the basis for seasonal dynamics.  Therefore we need to specify start and end points for our cycles using the `knots` argument to `gam`, as well as specify this smoother type to the factor-smooth interaction term using the `xt` argument (the `xt` argument is how any extra information that a smoother might need is supplied; see `?mgcv::s` for more information). Note that we also include a random effect smoother for both `taxon` and `taxon:year_f`, where `year_f` is `year` transformed into a factor variable. This deals with the fact that average zooplankton densities can show large year-to-year variation. The argument `drop.unused.levels=FALSE` is also included so the `gam` function does not drop the year factor levels corresponding to those in the held-out test data set. 
+First, we demonstrate how to model community-level variability in seasonality, by regressing scaled density on day of year with species-specific curves. As we are not interested in average seasonal dynamics, we focus on models *S* and *I* (if we wanted to estimate the seasonal dynamics for rarer species, adding a global smooth term might be useful, so we could borrow information from the more common species). As the data are seasonal,  we use cyclic smoothers as the basis for seasonal dynamics.  Therefore we need to specify start and end points for our cycles using the `knots` argument to `gam()`, as well as specify this smoother type as a factor-smooth interaction term using the `xt` argument (the `xt` argument is how any extra information that a smoother might need is supplied; see `?mgcv::s` for more information). Note that we also include a random effect smoother for both `taxon` and `taxon:year_f`, where `year_f` is `year` transformed into a factor variable. This deals with the fact that average zooplankton densities can show large year-to-year variation. The argument `drop.unused.levels=FALSE` is also included so the `gam` function does not drop the year factor levels corresponding to those in the held-out test data set. 
 
 
 ### Model *S*:
@@ -79,7 +78,7 @@ zoo_comm_modS <- gam(density_adj ~ s(taxon, year_f, bs="re") +
 
 ```{r zoo_comm_modI, echo=TRUE, message=FALSE,  cache=TRUE, fig.width=8, fig.height=5}
 
-# Note that  s(taxon, bs="re") has to be explicitly included here, as the 
+# Note that s(taxon, bs="re") has to be explicitly included here, as the 
 # day by taxon smoother does not include an intercept
 zoo_comm_modI <- gam(density_adj ~ s(day, by=taxon, k=10, bs="cc") + 
                        s(taxon, bs="re") + s(taxon, year_f, bs="re"),
@@ -89,7 +88,7 @@ zoo_comm_modI <- gam(density_adj ~ s(day, by=taxon, k=10, bs="cc") +
 ```
 
 At this stage of the analysis (prior to model comparisons), it is useful to determine if any of the fitted models adequately describe patterns in the data (i.e. goodness of fit testing). 
-**mgcv**'s `gam.check` facilitates this model-checking. 
+**mgcv**'s `gam.check()` facilitates this model-checking. 
 This function creates a set of standard diagnostic plots: a QQ plot of the deviance residuals (see @wood_generalized_2017) compared to their theoretical expectation for the chosen family, a plot of response versus fitted values, a histogram of residuals, and a plot of residuals versus fitted values. It also conducts a test for each smooth term to determine if the number of degrees of freedom (`k`) for each smooth is adequate (see `?mgcv::gam.check` for details on how that test works). The code for checking model *S* and *I* for the community zooplankton model is: 
 
 ```{r zoo_comm_modI_check_gam,eval = FALSE, echo=TRUE,  message=FALSE}
@@ -98,7 +97,7 @@ gam.check(zoo_comm_modS)
 gam.check(zoo_comm_modI)
 ```
 
-We have plotted QQ plots and fitted-versus residual plots for model *I* (fitted versus response plots are generally less useful for non-normally distributed data as it can be difficult to visually assess if the observed data shows more heteroskedasticity than expected). The results for model *S* are virtually indistinguishable to the naked eye. We have also used alternate qq-plotting code from  the **gratia** package [@simpson_gratia_2018], using the `qq_plot` function, as this function creates a **ggplot2** object that are easier to customize than the **base** plots from `gam.check`. The code for generating these plots is in the supplemental material.
+We have plotted QQ plots and fitted-versus residual plots for model *I* (fitted versus response plots are generally less useful for non-normally distributed data as it can be difficult to visually assess if the observed data shows more heteroskedasticity than expected). The results for model *S* are virtually indistinguishable to the naked eye. We have also used alternate QQ-plotting code from  the **gratia** package [@simpson_gratia_2018], using the `qq_plot()` function, as this function creates a **ggplot2** object that are easier to customize than the **base** plots from `gam.check()`. The code for generating these plots is in the supplemental material.
 These plots (Fig. \ref{fig:zoo_comm_diag_plot}) indicate that the Gamma distribution seems to fit the observed data well except at low values, where the deviance residuals are larger than predicted by the theoretical quantiles (Fig. \ref{fig:zoo_comm_diag_plot} left). 
 There also does not seem to be a pattern in the residual versus fitted values (Fig. \ref{fig:zoo_comm_diag_plot} right), except for a line of residuals at the lowest values, which correspond to all of those observations where a given taxon was absent from the sample.
 
@@ -121,7 +120,7 @@ plot_grid(plt1, plt2, ncol = 2, align = "hv", axis = "lrtb",labels=c("a","b"))
 ```
 
 
-The `k.check` test (Table \ref{tab:zoo_comm_check_k_kable}) shows that the default maximum degrees of freedom for the smoothers used in model *I* are sufficient for all species, as the effective degrees of freedom (edf) for all estimated smoothers are well below their maximum possible value (`k'`), and the  p-value for the observed k-index (which measures pattern in the residuals) is not significant. 
+The `k.check()` test (Table \ref{tab:zoo_comm_check_k_kable}) shows that the default maximum degrees of freedom for the smoothers used in model *I* are sufficient for all species, as the effective degrees of freedom (EDF) for all estimated smoothers are well below their maximum possible value (k'), and the  p-value for the observed k-index (which measures pattern in the residuals) is not significant. 
 
 ```{r zoo_comm_check_k, echo=FALSE,eval = FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup"}
 
@@ -139,7 +138,7 @@ k.check_table <-round(k.check(zoo_comm_modI),2) %>%
 
 kable(k.check_table, 
       format = table_out_format,
-      caption='Results from running \\texttt{k.check} on \\texttt{zoo\\_comm\\_modI}. Each row corresponds to a single model term. The notation for term names uses \\textbf{mgcv} syntax. For instance, "s(day):taxonC. sphaericus" refers to the the smoother for day for the taxon \\textit{C. sphaericus}.', 
+      caption='Results from running \\texttt{k.check()} on \\texttt{zoo\\_comm\\_modI}. Each row corresponds to a single model term. The notation for term names uses \\textbf{mgcv} syntax. For instance, "s(day):taxonC. sphaericus" refers to the the smoother for day for the taxon \\textit{C. sphaericus}.', 
       booktabs = TRUE,
       escape = TRUE)%>%
   kable_styling(full_width = FALSE) %>%
@@ -149,13 +148,13 @@ kable(k.check_table,
 ```
 
 
-In this table, each row corresponds to a single smooth term, `k'` corresponds to the number of basis functions used for that smoother in the fitted model (smaller than the specified `k` in the model itself, as some basis functions are automatically dropped to ensure the model is identifiable). The column `EDF` is the estimated Effective Degrees of Freedom for that smoother, the `k-index` is a measure of the remaining pattern in the residuals, and the p-value is calculated based on the distribution of the k-index after randomizing the order of the residuals. Note that there is no p-value for the random effects smoothers `s(taxon)` and `s(taxon,year_f)` as the p-value is calculated from simulation-based tests for autocorrelation of the residuals. As `taxon` and `year_f` are treated as simple random effects with no natural ordering, there is no meaningful way of checking for autocorrelation. 
+In this table, each row corresponds to a single smooth term, k' corresponds to the number of basis functions used for that smoother in the fitted model (smaller than the specified `k` in the model itself, as some basis functions are automatically dropped to ensure the model is identifiable). The column EDF is the estimated Effective Degrees of Freedom for that smoother, the k-index is a measure of the remaining pattern in the residuals, and the p-value is calculated based on the distribution of the k-index after randomizing the order of the residuals. Note that there is no p-value for the random effects smoothers `s(taxon)` and `s(taxon,year_f)` as the p-value is calculated from simulation-based tests for autocorrelation of the residuals. As `taxon` and `year_f` are treated as simple random effects with no natural ordering, there is no meaningful way of checking for autocorrelation. 
 
 
 Differences between models *S* (shared smoothness between taxa) and *I* (different smoothness for each taxa) seem to be driven by the low seasonality of *L. siciloides* relative to the other species, and how this is captured by the more flexible model *I* (Fig. \ref{fig:zoo_comp}). Still, both models show very similar fits to the training data. This implies that the added complexity of different penalties for each species (model *I*) is unnecessary here, which is consistent with the fact that model *S* has a lower AIC (`r round(AIC(zoo_comm_modS), 0)`) than model *I* (`r round(AIC(zoo_comm_modI), 0)`), and that model *S* is somewhat better at predicting out-of-sample fits for all taxa than model *I* (Table \ref{tab:zoo_comm_outofsample_kable}). Both models show significant predictive improvement compared to the intercept-only model for all species except *K. cochlearis* (Table \ref{tab:zoo_comm_outofsample_kable}). This may be driven by changing timing of the spring bloom for this species between training  and out-of-sample years (Fig. \ref{fig:zoo_comp}). 
 
 
-```{r zoo_comm_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=6, fig.height=6, fig.cap = "\\label{fig:zoo_comp}Species-specific seasonal dynamics for the eight zooplankon species tracked in Lake Mendota. Black points indicate individual plankton observations in the training data, and grey points are observations in held-out years used for model validation. Lines indicate predicted average values for model *S* (red) and model *I* (blue). Ribbons indicate $\\pm$ 2 standard errors around the mean."}
+```{r zoo_comm_plot, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=6, fig.height=6, fig.cap = "\\label{fig:zoo_comp}Species-specific seasonal dynamics for the eight zooplankon species tracked in Lake Mendota. Black points indicate individual plankton observations in the training data, and grey points are observations in held-out years used for model validation. Lines indicate predicted average values for model *S* (green) and model *I* (red). Ribbons indicate $\\pm$ 2 standard errors around the mean."}
 
 #Create synthetic data to use to compare predictions
 zoo_plot_data <- expand.grid(day = 1:365, 
@@ -302,13 +301,14 @@ zoo_daph_modGS <- gam(density_adj ~ s(day, bs="cc", k=10) +
 ```{r zoo_daph_modGI, echo=TRUE, message=FALSE,  cache=TRUE}
 
 zoo_daph_modGI <- gam(density_adj~s(day, bs="cc", k=10) + s(lake, bs="re") +
-                        s(day, by=lake, k=10, bs="cc") + s(lake, year_f, bs="re"),
+                        s(day, by=lake, k=10, bs="cc") +
+                        s(lake, year_f, bs="re"),
                       data=daphnia_train, knots=list(day=c(0, 365)),
                       family=Gamma(link ="log"), method="REML",
                       drop.unused.levels=FALSE)
 ```
 
-Diagnostic plots from `gam.check` indicate that there are no substantial patterns comparing residuals to fitted values (not shown), and QQ-plots are similar to the those from the zooplankton community models; the residuals for all three models closely correspond to the expected (Gamma) distribution, except at small values, where the observed residuals are generally larger than expected (Fig. \ref{fig:zoo_daph_diag_plot}). 
+Diagnostic plots from `gam.check()` indicate that there are no substantial patterns comparing residuals to fitted values (not shown), and QQ-plots are similar to those from the zooplankton community models; the residuals for all three models closely correspond to the expected (Gamma) distribution, except at small values, where the observed residuals are generally larger than expected (Fig. \ref{fig:zoo_daph_diag_plot}). 
 As with the community data, this is likely an artifact of the assumption we made of assigning zero observations a value of 1000 (the lowest possible value), imposing an artificial lower bound on the observed counts. There was also some evidence that the largest observed values were smaller than expected given the theoretical distribution , but these fell within the 95% CI for expected deviations from the 1-1 line (Fig. \ref{fig:zoo_daph_diag_plot}). 
 
 ```{r zoo_daph_diag, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=9, fig.height=3, fig.cap = "\\label{fig:zoo_daph_diag_plot} QQ-plots for model *G* (a) , *GS* (b), and *GI* (c) fitted to Daphnia data across the four lakes. Red line indicates the 1-1 line, black points are observed model residuals, and grey bands correspond to the expected 95% CI for the QQ plot, assuming the distribution is correct."}
@@ -330,9 +330,9 @@ plot_grid(pltG, pltGS,pltGI,
 ```
 
 
-The AIC values indicate that both model *GS* (`r round(AIC(zoo_daph_modGS), 2)`) and *GI*
+AIC values indicate that both model *GS* (`r round(AIC(zoo_daph_modGS), 2)`) and *GI*
 (`r round(AIC(zoo_daph_modGI), 2)`) are better fits than model *G* (`r round(AIC(zoo_daph_modG), 2)`),
-but model *GI* fits somewhat better than model *GS* [^AIC_note].  There does not seem to be a large amount of inter-lake variability (the effective degrees of freedom per lake are low in models *GS* & *GI*).  Plots for all three models
+with model *GI* fitting somewhat better than model *GS* [^AIC_note].  There does not seem to be a large amount of inter-lake variability (the effective degrees of freedom per lake are low in models *GS* & *GI*).  Plots for all three models
 (Fig. \ref{fig:daph_smooth}) show that Mendota, Monona, and Kegonsa lakes are very close to the average and to one another for both models, but Waubesa shows evidence of a more pronounced spring bloom and lower winter abundances. 
 
 [^AIC_note]: When comparing models via AIC, we use the standard rule of thumb from @burnham_model_1998, where models that differ by 2 units or less from the lowest AIC model have substantial support, and those differing by more than 4 units have less support. 
