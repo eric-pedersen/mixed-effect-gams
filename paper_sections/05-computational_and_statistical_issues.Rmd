@@ -644,7 +644,7 @@ If the group-level term is set to have greater `k` compared to the global term, 
 
 
 As noted above, interpreting the shape of global terms and group-wise deviations separately for  *GS* models fit using tensor-product group-level terms is complicated by the fact that **mgcv** will drop some basis-functions from the group-level terms to prevent perfect concurvity. 
-For tensor-product smoothers, **mgcv** will generally drop $\le K$ terms from the group-level smoother, where $k$ is the number of basis functions in the global smoother.
+For tensor-product smoothers, **mgcv** will generally drop $\le K$ terms from the group-level smoother, where $K$ is the number of basis functions in the global smoother.
 The total number of terms dropped will depend on the smoothers used for the global and group-level terms. 
 This means that some groups will have a different range of potential deviations from the global smoother than others.
 This has the effect of also somewhat altering the shape of the global smooth relative to what it would be based on model *G* (the average curve through all the data); this will be a larger issue when the number of basis functions in the global smooth and the number of group levels are small. 
