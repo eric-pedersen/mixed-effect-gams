@@ -11,7 +11,7 @@ example_data: data/bird_move.csv data/zooplankton_example.csv
 
 md: paper_sections/01-intro.Rmd paper_sections/02-gams.Rmd paper_sections/03-hierarchical_gams.Rmd paper_sections/04-examples.Rmd paper_sections/05-computational_and_statistical_issues.Rmd 
 
-fig: figures/temp_growth_example.pdf code/alternate_models.R 
+fig: figures/Fig1.pdf code/alternate_models.R 
 				R --vanilla --slave -e "source('code/alternate_models.R')"
 
 tex: paper_sections/bibliography.bib paper_sections/peerj.csl paper_sections/preamble.sty

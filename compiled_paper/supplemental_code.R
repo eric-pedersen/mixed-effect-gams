@@ -1158,19 +1158,18 @@ bird_modGS_te <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
 
 bird_mod_predict = bird_move_global %>%
   mutate(species = "sp1")%>%
-  mutate(`te` = predict(bird_modGS_te,
+  mutate(`b  te` = predict(bird_modGS_te,
                                                newdata = ., 
                                                type="terms")[,1],
-         `t2` =  predict(bird_modGS,
+         `c  t2` =  predict(bird_modGS,
                                              newdata = ., 
                                              type="terms")[,1])%>%
-  mutate(`true global function` = `global_scaled_function`)%>%
-  gather(key = model, value =`fitted value`, `te`:`true global function`)%>%
+  mutate(`a  true global function` = `global_scaled_function`)%>%
+  gather(key = model, value =`fitted value`, `b  te`:`a  true global function`)%>%
   mutate(model = factor(model, 
-                        levels = c("true global function",
-                                   "te",
-                                   "t2")))
-
+                        levels = c("a  true global function",
+                                   "b  te",
+                                   "c  t2")))
 
 bird_global_fitted_plot <- ggplot(bird_mod_predict, 
                                 aes(x=week, 
@@ -1181,6 +1180,7 @@ bird_global_fitted_plot <- ggplot(bird_mod_predict,
   scale_x_continuous(expand = c(0,0))+
   scale_y_continuous(expand = c(0,0))+
   scale_fill_viridis_c(name="linear predictor")+
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        strip.text = element_text(hjust = 0))
 
 print(bird_global_fitted_plot)

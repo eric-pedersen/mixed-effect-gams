@@ -157,7 +157,7 @@ It is possible to set up this type of varying penalty model in flexible Bayesian
 [^mean_note]: While this example may seem contrived, this is exactly what happens
 when we assume a given regression coefficient is equal to zero (and thus exclude it from a model).
 
-```{r single_smooth_bias_plot, echo=FALSE, fig.width=7, fig.height=7, message=FALSE, warning=FALSE, cache=TRUE, fig.cap="\\label{fig:var_pen} a) Illustration of bias that can arise from assuming equal smoothness for all group levels (model *S*, red lines) versus allowing for intergroup variation in smoothness (model *I*, blue lines) across a range of signal-to-noise ratios, holding the group-level signals constant. The true function for each group level is shown in black. b) Distribution of wiggliness (as measured by the integral of the squared 2nd derivative)  of the estimated function for each replicate for each group level for model *S* (red) and model *I* (blue), versus the true wiggliness of the function for that grouping level, with the black line indicating the one-to-one line. Points below (above) the black line indicate that a given model estimated the curve as less (more) wiggly than the true curve used to generate the data. Estimated wiggliness less than $10^{-3}$ was truncated for visual clarity, as **mgcv** estimated effectively straight lines for several groups, corresponding to a wiggliness of 0, which would not appear on a log-scaled plot.", dependson= -1}
+```{r Fig18, echo=FALSE, fig.width=7, fig.height=7, message=FALSE, warning=FALSE, cache=TRUE, fig.cap="\\label{fig:var_pen} a) Illustration of bias that can arise from assuming equal smoothness for all group levels (model *S*, red lines) versus allowing for intergroup variation in smoothness (model *I*, blue lines) across a range of signal-to-noise ratios, holding the group-level signals constant. The true function for each group level is shown in black. b) Distribution of wiggliness (as measured by the integral of the squared 2nd derivative)  of the estimated function for each replicate for each group level for model *S* (red) and model *I* (blue), versus the true wiggliness of the function for that grouping level, with the black line indicating the one-to-one line. Points below (above) the black line indicate that a given model estimated the curve as less (more) wiggly than the true curve used to generate the data. Estimated wiggliness less than $10^{-3}$ was truncated for visual clarity, as **mgcv** estimated effectively straight lines for several groups, corresponding to a wiggliness of 0, which would not appear on a log-scaled plot.", dependson= -1}
 
 # Uses the Tex function from the latex2exp package to create a math label for 
 # the facets. Based off code from
@@ -472,7 +472,7 @@ you are using to configure, we do not go into how to use these methods
 here. The help file `?mgcv::mgcv.parallel` explains how to use parallel
 computations for `gam()` and `bam()` in detail.
 
-```{r alt_model_timing_plot, echo=FALSE, fig.width=6.5, fig.height=4, message=FALSE, warning=FALSE, cache=TRUE, purl=TRUE, fig.cap = "\\label{fig:alt_timing}Elapsed time to estimate the same model using each of the four approaches. Each data set was generated with 20 observations per group using a unimodal global function and random group-specific functions consisting of an intercept, a quadratic term, and logistic trend for each group. Observation error was normally distributed. Models were fit using model 2: \\texttt{y~s(x, k=10, bs=\"cp\") + s(x,fac, k=10, bs=\"fs\", xt=list(bs=\"cp\"), m=1)}. All models were run on a single core."}
+```{r Fig19, echo=FALSE, fig.width=6.5, fig.height=4, message=FALSE, warning=FALSE, cache=TRUE, purl=TRUE, fig.cap = "\\label{fig:alt_timing}Elapsed time to estimate the same model using each of the four approaches. Each data set was generated with 20 observations per group using a unimodal global function and random group-specific functions consisting of an intercept, a quadratic term, and logistic trend for each group. Observation error was normally distributed. Models were fit using model 2: \\texttt{y~s(x, k=10, bs=\"cp\") + s(x,fac, k=10, bs=\"fs\", xt=list(bs=\"cp\"), m=1)}. All models were run on a single core."}
 
 #This code calculates the timing it takes to fit the same model (with varying
 #amounts of data) for gam, bam, gamm, and gamm4.
@@ -655,7 +655,7 @@ However, more work on when these models accurately reconstruct global effects is
 In our view, the global function fitted in these models should generally be viewed as a useful summary of an average trend across a wide range of groups, and would only represent an actual average relationship if the grouping levels were drawn at random from some underlying population and if there was scientific reason to believe that individual groups should differ from the mean only via some additive function. 
 
 
-```{r global_bias_plot, echo=FALSE, fig.width=7, fig.height=3, message=FALSE, warning=FALSE, cache=TRUE, purl=TRUE, fig.cap = "\\label{fig:global_bias}Average global function used for simulating `bird_move` data set (left) compared to the fitted global function for a *GS* model estimated with either a `te()` smoother (middle) or a `t2()` smoother with `full=TRUE` (right) for group-level terms. Both group-level smoothers used the same model specification as in section III except for the type of tensor product used. Colors indicate the value of the linear predictor of bird density at each location in each week."}
+```{r Fig20, echo=FALSE, fig.width=7, fig.height=3, message=FALSE, warning=FALSE, cache=TRUE, purl=TRUE, fig.cap = "\\label{fig:global_bias}Average global function used for simulating `bird_move` data set (a) compared to the fitted global function for a *GS* model estimated with either a `te()` smoother (b) or a `t2()` smoother with `full=TRUE` (c) for group-level terms. Both group-level smoothers used the same model specification as in section III except for the type of tensor product used. Colors indicate the value of the linear predictor of bird density at each location in each week."}
 
 #Load the global function for the bird_move dataset
 bird_move_global <- read.csv("data/bird_move_global.csv")
@@ -671,19 +671,18 @@ bird_modGS_te <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
 
 bird_mod_predict = bird_move_global %>%
   mutate(species = "sp1")%>%
-  mutate(`te` = predict(bird_modGS_te,
+  mutate(`b  te` = predict(bird_modGS_te,
                                                newdata = ., 
                                                type="terms")[,1],
-         `t2` =  predict(bird_modGS,
+         `c  t2` =  predict(bird_modGS,
                                              newdata = ., 
                                              type="terms")[,1])%>%
-  mutate(`true global function` = `global_scaled_function`)%>%
-  gather(key = model, value =`fitted value`, `te`:`true global function`)%>%
+  mutate(`a  true global function` = `global_scaled_function`)%>%
+  gather(key = model, value =`fitted value`, `b  te`:`a  true global function`)%>%
   mutate(model = factor(model, 
-                        levels = c("true global function",
-                                   "te",
-                                   "t2")))
-
+                        levels = c("a  true global function",
+                                   "b  te",
+                                   "c  t2")))
 
 bird_global_fitted_plot <- ggplot(bird_mod_predict, 
                                 aes(x=week, 
@@ -694,7 +693,8 @@ bird_global_fitted_plot <- ggplot(bird_mod_predict,
   scale_x_continuous(expand = c(0,0))+
   scale_y_continuous(expand = c(0,0))+
   scale_fill_viridis_c(name="linear predictor")+
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        strip.text = element_text(hjust = 0))
 
 print(bird_global_fitted_plot)
 ```

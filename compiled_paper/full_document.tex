@@ -131,7 +131,7 @@ with mgcv}
 \author[5,6]{Gavin L. Simpson}
 \author[7]{Noam Ross}
 \affil[1]{Northwest Atlantic Fisheries Center, Fisheries and Oceans Canada, St. John's, NL, Canada}
-\affil[2]{Department of Biology, Memorial University, St. John's, NL, Canada}
+\affil[2]{Department of Biology, Memorial University of Newfoundland, St. John's, Newfoundland and Labrador, Canada}
 \affil[3]{Centre for Research into Ecological and Environmental Modelling, University of St Andrews, St Andrews, UK}
 \affil[4]{School of Mathematics and Statistics, University of St Andrews, St Andrews, UK}
 \affil[5]{Institute of Environmental Change and Society, University of Regina, Regina, SK, Canada}
@@ -240,7 +240,7 @@ penalized to be close to the mean function.
 
 \begin{figure}
 
-{\centering \includegraphics[width=.6\linewidth]{../figures/temp_growth_example} 
+{\centering \includegraphics[width=.6\linewidth]{../figures/Fig1} 
 
 }
 
@@ -341,7 +341,7 @@ enough to keep computation time low (see section V for more on this). In
 determine if \(k\) has been set too low.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/lambda-1} \caption{\label{fig:smoothing_effect}Effect of different choices of smoothing parameter ($\lambda$) on the shape of the resulting smoother (red lines). Left:  $\lambda$ estimated using REML; middle: $\lambda$ set to zero (no smoothing); Right: $\lambda$ is set to a very large value. The blue line in each panel is the known model used to simulate the data.}\label{fig:lambda}
+\includegraphics[width=\linewidth]{../figures/Fig2} \caption{\label{fig:smoothing_effect}Effect of different choices of smoothing parameter ($\lambda$) on the shape of the resulting smoother (red lines). Left:  $\lambda$ estimated using REML; middle: $\lambda$ set to zero (no smoothing); Right: $\lambda$ is set to a very large value. The blue line in each panel is the known model used to simulate the data.}\label{fig:Fig2}
 \end{figure}
 
 Random effects are also ``smooths'' in this framework. In this case, the
@@ -423,7 +423,7 @@ section III, where we use random effect smoothers as one of the
 components of a HGAM.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/basis_function_examples-1} \caption{\label{fig:basis_example}a) Examples of the basis functions associated with a six basis function thin plate regression spline (TPRS, m=2), calculated for data, $x$, spread evenly between $x=0$ and $x=1$. Each line represents a single basis function. b) The smoothing  penalty matrix for the thin plate smoother. Red entries indicate positive values and blue indicate negative values.  For example, functions F3 and F4 would have the greatest proportionate effect on the total penalty (as they have the largest values on the diagonal), whereas function F5 and F6 would not contribute to the wiggliness penalty at all (all the values in the 5th and 6th row and column of the penalty matrix are zero). This means these functions are in the null space of the penalty matrix, and are treated as completely smooth. c) An example of how the basis functions add up to create a single smooth function. Thin coloured lines represent each basis function multiplied by a coefficient, and the solid black line is the sum of those basis functions.}\label{fig:basis_function_examples}
+\includegraphics[width=\linewidth]{../figures/Fig3} \caption{\label{fig:basis_example}a) Examples of the basis functions associated with a six basis function thin plate regression spline (TPRS, m=2), calculated for data, $x$, spread evenly between $x=0$ and $x=1$. Each line represents a single basis function. b) The smoothing  penalty matrix for the thin plate smoother. Red entries indicate positive values and blue indicate negative values.  For example, functions F3 and F4 would have the greatest proportionate effect on the total penalty (as they have the largest values on the diagonal), whereas function F5 and F6 would not contribute to the wiggliness penalty at all (all the values in the 5th and 6th row and column of the penalty matrix are zero). This means these functions are in the null space of the penalty matrix, and are treated as completely smooth. c) An example of how the basis functions add up to create a single smooth function. Thin coloured lines represent each basis function multiplied by a coefficient, and the solid black line is the sum of those basis functions.}\label{fig:Fig3}
 \end{figure}
 
 \subsection{Interactions between smooth
@@ -540,7 +540,7 @@ These three choices result in five possible models (Fig.
 
 \begin{figure}
 \centering
-\includegraphics{../figures/alternate_models.png}
+\includegraphics{../figures/Fig4.pdf}
 \caption{\label{fig:models}Alternate types of functional variation
 \(f(x)\) that can be fitted with HGAMs. The dashed line indicates the
 average function value for all groups, and each solid line indicates the
@@ -633,7 +633,7 @@ global function plus species-specific deviations around that global
 function.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/vis_data-1} \caption{\label{fig:vis_data}Example data sets used throughout section III. a) Grass $\text{CO}\textsubscript{2}$ uptake versus $\text{CO}\textsubscript{2}$ concentration for 12 individual plants. Color and linetype included to distinguish individual plant trends. b) Simulated data set of bird migration, with point size corresponding to weekly counts of 6 species along a latitudinal gradient (zeros excluded for clarity). }\label{fig:vis_data}
+\includegraphics[width=\linewidth]{../figures/Fig5} \caption{\label{fig:vis_data}Example data sets used throughout section III. a) Grass $\text{CO}\textsubscript{2}$ uptake versus $\text{CO}\textsubscript{2}$ concentration for 12 individual plants. Color and linetype included to distinguish individual plant trends. b) Simulated data set of bird migration, with point size corresponding to weekly counts of 6 species along a latitudinal gradient (zeros excluded for clarity). }\label{fig:Fig5}
 \end{figure}
 
 Throughout the examples we use Restricted Maximum Likelihood (REML) to
@@ -702,7 +702,7 @@ number of levels in the grouping variable (here, 12). We specified
 
 \begin{figure}
 \centering
-\includegraphics{../figures/co2_modG-1.pdf}
+\includegraphics{../figures/Fig6.pdf}
 \caption{\label{fig:co2_modG}\textbf{gratia} plotting output for model
 \emph{G} applied to the CO2 dataset. Left shows the smoother of
 \(\log_e\) concentration and right plot shows a quantile-quantile plot
@@ -724,7 +724,7 @@ shown in Figure \ref{fig:co2_modG_predict} (see supplemental code for
 more details on how to generate these predictions).
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/co2_modG_ggplot-1} \caption{\label{fig:co2_modG_predict} Predicted uptake function ($\pm$ 2 s.e.) for each plant, based on model \emph{G} (a single global function for uptake plus a individual-level random effect intercept). Model predictions are for log-uptake, but are transformed here to show the fitted function on the original scale of the data.}\label{fig:co2_modG_ggplot}
+\includegraphics[width=\linewidth]{../figures/Fig7} \caption{\label{fig:co2_modG_predict} Predicted uptake function ($\pm$ 2 s.e.) for each plant, based on model \emph{G} (a single global function for uptake plus a individual-level random effect intercept). Model predictions are for log-uptake, but are transformed here to show the fitted function on the original scale of the data.}\label{fig:Fig7}
 \end{figure}
 
 Examining these plots, we see that while functional responses among
@@ -768,7 +768,7 @@ had basis complexity (\texttt{k}) of 10.
 
 \begin{figure}
 \centering
-\includegraphics{../figures/bird_modG_plot-1.pdf}
+\includegraphics{../figures/Fig8.pdf}
 \caption{\label{fig:bird_modG} Plot illustrating the average
 log-abundance of all bird species at each latitude for each week, with
 red colours indicating more individuals and blue colours fewer.}
@@ -796,7 +796,7 @@ in migration timing. The rest of this section will focus on how to model
 this type of variation.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/bird-fitted-modG-1} \caption{\label{fig:bird-fitted-modG}Observed counts by species versus predicted counts from \texttt{bird\_modG} (1-1 line added as reference). If our model fitted well we would expect that all species should show similiar patterns of dispersion around the 1-1 line (and as we are assuming the data is Poisson, the variance around the mean should equal the mean). Instead we see that variance around the predicted value is much higher for species 1 and 6.}\label{fig:bird-fitted-modG}
+\includegraphics[width=\linewidth]{../figures/Fig9} \caption{\label{fig:bird-fitted-modG}Observed counts by species versus predicted counts from \texttt{bird\_modG} (1-1 line added as reference). If our model fitted well we would expect that all species should show similiar patterns of dispersion around the 1-1 line (and as we are assuming the data is Poisson, the variance around the mean should equal the mean). Instead we see that variance around the predicted value is much higher for species 1 and 6.}\label{fig:Fig9}
 \end{figure}
 
 \subsubsection{\texorpdfstring{A single common smoother plus group-level
@@ -844,7 +844,7 @@ smoother for concentration for the given plant. In R we then have:
 \end{Shaded}
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/co2_modGS_plot-1} \caption{\label{fig:co2_modGS}Global function (left) and group-specific deviations from the global function (right) for \texttt{CO2\_modGS}}\label{fig:co2_modGS_plot}
+\includegraphics[width=\linewidth]{../figures/Fig10} \caption{\label{fig:co2_modGS}Global function (left) and group-specific deviations from the global function (right) for \texttt{CO2\_modGS}}\label{fig:Fig10}
 \end{figure}
 
 Figure \ref{fig:co2_modGS} shows the fitted smoothers for
@@ -858,7 +858,7 @@ individual plants. We see that, unlike in the single global smoother
 case above, none of the curves deviate from the data systematically.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/co2_modGS_ggplot-1} \caption{\label{fig:co2_modGS_pred}Predicted uptake values (lines) versus observed uptake for each plant, based on model \emph{GS}.}\label{fig:co2_modGS_ggplot}
+\includegraphics[width=\linewidth]{../figures/Fig11} \caption{\label{fig:co2_modGS_pred}Predicted uptake values (lines) versus observed uptake for each plant, based on model \emph{GS}.}\label{fig:Fig11}
 \end{figure}
 
 The factor-smoother interaction-based approach mentioned above does not
@@ -904,7 +904,7 @@ We illustrate this approach below on the bird migration data.
 \end{Shaded}
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/bird_modGS_ggplot-1} \caption{\label{fig:bird_modGS}a) Predicted migration paths for each species based on \texttt{bird\_modGS}, with lighter colors corresponding to higher predicted counts. b) Observed counts versus predictions from \texttt{bird\_modGS}.}\label{fig:bird_modGS_ggplot}
+\includegraphics[width=\linewidth]{../figures/Fig12} \caption{\label{fig:bird_modGS}a) Predicted migration paths for each species based on \texttt{bird\_modGS}, with lighter colors corresponding to higher predicted counts. b) Observed counts versus predictions from \texttt{bird\_modGS}.}\label{fig:Fig12}
 \end{figure}
 
 Model \emph{GS} is able to effectively capture the observed patterns of
@@ -974,7 +974,7 @@ We modify the \texttt{CO2} model to follow this approach like so:
 
 \begin{figure}
 \centering
-\includegraphics{../figures/modGI_CO2-1.pdf}
+\includegraphics{../figures/Fig13.pdf}
 \caption{\label{fig:co2_modGI}Functional relationships for the CO2 data
 estimated for model \emph{GI}. Top left: the global smoother; Top
 middle: species-specific random effect intercepts. The remaining plots
@@ -1340,7 +1340,7 @@ given taxon was absent from the sample.
 
 \begin{figure}
 \centering
-\includegraphics{../figures/zoo_comm_diag-1.pdf}
+\includegraphics{../figures/Fig14.pdf}
 \caption{\label{fig:zoo_comm_diag_plot} Diagnostic plots for model
 \emph{I} fitted to zooplankton community data in Lake Mendota. a)
 QQ-plot of residuals (black). Red line indicates the 1-1 line and grey
@@ -1413,7 +1413,7 @@ out-of-sample years (Fig. \ref{fig:zoo_comp}).
 
 \begin{figure}
 \centering
-\includegraphics{../figures/zoo_comm_plot-1.pdf}
+\includegraphics{../figures/Fig15.pdf}
 \caption{\label{fig:zoo_comp}Species-specific seasonal dynamics for the
 eight zooplankon species tracked in Lake Mendota. Black points indicate
 individual plankton observations in the training data, and grey points
@@ -1511,7 +1511,7 @@ for expected deviations from the 1-1 line (Fig.
 
 \begin{figure}
 \centering
-\includegraphics{../figures/zoo_daph_diag-1.pdf}
+\includegraphics{../figures/Fig16.pdf}
 \caption{\label{fig:zoo_daph_diag_plot} QQ-plots for model \emph{G} (a)
 , \emph{GS} (b), and \emph{GI} (c) fitted to Daphnia data across the
 four lakes. Red line indicates the 1-1 line, black points are observed
@@ -1535,7 +1535,7 @@ bloom and lower winter abundances.
 
 \begin{figure}
 \centering
-\includegraphics{../figures/zoo_daph_plot-1.pdf}
+\includegraphics{../figures/Fig17.pdf}
 \caption{\label{fig:daph_smooth}Raw data (points) and fitted models
 (lines) for \textit{D. mendota} data. Black points indicate individual
 plankton observations in the training data, and grey points are
@@ -1715,7 +1715,7 @@ frequentist literature.
 
 \begin{figure}
 \centering
-\includegraphics{../figures/single_smooth_bias_plot-1.pdf}
+\includegraphics{../figures/Fig18.pdf}
 \caption{\label{fig:var_pen} a) Illustration of bias that can arise from
 assuming equal smoothness for all group levels (model \emph{S}, red
 lines) versus allowing for intergroup variation in smoothness (model
@@ -1835,17 +1835,17 @@ Model & Relative Time & Coefficients & Penalties\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{A. CO2 data}}\\
 \hspace{1em}G & 1 & 17 & 2\\
-\hspace{1em}GS & 4 & 65 & 3\\
-\hspace{1em}GI & 9 & 65 & 14\\
-\hspace{1em}S & 3 & 61 & 3\\
-\hspace{1em}I & 8 & 61 & 13\\
+\hspace{1em}GS & 6 & 65 & 3\\
+\hspace{1em}GI & 12 & 65 & 14\\
+\hspace{1em}S & 5 & 61 & 3\\
+\hspace{1em}I & 12 & 61 & 13\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. Bird movement data}}\\
 \hspace{1em}G & 1 & 90 & 2\\
-\hspace{1em}GS & 570 & 540 & 8\\
-\hspace{1em}GI & 460 & 624 & 14\\
-\hspace{1em}S & 920 & 541 & 6\\
-\hspace{1em}I & 71 & 535 & 12\\
+\hspace{1em}GS & 490 & 540 & 8\\
+\hspace{1em}GI & 400 & 624 & 14\\
+\hspace{1em}S & 810 & 541 & 6\\
+\hspace{1em}I & 72 & 535 & 12\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1930,7 +1930,7 @@ of groups, and were as fast as or faster to calculate than
 
 \begin{figure}
 \centering
-\includegraphics{../figures/alt_model_timing_plot-1.pdf}
+\includegraphics{../figures/Fig19.pdf}
 \caption{\label{fig:alt_timing}Elapsed time to estimate the same model
 using each of the four approaches. Each data set was generated with 20
 observations per group using a unimodal global function and random
@@ -2093,14 +2093,14 @@ when these models accurately reconstruct global effects is still needed.
 
 \begin{figure}
 \centering
-\includegraphics{../figures/global_bias_plot-1.pdf}
+\includegraphics{../figures/Fig20.pdf}
 \caption{\label{fig:global_bias}Average global function used for
-simulating \texttt{bird\_move} data set (left) compared to the fitted
+simulating \texttt{bird\_move} data set (a) compared to the fitted
 global function for a \emph{GS} model estimated with either a
-\texttt{te()} smoother (middle) or a \texttt{t2()} smoother with
-\texttt{full=TRUE} (right) for group-level terms. Both group-level
-smoothers used the same model specification as in section III except for
-the type of tensor product used. Colors indicate the value of the linear
+\texttt{te()} smoother (b) or a \texttt{t2()} smoother with
+\texttt{full=TRUE} (c) for group-level terms. Both group-level smoothers
+used the same model specification as in section III except for the type
+of tensor product used. Colors indicate the value of the linear
 predictor of bird density at each location in each week.}
 \end{figure}
 

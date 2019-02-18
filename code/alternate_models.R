@@ -111,5 +111,5 @@ multismooth_plot= ggplot(data=plotting_data, aes(x=x, y=total_function))+
 
 print(multismooth_plot)
 
-ggsave("figures/alternate_models.png", multismooth_plot,
-       width=6, height= 8, units = "in",dpi = 300)
+ggsave("figures/Fig4.pdf", multismooth_plot,
+       width=6, height= 8, units = "in")
