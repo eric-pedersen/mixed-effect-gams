@@ -98,7 +98,7 @@ CO2_modG <- gam(log(uptake) ~ s(log(conc), k=5, bs="tp") +
 
 This is a common GAM structure, with a single smooth term for each variable. Specifying the model is similar to specifying a GLM in R via `glm()`, with the addition of `s()` terms to include one-dimensional or isotropic multidimensional smoothers. The first argument to `s()` are the terms to be smoothed, the type of smoother to be used for the term is specified by the `bs` argument, and the maximum number of basis functions is specified by `k`. There are different defaults in **mgcv** for $K$, depending on the type of smoother chosen; here we use a TPRS smoother (`bs="tp"`) for the concentration smoother, and set `k=5` as there are only 7 separate values of concentration measured, so the default `k=10` (for TPRS) would be too high; further, setting `k=5` saves on computational time (see section V). The random effect smoother (`bs="re"`) that we used for the `Plant_uo` factor always has a `k` value equal to the number of levels in the grouping variable (here, 12). We specified `k=12` just to make this connection apparent. 
 
-```{r Fig6, echo=FALSE, fig.width=6, fig.height=3, dev.args=list(pointsize=10), fig.cap="\\label{fig:co2_modG}**gratia** plotting output for model *G* applied to the CO2 dataset. Left shows the smoother of $\\log_e$ concentration and right plot shows a quantile-quantile plot of the random effects against Gaussian quantiles, used to check the appropriateness of the normal random effect assumption."}
+```{r Fig6, echo=FALSE, fig.width=6, fig.height=3, dev.args=list(pointsize=10), fig.cap="\\label{fig:co2_modG}**gratia** plotting output for model *G* applied to the CO2 dataset. `s(log(conc)): the smoother of $\\log_e$ concentration. `Plant_uo`: a quantile-quantile plot of the random effects against Gaussian quantiles, used to check the appropriateness of the normal random effect assumption."}
 <<co2_modG_unrun>>
   
 #plot the default gratia plot for the CO2 model
@@ -214,7 +214,7 @@ CO2_modGS <- gam(log(uptake) ~ s(log(conc), k=5, m=2) +
                  data=CO2, method="REML")
 ```
 
-```{r Fig10, fig.width=6, fig.height=3, dev.args=list(pointsize=10), out.width="\\linewidth", echo=FALSE, fig.cap="\\label{fig:co2_modGS}Global function (left) and group-specific deviations from the global function (right) for \\texttt{CO2\\_modGS}"}
+```{r Fig10, fig.width=6, fig.height=3, dev.args=list(pointsize=10), out.width="\\linewidth", echo=FALSE, fig.cap="\\label{fig:co2_modGS}Global function (`s(log(conc))`) and group-specific deviations from the global function (`s(log(conc),Plant_uo)`) for \\texttt{CO2\\_modGS}"}
 
 #gratia draw() plot for CO2_modGS
 draw(CO2_modGS)
@@ -321,7 +321,7 @@ CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                 data=CO2, method="REML")
 ```
 
-```{r Fig13, fig.width=9, fig.height=5, echo=FALSE, fig.cap="\\label{fig:co2_modGI}Functional relationships for the CO2 data estimated for model \\emph{GI}. Top left: the global smoother; Top middle: species-specific random effect intercepts. The remaining plots are a selected subset of the plant-specific smoothers, indicating how the functional response of that plant differs from the global smoother."}
+```{r Fig13, fig.width=9, fig.height=5, echo=FALSE, fig.cap="\\label{fig:co2_modGI}Functional relationships for the CO2 data estimated for model \\emph{GI}. `s(log(conc))`: the global smoother; `Plant_uo`: species-specific random effect intercepts. The remaining plots are a selected subset of the plant-specific smoothers, indicating how the functional response of that plant differs from the global smoother."}
 
 #Fitting CO2_modGI 
 CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
