@@ -704,10 +704,11 @@ number of levels in the grouping variable (here, 12). We specified
 \centering
 \includegraphics{../figures/Fig6.pdf}
 \caption{\label{fig:co2_modG}\textbf{gratia} plotting output for model
-\emph{G} applied to the CO2 dataset. Left shows the smoother of
-\(\log_e\) concentration and right plot shows a quantile-quantile plot
-of the random effects against Gaussian quantiles, used to check the
-appropriateness of the normal random effect assumption.}
+\emph{G} applied to the CO2 dataset.
+\texttt{s(log(conc)):\ the\ smoother\ of\ \$\textbackslash{}log\_e\$\ concentration.}Plant\_uo`:
+a quantile-quantile plot of the random effects against Gaussian
+quantiles, used to check the appropriateness of the normal random effect
+assumption.}
 \end{figure}
 
 Figure \ref{fig:co2_modG} illustrates the output of \textbf{gratia}'s
@@ -844,7 +845,7 @@ smoother for concentration for the given plant. In R we then have:
 \end{Shaded}
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/Fig10} \caption{\label{fig:co2_modGS}Global function (left) and group-specific deviations from the global function (right) for \texttt{CO2\_modGS}}\label{fig:Fig10}
+\includegraphics[width=\linewidth]{../figures/Fig10} \caption{\label{fig:co2_modGS}Global function (`s(log(conc))`) and group-specific deviations from the global function (`s(log(conc),Plant_uo)`) for \texttt{CO2\_modGS}}\label{fig:Fig10}
 \end{figure}
 
 Figure \ref{fig:co2_modGS} shows the fitted smoothers for
@@ -976,10 +977,11 @@ We modify the \texttt{CO2} model to follow this approach like so:
 \centering
 \includegraphics{../figures/Fig13.pdf}
 \caption{\label{fig:co2_modGI}Functional relationships for the CO2 data
-estimated for model \emph{GI}. Top left: the global smoother; Top
-middle: species-specific random effect intercepts. The remaining plots
-are a selected subset of the plant-specific smoothers, indicating how
-the functional response of that plant differs from the global smoother.}
+estimated for model \emph{GI}. \texttt{s(log(conc))}: the global
+smoother; \texttt{Plant\_uo}: species-specific random effect intercepts.
+The remaining plots are a selected subset of the plant-specific
+smoothers, indicating how the functional response of that plant differs
+from the global smoother.}
 \end{figure}
 
 Figure \ref{fig:co2_modGI} shows a subsample of the group-specific
@@ -1835,17 +1837,17 @@ Model & Relative Time & Coefficients & Penalties\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{A. CO2 data}}\\
 \hspace{1em}G & 1 & 17 & 2\\
-\hspace{1em}GS & 6 & 65 & 3\\
+\hspace{1em}GS & 8 & 65 & 3\\
 \hspace{1em}GI & 12 & 65 & 14\\
 \hspace{1em}S & 5 & 61 & 3\\
-\hspace{1em}I & 12 & 61 & 13\\
+\hspace{1em}I & 14 & 61 & 13\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. Bird movement data}}\\
 \hspace{1em}G & 1 & 90 & 2\\
-\hspace{1em}GS & 490 & 540 & 8\\
-\hspace{1em}GI & 400 & 624 & 14\\
-\hspace{1em}S & 810 & 541 & 6\\
-\hspace{1em}I & 72 & 535 & 12\\
+\hspace{1em}GS & 390 & 540 & 8\\
+\hspace{1em}GI & 310 & 624 & 14\\
+\hspace{1em}S & 660 & 541 & 6\\
+\hspace{1em}I & 55 & 535 & 12\\
 \bottomrule
 \end{tabular}
 \end{table}

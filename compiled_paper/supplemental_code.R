@@ -1158,29 +1158,38 @@ bird_modGS_te <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
 
 bird_mod_predict = bird_move_global %>%
   mutate(species = "sp1")%>%
-  mutate(`b  te` = predict(bird_modGS_te,
+  mutate(`te` = predict(bird_modGS_te,
                                                newdata = ., 
                                                type="terms")[,1],
-         `c  t2` =  predict(bird_modGS,
+         `t2` =  predict(bird_modGS,
                                              newdata = ., 
                                              type="terms")[,1])%>%
-  mutate(`a  true global function` = `global_scaled_function`)%>%
-  gather(key = model, value =`fitted value`, `b  te`:`a  true global function`)%>%
+  mutate(`true global function` = `global_scaled_function`)%>%
+  gather(key = model, value =`fitted value`, `te`:`true global function`)%>%
   mutate(model = factor(model, 
-                        levels = c("a  true global function",
-                                   "b  te",
-                                   "c  t2")))
+                        levels = c("true global function",
+                                   "te",
+                                   "t2")))
+
+bird_global_labels <- data_frame(week = 5, latitude = 55, 
+                                 label = c("a", "b","c"),
+                                 model = c("true global function",
+                                   "te",
+                                   "t2"))%>%
+  mutate(model = factor(model, 
+                        levels = c("true global function",
+                                   "te",
+                                   "t2")))
 
 bird_global_fitted_plot <- ggplot(bird_mod_predict, 
                                 aes(x=week, 
-                                    y=latitude,
-                                    fill = `fitted value`))+
+                                    y=latitude))+
   facet_grid(~model)+
-  geom_raster()+
+  geom_raster(aes(fill = `fitted value`))+
+  geom_text(data= bird_global_labels, aes(label =label),size=9)+
   scale_x_continuous(expand = c(0,0))+
   scale_y_continuous(expand = c(0,0))+
   scale_fill_viridis_c(name="linear predictor")+
-  theme(legend.position = "bottom",
-        strip.text = element_text(hjust = 0))
+  theme(legend.position = "bottom")
 
 print(bird_global_fitted_plot)
