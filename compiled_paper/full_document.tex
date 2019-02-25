@@ -218,25 +218,24 @@ to know both how functional relationships vary between groups, and if a
 relationship holds across groups. We will refer to this type of model as
 a \emph{hierarchical GAM}, or HGAM.
 
-There are many potential uses for HGAMs. For example, we can use HGAMs
-to estimate how the maximum size of different fish species varies along
-a common temperature gradient (Fig. \ref{fig:fish_size}). Each species
-will typically have its own response function, but since the species
-overlap in range, they should have similar responses over at least some
-of the temperature gradient; Figure \ref{fig:fish_size} shows all three
-species reach their largest maximum sizes in the centre of the
-temperature gradient. Estimating a separate function for each species
-throws away a lot of shared information and could result in highly noisy
-function estimates if there were only a few data points for each
-species. Estimating a single average relationship could result in a
-function that did not predict any specific group well. In our example,
-using a single global temperature-size relationship (Fig.
-\ref{fig:fish_size}, solid line) would miss that the three species have
-distinct temperature optima, and that the orange species is
-significantly smaller at all temperatures than the other two (Fig.
-\ref{fig:fish_size}). We prefer a hierarchical model that includes a
-global temperature-size curve plus species-specific curves that were
-penalized to be close to the mean function.
+There are many potential uses for HGAMs. For example, we can use them to
+estimate how the maximum size of different fish species varies along a
+common temperature gradient (Fig. \ref{fig:Fig1}). Each species will
+typically have its own response function, but since the species overlap
+in range, they should have similar responses over at least some of the
+temperature gradient; Figure \ref{fig:Fig1} shows all three species
+reach their largest maximum sizes in the centre of the temperature
+gradient. Estimating a separate function for each species throws away a
+lot of shared information and could result in highly noisy function
+estimates if there were only a few data points for each species.
+Estimating a single average relationship could result in a function that
+did not predict any specific group well. In our example, using a single
+global temperature-size relationship (Fig. \ref{fig:Fig1}, solid line)
+would miss that the three species have distinct temperature optima, and
+that the orange species is significantly smaller at all temperatures
+than the other two (Fig. \ref{fig:Fig1}). We prefer a hierarchical model
+that includes a global temperature-size curve plus species-specific
+curves that were penalized to be close to the mean function.
 
 \begin{figure}
 
@@ -244,7 +243,7 @@ penalized to be close to the mean function.
 
 }
 
-\caption{\label{fig:fish_size}Hypothetical example of functional variability between different group levels. Each dashed line indicates how the abundance for different species of fish in a community might vary as a function of average water temperature. The orange species shows lower abundance at all temperatures, and the red and blue species differ at which temperature they can achieve the maximum possible size. However, all three curves are similiarly smooth and peak close to one another relative to the entire range of tested temperatures. The solid black line represents an 'average abundance curve', representing the mean abundance across species in the sample.}\label{fig:fish_size}
+\caption{\label{fig:Fig1}Hypothetical example of functional variability between different group levels. Each dashed line indicates how the abundance for different species of fish in a community might vary as a function of average water temperature. The orange species shows lower abundance at all temperatures, and the red and blue species differ at which temperature they can achieve the maximum possible size. However, all three curves are similiarly smooth and peak close to one another relative to the entire range of tested temperatures. The solid black line represents an 'average abundance curve', representing the mean abundance across species in the sample.}\label{fig:Fig1}
 \end{figure}
 
 This paper discusses several approaches to group-level smoothing, and
@@ -316,15 +315,15 @@ log-likelihood used to fit the model is thus: \[
 L - \boldsymbol{\lambda} \boldsymbol{\beta}^T \mathbf{S} \boldsymbol{\beta}
 \]
 
-Figure \ref{fig:smoothing_effect} shows an example of how different
-choices of the smoothing parameter (\(\lambda\)) affect the shape of the
-resulting smoother. Data (points) were generated from the blue function
-and noise added to them. In the left plot \(\lambda\) was selected using
+Figure \ref{fig:Fig2} shows an example of how different choices of the
+smoothing parameter (\(\lambda\)) affect the shape of the resulting
+smoother. Data (points) were generated from the blue function and noise
+added to them. In Fig. \ref{fig:Fig2}a, \(\lambda\) was selected using
 Restricted Maximum Likelihood (REML) to give a good fit to the data. In
-the middle plot \(\lambda\) was set to zero, so the penalty has no
-effect and the function interpolates the data. The right plot shows when
-\(\lambda\) is set to a very large value, so the penalty removes all
-terms that have any wiggliness, giving a straight line.
+Fig. \ref{fig:Fig2}b, \(\lambda\) was set to zero so the penalty has no
+effect and the function interpolates the data. Figure \ref{fig:Fig2}c
+shows when \(\lambda\) is set to a very large value, so the penalty
+removes all terms that have any wiggliness, giving a straight line.
 
 To measure the complexity of a penalized smooth terms we use the
 \emph{effective degrees of freedom} (EDF), which at a maximum is the
@@ -341,7 +340,7 @@ enough to keep computation time low (see section V for more on this). In
 determine if \(k\) has been set too low.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/Fig2} \caption{\label{fig:smoothing_effect}Effect of different choices of smoothing parameter ($\lambda$) on the shape of the resulting smoother (red lines). Left:  $\lambda$ estimated using REML; middle: $\lambda$ set to zero (no smoothing); Right: $\lambda$ is set to a very large value. The blue line in each panel is the known model used to simulate the data.}\label{fig:Fig2}
+\includegraphics[width=\linewidth]{../figures/Fig2} \caption{\label{fig:Fig2}Effect of different choices of smoothing parameter ($\lambda$) on the shape of the resulting smoother (red lines). a) $\lambda$ estimated using REML; b) $\lambda$ set to zero (no smoothing); c) $\lambda$ is set to a very large value. The blue line in each panel is the known model used to simulate the data.}\label{fig:Fig2}
 \end{figure}
 
 Random effects are also ``smooths'' in this framework. In this case, the
@@ -351,14 +350,13 @@ simple single-level random effect to account for variation in group
 means (intercepts) there will be one basis function for each level of
 the grouping variable. The basis function takes a value of 1 for any
 observation in that group and 0 for any observation not in the group.
-The penalty matrix for these terms is a \(n_g\) by \(n_g\) identity
-matrix, where \(n_g\) is the number of groups. This means that each
-group-level coefficient will be penalized in proportion to its squared
-deviation from zero. This is equivalent to how random effects are
-estimated in standard mixed effect models. The penalty term is
-proportional to the inverse of the variance of the fixed effect
-estimated by standard hierarchical model software (Verbyla et al.,
-1999).
+The penalty matrix for these terms is a \(g\) by \(g\) identity matrix,
+where \(g\) is the number of groups. This means that each group-level
+coefficient will be penalized in proportion to its squared deviation
+from zero. This is equivalent to how random effects are estimated in
+standard mixed effect models. The penalty term is proportional to the
+inverse of the variance of the fixed effect estimated by standard
+hierarchical model software (Verbyla et al., 1999).
 
 This connection between random effects and splines extends beyond the
 varying-intercept case. Any single-penalty basis-function representation
@@ -394,7 +392,7 @@ the squared second derivative. However, TPRS may be of lower order
 section III how lower-order TPRS smoothers are useful in fitting HGAMs.
 Example basis functions and penalty matrix \(\mathbf{S}\) for a \(m=2\)
 TPRS with six basis functions for evenly spaced data are shown in Fig.
-\ref{fig:basis_example}.
+\ref{fig:Fig3}.
 
 Cyclic cubic regression splines (CRS) are another smoother that
 penalizes the squared second derivative of the smooth across the
@@ -413,17 +411,16 @@ affect the components of the smoother that have derivatives (the
 \emph{range space}), not the other parts (the \emph{null space}). For
 1-dimensional TPRS (when \(m=2\)), this means that there is a linear
 term (F5) left in the model, even when the penalty is in full force (as
-\(\lambda \rightarrow \infty\)), as shown in Fig.
-\ref{fig:basis_example}. (This is also why Fig.
-\ref{fig:smoothing_effect}c shows a linear, rather than flat, fit to the
-data). The random effects smoother we discussed earlier is an example of
-a pure shrinkage penalty; it penalizes all deviations away from zero, no
-matter the pattern of those deviations. This will be useful later in
-section III, where we use random effect smoothers as one of the
-components of a HGAM.
+\(\lambda \rightarrow \infty\)), as shown in Fig. \ref{fig:Fig3}. (This
+is also why Fig. \ref{fig:Fig2}c shows a linear, rather than flat, fit
+to the data). The random effects smoother we discussed earlier is an
+example of a pure shrinkage penalty; it penalizes all deviations away
+from zero, no matter the pattern of those deviations. This will be
+useful later in section III, where we use random effect smoothers as one
+of the components of a HGAM.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/Fig3} \caption{\label{fig:basis_example}a) Examples of the basis functions associated with a six basis function thin plate regression spline (TPRS, m=2), calculated for data, $x$, spread evenly between $x=0$ and $x=1$. Each line represents a single basis function. b) The smoothing  penalty matrix for the thin plate smoother. Red entries indicate positive values and blue indicate negative values.  For example, functions F3 and F4 would have the greatest proportionate effect on the total penalty (as they have the largest values on the diagonal), whereas function F5 and F6 would not contribute to the wiggliness penalty at all (all the values in the 5th and 6th row and column of the penalty matrix are zero). This means these functions are in the null space of the penalty matrix, and are treated as completely smooth. c) An example of how the basis functions add up to create a single smooth function. Thin coloured lines represent each basis function multiplied by a coefficient, and the solid black line is the sum of those basis functions.}\label{fig:Fig3}
+\includegraphics[width=\linewidth]{../figures/Fig3} \caption{\label{fig:Fib3}a) Examples of the basis functions associated with a six basis function thin plate regression spline (TPRS, m=2), calculated for data, $x$, spread evenly between $x=0$ and $x=1$. Each line represents a single basis function. b) The smoothing  penalty matrix for the thin plate smoother. Red entries indicate positive values and blue indicate negative values.  For example, functions F3 and F4 would have the greatest proportionate effect on the total penalty (as they have the largest values on the diagonal), whereas function F5 and F6 would not contribute to the wiggliness penalty at all (all the values in the 5th and 6th row and column of the penalty matrix are zero). This means these functions are in the null space of the penalty matrix, and are treated as completely smooth. c) An example of how the basis functions add up to create a single smooth function. Thin coloured lines represent each basis function multiplied by a coefficient, and the solid black line is the sum of those basis functions.}\label{fig:Fig3}
 \end{figure}
 
 \subsection{Interactions between smooth
@@ -591,7 +588,7 @@ concentration-uptake functions varied between plants from two locations
 (Mississippi and Quebec) and two temperature treatments (chilled and
 warm). Twelve plants were used and CO\textsubscript{2} uptake measured
 at 7 CO\textsubscript{2} concentrations for each plant (Fig.
-\ref{fig:vis_data}a). Here we will focus on how to use HGAMs to estimate
+\ref{fig:Fig5}a). Here we will focus on how to use HGAMs to estimate
 inter-plant variation in functional responses. This data set has been
 modified from the default version available with R, to recode the
 \texttt{Plant} variable as an unordered factor
@@ -626,14 +623,13 @@ binomial distribution to simulate observation error (i.e.~not every bird
 present at a location would be detected). The data set
 (\texttt{bird\_move}) consists of the variables \texttt{count},
 \texttt{latitude}, \texttt{week} and \texttt{species} (Fig.
-\ref{fig:vis_data}b). This example allows us to demonstrate how to fit
-these models with interactions and with non-normal (count) data. The
-true model used to generate this data was model \emph{GS}: a single
-global function plus species-specific deviations around that global
-function.
+\ref{fig:Fig5}b). This example allows us to demonstrate how to fit these
+models with interactions and with non-normal (count) data. The true
+model used to generate this data was model \emph{GS}: a single global
+function plus species-specific deviations around that global function.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/Fig5} \caption{\label{fig:vis_data}Example data sets used throughout section III. a) Grass $\text{CO}\textsubscript{2}$ uptake versus $\text{CO}\textsubscript{2}$ concentration for 12 individual plants. Color and linetype included to distinguish individual plant trends. b) Simulated data set of bird migration, with point size corresponding to weekly counts of 6 species along a latitudinal gradient (zeros excluded for clarity). }\label{fig:Fig5}
+\includegraphics[width=\linewidth]{../figures/Fig5} \caption{\label{fig:Fig5}Example data sets used throughout section III. a) Grass $\text{CO}\textsubscript{2}$ uptake versus $\text{CO}\textsubscript{2}$ concentration for 12 individual plants. Color and linetype included to distinguish individual plant trends. b) Simulated data set of bird migration, with point size corresponding to weekly counts of 6 species along a latitudinal gradient (zeros excluded for clarity). }\label{fig:Fig5}
 \end{figure}
 
 Throughout the examples we use Restricted Maximum Likelihood (REML) to
@@ -703,29 +699,29 @@ number of levels in the grouping variable (here, 12). We specified
 \begin{figure}
 \centering
 \includegraphics{../figures/Fig6.pdf}
-\caption{\label{fig:co2_modG}\textbf{gratia} plotting output for model
-\emph{G} applied to the CO2 dataset.
-\texttt{s(log(conc)):\ the\ smoother\ of\ \$\textbackslash{}log\_e\$\ concentration.}Plant\_uo`:
-a quantile-quantile plot of the random effects against Gaussian
-quantiles, used to check the appropriateness of the normal random effect
-assumption.}
+\caption{\label{fig:Fig6}\textbf{gratia} plotting output for model
+\emph{G} applied to the CO2 dataset. \texttt{s(log(conc))}: the smoother
+of \(\log_e\) concentration. \texttt{Plant\_uo}: a quantile-quantile
+plot of the random effects against Gaussian quantiles, used to check the
+appropriateness of the normal random effect assumption.}
 \end{figure}
 
-Figure \ref{fig:co2_modG} illustrates the output of \textbf{gratia}'s
-\texttt{draw()} function for \texttt{CO2\_modG}: the left panel shows
-the estimated smoother for concentration, and the right shows a
-quantile-quantile plot of the estimated random effects vs Gaussian
-quantiles, which can be used to check our model.
+Figure \ref{fig:Fig6} illustrates the output of \textbf{gratia}'s
+\texttt{draw()} function for \texttt{CO2\_modG}: the panel labelled
+\texttt{s(log(conc))} shows the estimated smoother for concentration,
+and the panel labelled \texttt{Plant\_uo} shows a quantile-quantile plot
+of the estimated random effects vs.~Gaussian quantiles, which can be
+used to check our model.
 
 Looking at the effects by term is useful, but we are often interested in
 fitted values or predictions from our models. Using the built in
 prediction functions with \textbf{mgcv}, we can estimate what the fitted
 function (and uncertainty around it) should look like for each level, as
-shown in Figure \ref{fig:co2_modG_predict} (see supplemental code for
-more details on how to generate these predictions).
+shown in Figure \ref{fig:Fig7} (see supplemental code for more details
+on how to generate these predictions).
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/Fig7} \caption{\label{fig:co2_modG_predict} Predicted uptake function ($\pm$ 2 s.e.) for each plant, based on model \emph{G} (a single global function for uptake plus a individual-level random effect intercept). Model predictions are for log-uptake, but are transformed here to show the fitted function on the original scale of the data.}\label{fig:Fig7}
+\includegraphics[width=\linewidth]{../figures/Fig7} \caption{\label{fig:Fig7} Predicted uptake function ($\pm$ 2 s.e.) for each plant, based on model \emph{G} (a single global function for uptake plus a individual-level random effect intercept). Model predictions are for log-uptake, but are transformed here to show the fitted function on the original scale of the data.}\label{fig:Fig7}
 \end{figure}
 
 Examining these plots, we see that while functional responses among
@@ -770,34 +766,33 @@ had basis complexity (\texttt{k}) of 10.
 \begin{figure}
 \centering
 \includegraphics{../figures/Fig8.pdf}
-\caption{\label{fig:bird_modG} Plot illustrating the average
-log-abundance of all bird species at each latitude for each week, with
-red colours indicating more individuals and blue colours fewer.}
+\caption{\label{fig:Fig8}Plot illustrating the average log-abundance of
+all bird species at each latitude for each week, with red colours
+indicating more individuals and blue colours fewer.}
 \end{figure}
 
-Fig, \ref{fig:bird_modG} shows the default \texttt{draw(bird\_modG)}
-plot for the week-by-latitude smoother. It shows birds starting at low
+Figure \ref{fig:Fig8} shows the default \texttt{draw(bird\_modG)} plot
+for the week-by-latitude smoother. It shows birds starting at low
 latitudes in the winter then migrating to high latitudes from the 10th
 to 20th week, staying there for 15-20 weeks, then migrating back.
 However, the plot also indicates a large amount of variability in the
 timing of migration. The source of this variability is apparent when we
 look at the timing of migration of each species (cf.~Fig.
-\ref{fig:vis_data}b).
+\ref{fig:Fig5}b).
 
-All six species in Fig. \ref{fig:vis_data}b show relatively precise
+All six species in Fig. \ref{fig:Fig5}b show relatively precise
 migration patterns, but they differ in the timing of when they leave
 their winter grounds and the amount of time they spend at their summer
 grounds. Averaging over all of this variation results in a relatively
-imprecise (diffuse) estimate of migration timing (Fig.
-\ref{fig:bird_modG}), and viewing species-specific plots of observed
-versus predicted values (Fig. \ref{fig:bird-fitted-modG}), it is
-apparent that the model fits some of the species better than others.
-This model could potentially be improved by adding inter-group variation
-in migration timing. The rest of this section will focus on how to model
-this type of variation.
+imprecise (diffuse) estimate of migration timing (Fig. \ref{fig:Fig8}),
+and viewing species-specific plots of observed versus predicted values
+(Fig. \ref{fig:Fig9}), it is apparent that the model fits some of the
+species better than others. This model could potentially be improved by
+adding inter-group variation in migration timing. The rest of this
+section will focus on how to model this type of variation.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/Fig9} \caption{\label{fig:bird-fitted-modG}Observed counts by species versus predicted counts from \texttt{bird\_modG} (1-1 line added as reference). If our model fitted well we would expect that all species should show similiar patterns of dispersion around the 1-1 line (and as we are assuming the data is Poisson, the variance around the mean should equal the mean). Instead we see that variance around the predicted value is much higher for species 1 and 6.}\label{fig:Fig9}
+\includegraphics[width=\linewidth]{../figures/Fig9} \caption{\label{fig:Fig9}Observed counts by species versus predicted counts from \texttt{bird\_modG} (1-1 line added as reference). If our model fitted well we would expect that all species should show similiar patterns of dispersion around the 1-1 line (and as we are assuming the data is Poisson, the variance around the mean should equal the mean). Instead we see that variance around the predicted value is much higher for species 1 and 6.}\label{fig:Fig9}
 \end{figure}
 
 \subsubsection{\texorpdfstring{A single common smoother plus group-level
@@ -845,21 +840,21 @@ smoother for concentration for the given plant. In R we then have:
 \end{Shaded}
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/Fig10} \caption{\label{fig:co2_modGS}Global function (`s(log(conc))`) and group-specific deviations from the global function (`s(log(conc),Plant_uo)`) for \texttt{CO2\_modGS}}\label{fig:Fig10}
+\includegraphics[width=\linewidth]{../figures/Fig10} \caption{\label{fig:Fig10}Global function (\texttt{s(log(conc))}) and group-specific deviations from the global function (\texttt{s(log(conc),Plant\_uo)}) for \texttt{CO2\_modGS}}\label{fig:Fig10}
 \end{figure}
 
-Figure \ref{fig:co2_modGS} shows the fitted smoothers for
+Figure \ref{fig:Fig10} shows the fitted smoothers for
 \texttt{CO2\_modGS}. The plots of group-specific smoothers indicate that
 plants differ not only in average log-uptake (which would correspond to
 each plant having a straight line at different levels for the
 group-level smoother), but differ slightly in the shape of their
-functional responses. Figure \ref{fig:co2_modGS_pred} shows how the
-global and group-specific smoothers combine to predict uptake rates for
-individual plants. We see that, unlike in the single global smoother
-case above, none of the curves deviate from the data systematically.
+functional responses. Figure \ref{fig:Fig11} shows how the global and
+group-specific smoothers combine to predict uptake rates for individual
+plants. We see that, unlike in the single global smoother case above,
+none of the curves deviate from the data systematically.
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/Fig11} \caption{\label{fig:co2_modGS_pred}Predicted uptake values (lines) versus observed uptake for each plant, based on model \emph{GS}.}\label{fig:Fig11}
+\includegraphics[width=\linewidth]{../figures/Fig11} \caption{\label{fig:Fig11}Predicted uptake values (lines) versus observed uptake for each plant, based on model \emph{GS}.}\label{fig:Fig11}
 \end{figure}
 
 The factor-smoother interaction-based approach mentioned above does not
@@ -905,14 +900,14 @@ We illustrate this approach below on the bird migration data.
 \end{Shaded}
 
 \begin{figure}
-\includegraphics[width=\linewidth]{../figures/Fig12} \caption{\label{fig:bird_modGS}a) Predicted migration paths for each species based on \texttt{bird\_modGS}, with lighter colors corresponding to higher predicted counts. b) Observed counts versus predictions from \texttt{bird\_modGS}.}\label{fig:Fig12}
+\includegraphics[width=\linewidth]{../figures/Fig12} \caption{\label{fig:Fig12}a) Predicted migration paths for each species based on \texttt{bird\_modGS}, with lighter colors corresponding to higher predicted counts. b) Observed counts versus predictions from \texttt{bird\_modGS}.}\label{fig:Fig12}
 \end{figure}
 
 Model \emph{GS} is able to effectively capture the observed patterns of
-interspecific variation in migration behaviour (Fig.
-\ref{fig:bird_modGS}a). It shows a much tighter fit between observed and
-predicted values, as well as less evidence of over-dispersion in some
-species compared to model \emph{G} (Fig. \ref{fig:bird_modGS}b).
+interspecific variation in migration behaviour (Fig. \ref{fig:Fig12}a).
+It shows a much tighter fit between observed and predicted values, as
+well as less evidence of over-dispersion in some species compared to
+model \emph{G} (Fig. \ref{fig:Fig12}b).
 
 \subsubsection{\texorpdfstring{A single common smoother plus group-level
 smoothers with differing wiggliness (Model
@@ -976,7 +971,7 @@ We modify the \texttt{CO2} model to follow this approach like so:
 \begin{figure}
 \centering
 \includegraphics{../figures/Fig13.pdf}
-\caption{\label{fig:co2_modGI}Functional relationships for the CO2 data
+\caption{\label{fig:Fig13}Functional relationships for the CO2 data
 estimated for model \emph{GI}. \texttt{s(log(conc))}: the global
 smoother; \texttt{Plant\_uo}: species-specific random effect intercepts.
 The remaining plots are a selected subset of the plant-specific
@@ -984,13 +979,13 @@ smoothers, indicating how the functional response of that plant differs
 from the global smoother.}
 \end{figure}
 
-Figure \ref{fig:co2_modGI} shows a subsample of the group-specific
-smoothers from this model. It is apparent from this that some groups
-(e.g. \texttt{Qc1}) have very similar shapes to the global smoother
-(differing only in intercept), others do differ from the global trend,
-with higher uptake at low concentrations and lower uptake at higher
-concentrations (e.g. \texttt{Mc1}, \texttt{Qn1}), or the reverse pattern
-(e.g. \texttt{Mn1}).
+Figure \ref{fig:Fig13} shows a subsample of the group-specific smoothers
+from this model. It is apparent from this that some groups (e.g.
+\texttt{Qc1}) have very similar shapes to the global smoother (differing
+only in intercept), others do differ from the global trend, with higher
+uptake at low concentrations and lower uptake at higher concentrations
+(e.g. \texttt{Mc1}, \texttt{Qn1}), or the reverse pattern (e.g.
+\texttt{Mn1}).
 
 Using model \emph{GI} with higher-dimensional data is also
 straightforward; \texttt{by} terms work just as well in tensor-product
@@ -1015,8 +1010,8 @@ any effect on the marginal basis for \texttt{week}, where we are using a
 cyclic smoother instead of a TPRS.
 
 The fitted model for \texttt{bird\_modGI} is visually indistinguishable
-from \texttt{bird\_modGS} (Fig. \ref{fig:bird_modGS}) so we do not
-illustrate it here.
+from \texttt{bird\_modGS} (Fig. \ref{fig:Fig12}) so we do not illustrate
+it here.
 
 \subsubsection{\texorpdfstring{Models without global smoothers (models
 \emph{S} and
@@ -1330,25 +1325,24 @@ eye. We have also used alternate QQ-plotting code from the
 function, as this function creates a \textbf{ggplot2} object that are
 easier to customize than the \textbf{base} plots from
 \texttt{gam.check()}. The code for generating these plots is in the
-supplemental material. These plots (Fig. \ref{fig:zoo_comm_diag_plot})
-indicate that the Gamma distribution seems to fit the observed data well
-except at low values, where the deviance residuals are larger than
-predicted by the theoretical quantiles (Fig.
-\ref{fig:zoo_comm_diag_plot} left). There also does not seem to be a
-pattern in the residual versus fitted values (Fig.
-\ref{fig:zoo_comm_diag_plot} right), except for a line of residuals at
-the lowest values, which correspond to all of those observations where a
-given taxon was absent from the sample.
+supplemental material. These plots (Fig. \ref{fig:Fig14}) indicate that
+the Gamma distribution seems to fit the observed data well except at low
+values, where the deviance residuals are larger than predicted by the
+theoretical quantiles (Fig. \ref{fig:Fig14}a). There also does not seem
+to be a pattern in the residual versus fitted values (Fig.
+\ref{fig:Fig14}b), except for a line of residuals at the lowest values,
+which correspond to all of those observations where a given taxon was
+absent from the sample.
 
 \begin{figure}
 \centering
 \includegraphics{../figures/Fig14.pdf}
-\caption{\label{fig:zoo_comm_diag_plot} Diagnostic plots for model
-\emph{I} fitted to zooplankton community data in Lake Mendota. a)
-QQ-plot of residuals (black). Red line indicates the 1-1 line and grey
-bands correspond to the expected 95\% CI for the QQ plot, assuming the
-distribution is correct. b) Deviance residuals versus fitted values (on
-the link scale).}
+\caption{\label{fig:Fig14} Diagnostic plots for model \emph{I} fitted to
+zooplankton community data in Lake Mendota. a) QQ-plot of residuals
+(black). Red line indicates the 1-1 line and grey bands correspond to
+the expected 95\% CI for the QQ plot, assuming the distribution is
+correct. b) Deviance residuals versus fitted values (on the link
+scale).}
 \end{figure}
 
 The \texttt{k.check()} test (Table \ref{tab:zoo_comm_check_k_kable})
@@ -1400,7 +1394,7 @@ Differences between models \emph{S} (shared smoothness between taxa) and
 \emph{I} (different smoothness for each taxa) seem to be driven by the
 low seasonality of \emph{L. siciloides} relative to the other species,
 and how this is captured by the more flexible model \emph{I} (Fig.
-\ref{fig:zoo_comp}). Still, both models show very similar fits to the
+\ref{fig:Fig15}). Still, both models show very similar fits to the
 training data. This implies that the added complexity of different
 penalties for each species (model \emph{I}) is unnecessary here, which
 is consistent with the fact that model \emph{S} has a lower AIC (4667)
@@ -1411,12 +1405,12 @@ predictive improvement compared to the intercept-only model for all
 species except \emph{K. cochlearis} (Table
 \ref{tab:zoo_comm_outofsample_kable}). This may be driven by changing
 timing of the spring bloom for this species between training and
-out-of-sample years (Fig. \ref{fig:zoo_comp}).
+out-of-sample years (Fig. \ref{fig:Fig15}).
 
 \begin{figure}
 \centering
 \includegraphics{../figures/Fig15.pdf}
-\caption{\label{fig:zoo_comp}Species-specific seasonal dynamics for the
+\caption{\label{fig:Fig15}Species-specific seasonal dynamics for the
 eight zooplankon species tracked in Lake Mendota. Black points indicate
 individual plankton observations in the training data, and grey points
 are observations in held-out years used for model validation. Lines
@@ -1501,24 +1495,23 @@ substantial patterns comparing residuals to fitted values (not shown),
 and QQ-plots are similar to those from the zooplankton community models;
 the residuals for all three models closely correspond to the expected
 (Gamma) distribution, except at small values, where the observed
-residuals are generally larger than expected (Fig.
-\ref{fig:zoo_daph_diag_plot}). As with the community data, this is
-likely an artifact of the assumption we made of assigning zero
-observations a value of 1000 (the lowest possible value), imposing an
-artificial lower bound on the observed counts. There was also some
-evidence that the largest observed values were smaller than expected
-given the theoretical distribution , but these fell within the 95\% CI
-for expected deviations from the 1-1 line (Fig.
-\ref{fig:zoo_daph_diag_plot}).
+residuals are generally larger than expected (Fig. \ref{fig:Fig16}). As
+with the community data, this is likely an artifact of the assumption we
+made of assigning zero observations a value of 1000 (the lowest possible
+value), imposing an artificial lower bound on the observed counts. There
+was also some evidence that the largest observed values were smaller
+than expected given the theoretical distribution , but these fell within
+the 95\% CI for expected deviations from the 1-1 line (Fig.
+\ref{fig:Fig16}).
 
 \begin{figure}
 \centering
 \includegraphics{../figures/Fig16.pdf}
-\caption{\label{fig:zoo_daph_diag_plot} QQ-plots for model \emph{G} (a)
-, \emph{GS} (b), and \emph{GI} (c) fitted to Daphnia data across the
-four lakes. Red line indicates the 1-1 line, black points are observed
-model residuals, and grey bands correspond to the expected 95\% CI for
-the QQ plot, assuming the distribution is correct.}
+\caption{\label{fig:Fig16} QQ-plots for model \emph{G} (a) , \emph{GS}
+(b), and \emph{GI} (c) fitted to Daphnia data across the four lakes. Red
+line indicates the 1-1 line, black points are observed model residuals,
+and grey bands correspond to the expected 95\% CI for the QQ plot,
+assuming the distribution is correct.}
 \end{figure}
 
 AIC values indicate that both model \emph{GS} (1093.71) and \emph{GI}
@@ -1530,22 +1523,22 @@ AIC values indicate that both model \emph{GS} (1093.71) and \emph{GI}
   differing by more than 4 units have less support.} There does not seem
 to be a large amount of inter-lake variability (the effective degrees of
 freedom per lake are low in models \emph{GS} \& \emph{GI}). Plots for
-all three models (Fig. \ref{fig:daph_smooth}) show that Mendota, Monona,
-and Kegonsa lakes are very close to the average and to one another for
-both models, but Waubesa shows evidence of a more pronounced spring
-bloom and lower winter abundances.
+all three models (Fig. \ref{fig:Fig17}) show that Mendota, Monona, and
+Kegonsa lakes are very close to the average and to one another for both
+models, but Waubesa shows evidence of a more pronounced spring bloom and
+lower winter abundances.
 
 \begin{figure}
 \centering
 \includegraphics{../figures/Fig17.pdf}
-\caption{\label{fig:daph_smooth}Raw data (points) and fitted models
-(lines) for \textit{D. mendota} data. Black points indicate individual
-plankton observations in the training data, and grey points are
-observations in held-out years used for model validation. Green line:
-model \emph{G} (no inter-lake variation in dynamics); orange line: model
-\emph{GS} (interlake variation with similar smoothness); purple line:
-model \emph{GI} (varying smoothness among lakes). Shaded bands are drawn
-at \(\pm\) 2 standard errors around each model.}
+\caption{\label{fig:Fig17}Raw data (points) and fitted models (lines)
+for \textit{D. mendota} data. Black points indicate individual plankton
+observations in the training data, and grey points are observations in
+held-out years used for model validation. Green line: model \emph{G} (no
+inter-lake variation in dynamics); orange line: model \emph{GS}
+(interlake variation with similar smoothness); purple line: model
+\emph{GI} (varying smoothness among lakes). Shaded bands are drawn at
+\(\pm\) 2 standard errors around each model.}
 \end{figure}
 
 Model \emph{GI} is able to predict as well or better than model \emph{G}
@@ -1558,12 +1551,12 @@ did well in terms of predicting Lake Waubesa dynamics out-of-sample
 compared to a simple model with only a lake-specific intercept and no
 intra-annual variability, but this was due to the influence of a single
 large outlier in the out-of-sample data that occurred after the spring
-bloom, at day 243 (Fig. \ref{fig:daph_smooth} bottom right; note that
-the y-axis is log-scaled). However, baring a more detailed investigation
-into the cause of this large value, we cannot arbitrarily exclude this
-outlier from the goodness-of-fit analysis; it may be due either to
-measurement error or a true high late-season \emph{Daphnia} density that
-our model was not able to predict.
+bloom, at day 243 (Fig. \ref{fig:Fig17}; note that the y-axis is
+log-scaled). However, baring a more detailed investigation into the
+cause of this large value, we cannot arbitrarily exclude this outlier
+from the goodness-of-fit analysis; it may be due either to measurement
+error or a true high late-season \emph{Daphnia} density that our model
+was not able to predict.
 
 \begin{table}[t]
 
@@ -1668,27 +1661,27 @@ and model \emph{I} (with varying smoothness) to each replicate for each
 noise level, using REML criteria to estimate penalties.
 
 A sample of the fits for each group for three of the replicates for each
-model are shown in Fig. \ref{fig:var_pen}a, with model \emph{S} in red
-and model \emph{I} in blue. Figure \ref{fig:var_pen}b illustrates how
-well each model fared across the range of replicates at accurately
-estimating the true smoothness of the highest frequency terms as
-measured by the squared second derivative of the smooth fit versus that
-of the true function, with the distance to the black one-to-one line
-indicating the degree to which the estimated function for each group
-over- or under-estimated the smoothness of the true signal. In general,
-under low noise conditions (Fig. \ref{fig:var_pen}, signal-to-noise
-ratio of 2), model \emph{S} tended to overfit the smoothest,
-lowest-frequency, groups, while accurately fitting the highest frequency
-groups. Under moderate signal-to-noise ratios, model \emph{S} tended to
-over-penalize high-frequency groups and under-penalize low frequency
-groups, and in the lowest signal-to-noise ratio tested (0.125), model
-\emph{S} tended to penalize all groups towards very smooth functions
-(Fig. \ref{fig:var_pen}b). Curves estimated by model \emph{I}, on the
-other hand, tended to accurately capture the true wiggliness of the
-function across the whole range of frequencies and noises, except for
-the lowest-frequency groups, and the highest frequency groups it the
+model are shown in Fig. \ref{fig:Fig18}a, with model \emph{S} in red and
+model \emph{I} in blue. Figure \ref{fig:Fig18}b illustrates how well
+each model fared across the range of replicates at accurately estimating
+the true smoothness of the highest frequency terms as measured by the
+squared second derivative of the smooth fit versus that of the true
+function, with the distance to the black one-to-one line indicating the
+degree to which the estimated function for each group over- or
+under-estimated the smoothness of the true signal. In general, under low
+noise conditions (Fig. \ref{fig:Fig18}, signal-to-noise ratio of 2),
+model \emph{S} tended to overfit the smoothest, lowest-frequency,
+groups, while accurately fitting the highest frequency groups. Under
+moderate signal-to-noise ratios, model \emph{S} tended to over-penalize
+high-frequency groups and under-penalize low frequency groups, and in
+the lowest signal-to-noise ratio tested (0.125), model \emph{S} tended
+to penalize all groups towards very smooth functions (Fig.
+\ref{fig:Fig18}b). Curves estimated by model \emph{I}, on the other
+hand, tended to accurately capture the true wiggliness of the function
+across the whole range of frequencies and noises, except for the
+lowest-frequency groups, and the highest frequency groups it the
 presence of high noise; in both cases, model \emph{I} tended to
-over-smooth (Fig. \ref{fig:var_pen}b).
+over-smooth (Fig. \ref{fig:Fig18}b).
 
 This implies that assuming equal smoothness will result in
 underestimating the true smoothness of low-variability terms in cases of
@@ -1708,7 +1701,7 @@ their own distribution (estimated from the data), to allow variation in
 smoothness while still getting the benefit of pooling information on
 smoothness between groups. This is currently not implemented in
 \textbf{mgcv}. It is possible to set up this type of varying penalty
-model in flexible Bayesian modelling software such as \emph{Stan} (see
+model in flexible Bayesian modelling software such as \textbf{Stan} (see
 below for a discussion of how to fit HGAMs using these tools), where
 inter-group variation in smoothing penalties could be modelled with a
 hierarchical prior. However, to the best of our knowledge, how to fit
@@ -1718,7 +1711,7 @@ frequentist literature.
 \begin{figure}
 \centering
 \includegraphics{../figures/Fig18.pdf}
-\caption{\label{fig:var_pen} a) Illustration of bias that can arise from
+\caption{\label{fig:Fig18} a) Illustration of bias that can arise from
 assuming equal smoothness for all group levels (model \emph{S}, red
 lines) versus allowing for intergroup variation in smoothness (model
 \emph{I}, blue lines) across a range of signal-to-noise ratios, holding
@@ -1837,17 +1830,17 @@ Model & Relative Time & Coefficients & Penalties\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{A. CO2 data}}\\
 \hspace{1em}G & 1 & 17 & 2\\
-\hspace{1em}GS & 8 & 65 & 3\\
-\hspace{1em}GI & 12 & 65 & 14\\
+\hspace{1em}GS & 7 & 65 & 3\\
+\hspace{1em}GI & 16 & 65 & 14\\
 \hspace{1em}S & 5 & 61 & 3\\
-\hspace{1em}I & 14 & 61 & 13\\
+\hspace{1em}I & 17 & 61 & 13\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. Bird movement data}}\\
 \hspace{1em}G & 1 & 90 & 2\\
-\hspace{1em}GS & 390 & 540 & 8\\
-\hspace{1em}GI & 310 & 624 & 14\\
-\hspace{1em}S & 660 & 541 & 6\\
-\hspace{1em}I & 55 & 535 & 12\\
+\hspace{1em}GS & 460 & 540 & 8\\
+\hspace{1em}GI & 360 & 624 & 14\\
+\hspace{1em}S & 800 & 541 & 6\\
+\hspace{1em}I & 77 & 535 & 12\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1881,21 +1874,21 @@ additional option of discretizing your covariates.
 
 \texttt{bam()} has a larger computational overhead than \texttt{gam()};
 for small numbers of groups it can be slower than \texttt{gam()} (Fig.
-\ref{fig:alt_timing}). As the number of groups increases, computational
-time for \texttt{bam()} increases more slowly than for \texttt{gam()};
-in our simulation tests, when the number of groups is greater than 16,
+\ref{fig:Fig19}). As the number of groups increases, computational time
+for \texttt{bam()} increases more slowly than for \texttt{gam()}; in our
+simulation tests, when the number of groups is greater than 16,
 \texttt{bam()} can be upward of an order of magnitude faster (Fig.
-\ref{fig:alt_timing}). Note that \texttt{bam()} can be somewhat less
+\ref{fig:Fig19}). Note that \texttt{bam()} can be somewhat less
 computationally stable when estimating these models (i.e., less likely
 to converge). While base \texttt{bam()} (not fit using
 \texttt{discrete=TRUE}) is slower than the other approaches shown in
-Fig. \ref{fig:alt_timing}, that does not imply that \texttt{bam()} is a
-worse choice in general; it is designed to avoid memory limitations when
+Fig. \ref{fig:Fig19}, that does not imply that \texttt{bam()} is a worse
+choice in general; it is designed to avoid memory limitations when
 working with big data rather than explicitly speeding up model fitting.
 The \texttt{bam()} functions would likely show much better relative
 performance when the number of individuals per group were large (in the
 hundreds to thousands, compared to the 20 individuals per group used in
-Fig. \ref{fig:alt_timing}).
+Fig. \ref{fig:Fig19}).
 
 The second option is to fit models using one of two dedicated mixed
 effect model estimation packages, \textbf{nlme} and \textbf{lme4}. The
@@ -1917,7 +1910,7 @@ levels is small (in our simulations, \textless{}8 group levels), however
 they do show substantial speed improvements even with a moderate number
 of groups, and were as fast as or faster to calculate than
 \texttt{bam()} for all numbers of grouping levels we tested (Fig.
-\ref{fig:alt_timing})\footnote{It is also possible to speed up both
+\ref{fig:Fig19})\footnote{It is also possible to speed up both
   \texttt{gam()} and \texttt{bam()} by using multiple processors in
   parallel, whereas this is not currently possible for \texttt{gamm()}
   and \texttt{gamm4()}. For large numbers of grouping levels, this
@@ -1933,8 +1926,8 @@ of groups, and were as fast as or faster to calculate than
 \begin{figure}
 \centering
 \includegraphics{../figures/Fig19.pdf}
-\caption{\label{fig:alt_timing}Elapsed time to estimate the same model
-using each of the four approaches. Each data set was generated with 20
+\caption{\label{fig:Fig19}Elapsed time to estimate the same model using
+each of the four approaches. Each data set was generated with 20
 observations per group using a unimodal global function and random
 group-specific functions consisting of an intercept, a quadratic term,
 and logistic trend for each group. Observation error was normally
@@ -2081,29 +2074,29 @@ method\footnote{It is also important to consider here that the concept
   only represent an actual average relationship if the grouping levels
   were drawn at random from some underlying population and if there was
   scientific reason to believe that individual groups should differ from
-  the mean only via some additive function.} (Figure
-\ref{fig:global_bias}). As noted in section III, we found that
-\texttt{t2()} tensor product smoothers with full penalties
-(\texttt{full\ =\ TRUE} in the \texttt{t2()} function) for group-level
-smoothers showed the best performance at recreating the true global
-function from our simulated \texttt{bird\_move} data set, compared to
-other possible types of tensor product. Using \texttt{te()} tensor
-products for the group-level terms lead to the global smoother being
-heavily smoothed relative to the actual average function, used to
-simulate the data (Figure \ref{fig:global_bias}). However, more work on
-when these models accurately reconstruct global effects is still needed.
+  the mean only via some additive function.} (Figure \ref{fig:Fig20}).
+As noted in section III, we found that \texttt{t2()} tensor product
+smoothers with full penalties (\texttt{full\ =\ TRUE} in the
+\texttt{t2()} function) for group-level smoothers showed the best
+performance at recreating the true global function from our simulated
+\texttt{bird\_move} data set, compared to other possible types of tensor
+product. Using \texttt{te()} tensor products for the group-level terms
+lead to the global smoother being heavily smoothed relative to the
+actual average function, used to simulate the data (Figure
+\ref{fig:Fig20}). However, more work on when these models accurately
+reconstruct global effects is still needed.
 
 \begin{figure}
 \centering
 \includegraphics{../figures/Fig20.pdf}
-\caption{\label{fig:global_bias}Average global function used for
-simulating \texttt{bird\_move} data set (a) compared to the fitted
-global function for a \emph{GS} model estimated with either a
-\texttt{te()} smoother (b) or a \texttt{t2()} smoother with
-\texttt{full=TRUE} (c) for group-level terms. Both group-level smoothers
-used the same model specification as in section III except for the type
-of tensor product used. Colors indicate the value of the linear
-predictor of bird density at each location in each week.}
+\caption{\label{fig:Fig20}Average global function used for simulating
+\texttt{bird\_move} data set (a) compared to the fitted global function
+for a \emph{GS} model estimated with either a \texttt{te()} smoother (b)
+or a \texttt{t2()} smoother with \texttt{full=TRUE} (c) for group-level
+terms. Both group-level smoothers used the same model specification as
+in section III except for the type of tensor product used. Colors
+indicate the value of the linear predictor of bird density at each
+location in each week.}
 \end{figure}
 
 There is currently no way to disable dropping side constraints for these
