@@ -38,7 +38,7 @@ The data set (`bird_move`) consists of the variables `count`, `latitude`, `week`
 
 [^ordered]: Note that **mgcv** requires that grouping or categorical variables be coded as factors in R; it will raise an error message if passed data coded as characters. It is also important to know whether the factor is coded as ordered or unordered (see `?factor` for more details on this). This matters when fitting group-level smoothers using the `by=` argument (as is used for fitting models *GI* and *I*, shown below). If the factor is unordered, **mgcv** will set up a model with one smoother for each grouping level. If the factor is ordered, **mgcv** will set any basis functions for the first grouping level to zero. In model *GI* the ungrouped smoother will then correspond to the first grouping level, rather than the average functional response, and the group-specific smoothers will correspond to deviations from the first group. In model *I*, using an ordered factor will result in the first group not having a smoother associated with it at all.
 
-```{r Fig5, echo=FALSE,  fig.width=8, fig.height=4, out.width="\\linewidth", fig.cap="Example data sets used throughout section III. a) Grass $\\text{CO}\\textsubscript{2}$ uptake versus $\\text{CO}\\textsubscript{2}$ concentration for 12 individual plants. Color and linetype included to distinguish individual plant trends. b) Simulated data set of bird migration, with point size corresponding to weekly counts of 6 species along a latitudinal gradient (zeros excluded for clarity). "}
+```{r Fig5, echo=FALSE,  fig.width=8, fig.height=4, out.width="\\linewidth", fig.cap="\\label{fig:Fig5}Example data sets used throughout section III. a) Grass $\\text{CO}\\textsubscript{2}$ uptake versus $\\text{CO}\\textsubscript{2}$ concentration for 12 individual plants. Color and linetype included to distinguish individual plant trends. b) Simulated data set of bird migration, with point size corresponding to weekly counts of 6 species along a latitudinal gradient (zeros excluded for clarity). "}
 
 #The default CO2 plant variable is ordered;
 #This recodes it to an unordered factor (see main text for why).
@@ -98,7 +98,7 @@ CO2_modG <- gam(log(uptake) ~ s(log(conc), k=5, bs="tp") +
 
 This is a common GAM structure, with a single smooth term for each variable. Specifying the model is similar to specifying a GLM in R via `glm()`, with the addition of `s()` terms to include one-dimensional or isotropic multidimensional smoothers. The first argument to `s()` are the terms to be smoothed, the type of smoother to be used for the term is specified by the `bs` argument, and the maximum number of basis functions is specified by `k`. There are different defaults in **mgcv** for $K$, depending on the type of smoother chosen; here we use a TPRS smoother (`bs="tp"`) for the concentration smoother, and set `k=5` as there are only 7 separate values of concentration measured, so the default `k=10` (for TPRS) would be too high; further, setting `k=5` saves on computational time (see section V). The random effect smoother (`bs="re"`) that we used for the `Plant_uo` factor always has a `k` value equal to the number of levels in the grouping variable (here, 12). We specified `k=12` just to make this connection apparent. 
 
-```{r Fig6, echo=FALSE, fig.width=6, fig.height=3, dev.args=list(pointsize=10), fig.cap="**gratia** plotting output for model *G* applied to the CO2 dataset. \\texttt{s(log(conc))}: the smoother of $\\log_e$ concentration. \\texttt{Plant\\_uo}: a quantile-quantile plot of the random effects against Gaussian quantiles, used to check the appropriateness of the normal random effect assumption."}
+```{r Fig6, echo=FALSE, fig.width=6, fig.height=3, dev.args=list(pointsize=10), fig.cap="\\label{fig:Fig6}**gratia** plotting output for model *G* applied to the CO2 dataset. \\texttt{s(log(conc))}: the smoother of $\\log_e$ concentration. \\texttt{Plant\\_uo}: a quantile-quantile plot of the random effects against Gaussian quantiles, used to check the appropriateness of the normal random effect assumption."}
 <<co2_modG_unrun>>
   
 #plot the default gratia plot for the CO2 model
@@ -109,7 +109,7 @@ Figure \ref{fig:Fig6} illustrates the output of **gratia**'s `draw()` function f
 
 Looking at the effects by term is useful, but we are often interested in fitted values or predictions from our models. Using the built in prediction functions with **mgcv**, we can estimate what the fitted function (and uncertainty around it) should look like for each level, as shown in Figure \ref{fig:Fig7} (see supplemental code for more details on how to generate these predictions).
 
-```{r Fig7,echo=FALSE, fig.width=6, fig.height=4, fig.cap="Predicted uptake function ($\\pm$ 2 s.e.) for each plant, based on model \\emph{G} (a single global function for uptake plus a individual-level random effect intercept). Model predictions are for log-uptake, but are transformed here to show the fitted function on the original scale of the data.", out.width="\\linewidth"}
+```{r Fig7,echo=FALSE, fig.width=6, fig.height=4, fig.cap="\\label{fig:Fig7} Predicted uptake function ($\\pm$ 2 s.e.) for each plant, based on model \\emph{G} (a single global function for uptake plus a individual-level random effect intercept). Model predictions are for log-uptake, but are transformed here to show the fitted function on the original scale of the data.", out.width="\\linewidth"}
 
 # setup prediction data
 CO2_modG_pred <- with(CO2,
@@ -169,7 +169,7 @@ the smoother will have the exact same value at the start and end.
 In the absence of a specified start and end point, `gam` will assume the end points are the smallest and largest observed levels of the covariate (see `mgcv::smooth.construct.cc.smooth.spec` for more details). 
 Note that in `bird_modG` we have specified week 0 and week 52 as the endpoints, as the first (week 1) and last weeks (week 52) of the year should not have exactly the same expected value. 
 
-```{r Fig8, echo=FALSE, fig.width = 5, fig.height = 4, outwidth="\\linewidth", dev.args = list(pointsize=10), fig.cap="Plot illustrating the average log-abundance of all bird species at each latitude for each week, with red colours indicating more individuals and blue colours fewer."}
+```{r Fig8, echo=FALSE, fig.width = 5, fig.height = 4, outwidth="\\linewidth", dev.args = list(pointsize=10), fig.cap="\\label{fig:Fig8}Plot illustrating the average log-abundance of all bird species at each latitude for each week, with red colours indicating more individuals and blue colours fewer."}
 
 #gratia draw plot for the two-dimensional tensor product smoother for bird_modG.
 draw(bird_modG)
@@ -179,7 +179,7 @@ Figure \ref{fig:Fig8} shows the default `draw(bird_modG)` plot for the week-by-l
 
 All six species in Fig. \ref{fig:Fig5}b show relatively precise migration patterns, but they differ in the timing of when they leave their winter grounds and the amount of time they spend at their summer grounds. Averaging over all of this variation results in a relatively imprecise (diffuse) estimate of migration timing (Fig. \ref{fig:Fig8}), and viewing species-specific plots of observed versus predicted values (Fig. \ref{fig:Fig9}), it is apparent that the model fits some of the species better than others. This model could potentially be improved by adding inter-group variation in migration timing. The rest of this section will focus on how to model this type of variation.
 
-```{r Fig9,echo=FALSE, fig.width=6, fig.height=4, out.width="\\linewidth", fig.cap="Observed counts by species versus predicted counts from \\texttt{bird\\_modG} (1-1 line added as reference). If our model fitted well we would expect that all species should show similiar patterns of dispersion around the 1-1 line (and as we are assuming the data is Poisson, the variance around the mean should equal the mean). Instead we see that variance around the predicted value is much higher for species 1 and 6."}
+```{r Fig9,echo=FALSE, fig.width=6, fig.height=4, out.width="\\linewidth", fig.cap="\\label{fig:Fig9}Observed counts by species versus predicted counts from \\texttt{bird\\_modG} (1-1 line added as reference). If our model fitted well we would expect that all species should show similiar patterns of dispersion around the 1-1 line (and as we are assuming the data is Poisson, the variance around the mean should equal the mean). Instead we see that variance around the predicted value is much higher for species 1 and 6."}
 
 #add the predicted values from the model to bird_move
 bird_move <- transform(bird_move, modG = predict(bird_modG, type="response"))
@@ -214,7 +214,7 @@ CO2_modGS <- gam(log(uptake) ~ s(log(conc), k=5, m=2) +
                  data=CO2, method="REML")
 ```
 
-```{r Fig10, fig.width=6, fig.height=3, dev.args=list(pointsize=10), out.width="\\linewidth", echo=FALSE, fig.cap="Global function (\\texttt{s(log(conc))}) and group-specific deviations from the global function (\\texttt{s(log(conc),Plant\\_uo)}) for \\texttt{CO2\\_modGS}"}
+```{r Fig10, fig.width=6, fig.height=3, dev.args=list(pointsize=10), out.width="\\linewidth", echo=FALSE, fig.cap="\\label{fig:Fig10}Global function (\\texttt{s(log(conc))}) and group-specific deviations from the global function (\\texttt{s(log(conc),Plant\\_uo)}) for \\texttt{CO2\\_modGS}"}
 
 #gratia draw() plot for CO2_modGS
 draw(CO2_modGS)
@@ -222,7 +222,7 @@ draw(CO2_modGS)
 
 Figure \ref{fig:Fig10} shows the fitted smoothers for `CO2_modGS`. The plots of group-specific smoothers indicate that plants differ not only in average log-uptake (which would correspond to each plant having a straight line at different levels for the group-level smoother), but differ slightly in the shape of their functional responses. Figure \ref{fig:Fig11} shows how the global and group-specific smoothers combine to predict uptake rates for individual plants.  We see that, unlike in the single global smoother case above, none of the curves deviate from the data systematically.
 
-```{r Fig11,echo=FALSE, fig.width=6, fig.height=4, out.width="\\linewidth", fig.cap="Predicted uptake values (lines) versus observed uptake for each plant, based on model \\emph{GS}."}
+```{r Fig11,echo=FALSE, fig.width=6, fig.height=4, out.width="\\linewidth", fig.cap="\\label{fig:Fig11}Predicted uptake values (lines) versus observed uptake for each plant, based on model \\emph{GS}."}
 
 CO2_modGS_pred <- predict(CO2_modGS, se.fit=TRUE)
 CO2 <- transform(CO2, 
@@ -262,7 +262,7 @@ bird_modGS <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
                   knots=list(week=c(0, 52)))
 ```
 
-```{r Fig12, fig.width=8, fig.height=4, echo=FALSE, out.width="\\linewidth", fig.cap="a) Predicted migration paths for each species based on \\texttt{bird\\_modGS}, with lighter colors corresponding to higher predicted counts. b) Observed counts versus predictions from \\texttt{bird\\_modGS}."}
+```{r Fig12, fig.width=8, fig.height=4, echo=FALSE, out.width="\\linewidth", fig.cap="\\label{fig:Fig12}a) Predicted migration paths for each species based on \\texttt{bird\\_modGS}, with lighter colors corresponding to higher predicted counts. b) Observed counts versus predictions from \\texttt{bird\\_modGS}."}
 
 bird_move <- transform(bird_move, modGS = predict(bird_modGS, type="response"))
 
@@ -321,7 +321,7 @@ CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
                 data=CO2, method="REML")
 ```
 
-```{r Fig13, fig.width=9, fig.height=5, echo=FALSE, fig.cap="Functional relationships for the CO2 data estimated for model \\emph{GI}. \\texttt{s(log(conc))}: the global smoother; `Plant_uo`: species-specific random effect intercepts. The remaining plots are a selected subset of the plant-specific smoothers, indicating how the functional response of that plant differs from the global smoother."}
+```{r Fig13, fig.width=9, fig.height=5, echo=FALSE, fig.cap="\\label{fig:Fig13}Functional relationships for the CO2 data estimated for model \\emph{GI}. \\texttt{s(log(conc))}: the global smoother; `Plant_uo`: species-specific random effect intercepts. The remaining plots are a selected subset of the plant-specific smoothers, indicating how the functional response of that plant differs from the global smoother."}
 
 #Fitting CO2_modGI 
 CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
