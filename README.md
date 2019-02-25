@@ -1,6 +1,6 @@
 # Hierarchical Generalized Additive Models: an introduction with mgcv
 
-[![](https://zenodo.org//badge/DOI/10.5281/zenodo.1098244.svg)](https://dx.doi.org/10.5281/zenodo.1098244)
+[![DOI](https://zenodo.org/badge/50115024.svg)](https://zenodo.org/badge/latestdoi/50115024)
 
 This is the repository for the paper "Hierarchical Generalized Additive Models: an introduction with mgcv", now in review at PeerJ. This paper is currently submitted to PeerJ, and is available as a PeerJ preprint at https://peerj.com/preprints/27320/. 
 
