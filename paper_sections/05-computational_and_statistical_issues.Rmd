@@ -708,7 +708,7 @@ bird_global_fitted_plot <- ggplot(bird_mod_predict,
 print(bird_global_fitted_plot)
 ```
 
-There is currently no way to disable dropping side constraints for these terms in **mgcv**. In cases where accurately estimating the global smoother or group-level deviations is essential, we recommend either fitting model *G*,  *GS* using factor-smooth group-level terms (`bs="fs"`, which can also be used to model multi-dimensional isotropic group-level smoothers), or model *GI*. Alternatively, there is specialized functional regression software such as the `fosr` function in the **refund** package [@scheipl_functional_2014], which does not impose these side constraints; instead the package uses a modified type of tensor-product to ensure that group-level terms sum to zero at each level of the predictor [@scheipl_functional_2014].
+There is currently no way to disable dropping side constraints for these terms in **mgcv**. In cases where accurately estimating the global smoother or group-level deviations is essential, we recommend either fitting model *G*,  *GS* using factor-smooth group-level terms (`bs="fs"`, which can also be used to model multi-dimensional isotropic group-level smoothers), or model *GI*. Alternatively, there is specialized functional regression software such as the `pffr` function in the **refund** package [@scheipl_generalized_2016], which does not impose these side constraints; instead the package uses a modified type of tensor-product to ensure that group-level terms sum to zero at each level of the predictor [@scheipl_generalized_2016].
 See below for more information on functional regression.
 
 ## A brief foray into the land of Bayes
@@ -719,12 +719,15 @@ null space of the smoother have improper, flat priors (i.e., any value for these
 @wood_generalized_2017 Section 5.8 for more details on this connection). The posterior covariance matrix  [@wood_confidence_2006] for model parameters can be extracted from any fitted `gam()` or `bam()` model with `vcov(model)` (this is conditional on the estimated smoothing parameters unless the option `unconditional=TRUE` is specified). Given the normal posterior for the estimates of $\boldsymbol{\beta}$, we can sample from a multivariate normal with mean $\hat{\boldsymbol{\beta}}$ and posterior covariance matrix. Such samples can be used to estimate uncertainty in functions of the predictors.
 Viewing our GAM as Bayesian is a somewhat unavoidable consequence of the equivalence of random effects and splines --- if we think that there is some true smoother that we wish to estimate, we must take a Bayesian view of our random effects (splines) as we do not think that the true smoother changes each time we collect data [@wood_generalized_2017, Section 5.8].
 The standard confidence intervals used in **mgcv** are in fact Bayesian posterior credible intervals, which happen to have good frequentist across-the-function properties [@wood_confidence_2006; @marra_coverage_2012]. 
+The newest version of **mgcv** as of this writing (v. 1.8-28) also includes an experimental implementation of Integrated Nested Laplace Approximation (INLA) to calculate full posterior distributions for GAMs, via the `ginla` function [@wood_simplified_2019]. 
+
 
 This also means that HGAMs can be included as components in a more complex
 fully Bayesian model. The **mgcv** package includes a function `jagam()` that can
 take a specified model formula and automatically convert it into code for the JAGS
 (or BUGS) Bayesian statistical packages, which can be adapted by the user to
-their own needs.
+their own needs. 
+
 
 Similarly, the **brms** package [@burkner_brms:_2017], which can fit complex statistical models using the Bayesian software **Stan** [@carpenter_stan:_2017] allows for the inclusion of **mgcv**-style smooth terms as part of the model specification. The **brms** package does not currently support `te()` tensor products, but does support factor-smooth interactions and `t2()`-style tensor products, which means all of the models fitted in this paper can be fitted by **brms**. Finally, the **bamlss** package [@umlauf_bamlss_2018] can fit complex GAMs using a number of computational backends, including JAGS and BayesX, using **mgcv** syntax for model specification.
 
