@@ -1831,16 +1831,16 @@ Model & Relative Time & Coefficients & Penalties\\
 \multicolumn{4}{l}{\textbf{A. CO2 data}}\\
 \hspace{1em}G & 1 & 17 & 2\\
 \hspace{1em}GS & 7 & 65 & 3\\
-\hspace{1em}GI & 16 & 65 & 14\\
-\hspace{1em}S & 5 & 61 & 3\\
-\hspace{1em}I & 17 & 61 & 13\\
+\hspace{1em}GI & 18 & 65 & 14\\
+\hspace{1em}S & 6 & 61 & 3\\
+\hspace{1em}I & 19 & 61 & 13\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{B. Bird movement data}}\\
 \hspace{1em}G & 1 & 90 & 2\\
-\hspace{1em}GS & 460 & 540 & 8\\
-\hspace{1em}GI & 360 & 624 & 14\\
-\hspace{1em}S & 800 & 541 & 6\\
-\hspace{1em}I & 77 & 535 & 12\\
+\hspace{1em}GS & 550 & 540 & 8\\
+\hspace{1em}GI & 410 & 624 & 14\\
+\hspace{1em}S & 920 & 541 & 6\\
+\hspace{1em}I & 75 & 535 & 12\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -2106,12 +2106,12 @@ fitting model \emph{G}, \emph{GS} using factor-smooth group-level terms
 (\texttt{bs="fs"}, which can also be used to model multi-dimensional
 isotropic group-level smoothers), or model \emph{GI}. Alternatively,
 there is specialized functional regression software such as the
-\texttt{fosr} function in the \textbf{refund} package (Scheipl, Staicu
-\& Greven, 2014), which does not impose these side constraints; instead
-the package uses a modified type of tensor-product to ensure that
-group-level terms sum to zero at each level of the predictor (Scheipl,
-Staicu \& Greven, 2014). See below for more information on functional
-regression.
+\texttt{pffr} function in the \textbf{refund} package (Scheipl,
+Gertheiss \& Greven, 2016), which does not impose these side
+constraints; instead the package uses a modified type of tensor-product
+to ensure that group-level terms sum to zero at each level of the
+predictor (Scheipl, Gertheiss \& Greven, 2016). See below for more
+information on functional regression.
 
 \subsection{A brief foray into the land of
 Bayes}\label{a-brief-foray-into-the-land-of-bayes}
@@ -2142,7 +2142,11 @@ as we do not think that the true smoother changes each time we collect
 data (Wood, 2017a, Section 5.8). The standard confidence intervals used
 in \textbf{mgcv} are in fact Bayesian posterior credible intervals,
 which happen to have good frequentist across-the-function properties
-(Wood, 2006b; Marra \& Wood, 2012).
+(Wood, 2006b; Marra \& Wood, 2012). The newest version of \textbf{mgcv}
+as of this writing (v. 1.8-28) also includes an experimental
+implementation of Integrated Nested Laplace Approximation (INLA) to
+calculate full posterior distributions for GAMs, via the \texttt{ginla}
+function (Wood, 2019).
 
 This also means that HGAMs can be included as components in a more
 complex fully Bayesian model. The \textbf{mgcv} package includes a
@@ -2387,6 +2391,12 @@ Biostatistics} 6. DOI:
 Ruppert D., Wand MP., Carroll RJ. 2003. \emph{Semiparametric
 Regression}. Cambridge University Press.
 
+\hypertarget{ref-scheipl_generalized_2016}{}
+Scheipl F., Gertheiss J., Greven S. 2016. Generalized functional
+additive mixed models. \emph{Electronic Journal of Statistics}
+10:1455--1492. DOI:
+\href{https://doi.org/10.1214/16-EJS1145}{10.1214/16-EJS1145}.
+
 \hypertarget{ref-scheipl_functional_2014}{}
 Scheipl F., Staicu A-M., Greven S. 2014. Functional additive mixed
 models. \emph{Journal of Computational and Graphical Statistics}
@@ -2448,6 +2458,10 @@ Wood SN. 2017b. P-splines with derivative based penalties and tensor
 product smoothing of unevenly distributed data. \emph{Statistics and
 Computing} 27:985--989. DOI:
 \href{https://doi.org/10.1007/s11222-016-9666-x}{10.1007/s11222-016-9666-x}.
+
+\hypertarget{ref-wood_simplified_2019}{}
+Wood S. 2019. Simplified integrated nested laplace approximation.
+\emph{Biometrika} In Press.
 
 \hypertarget{ref-wood_generalized_2015}{}
 Wood SN., Goude Y., Shaw S. 2015. Generalized additive models for large
