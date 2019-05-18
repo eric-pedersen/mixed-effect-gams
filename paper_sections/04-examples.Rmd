@@ -98,10 +98,10 @@ gam.check(zoo_comm_modI)
 ```
 
 We have plotted QQ plots and fitted-versus residual plots for model *I* (fitted versus response plots are generally less useful for non-normally distributed data as it can be difficult to visually assess if the observed data shows more heteroskedasticity than expected). The results for model *S* are virtually indistinguishable to the naked eye. We have also used alternate QQ-plotting code from  the **gratia** package [@simpson_gratia_2018], using the `qq_plot()` function, as this function creates a **ggplot2** object that are easier to customize than the **base** plots from `gam.check()`. The code for generating these plots is in the supplemental material.
-These plots (Fig. \ref{fig:Fig14}) indicate that the Gamma distribution seems to fit the observed data well except at low values, where the deviance residuals are larger than predicted by the theoretical quantiles (Fig. \ref{fig:Fig14}a). 
-There also does not seem to be a pattern in the residual versus fitted values (Fig. \ref{fig:Fig14}b), except for a line of residuals at the lowest values, which correspond to all of those observations where a given taxon was absent from the sample.
+These plots (Fig. \ref{fig:Fig14}) indicate that the Gamma distribution seems to fit the observed data well except at low values, where the deviance residuals are larger than predicted by the theoretical quantiles (Fig. \ref{fig:Fig14}A). 
+There also does not seem to be a pattern in the residual versus fitted values (Fig. \ref{fig:Fig14}B), except for a line of residuals at the lowest values, which correspond to all of those observations where a given taxon was absent from the sample.
 
-```{r Fig14, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=8, fig.height=3, fig.cap = "\\label{fig:Fig14} Diagnostic plots for model *I* fitted to zooplankton community data in Lake Mendota. a) QQ-plot of residuals (black). Red line indicates the 1-1 line and grey bands correspond to the expected 95% CI for the QQ plot, assuming the distribution is correct.  b) Deviance residuals versus fitted values (on the link scale)."}
+```{r Fig14, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=8, fig.height=3, fig.cap = "\\label{fig:Fig14} Diagnostic plots for model *I* fitted to zooplankton community data in Lake Mendota. A) QQ-plot of residuals (black). Red line indicates the 1-1 line and grey bands correspond to the expected 95% CI for the QQ plot, assuming the distribution is correct.  B) Deviance residuals versus fitted values (on the link scale)."}
 
 #Checking residuals and qqplots for GAM fits
 
@@ -116,7 +116,7 @@ df <- data.frame(log_fitted = log(fitted(zoo_comm_modI)),
 plt2 <- ggplot(df, aes(x = log_fitted, y = residuals)) +
     geom_point() +
     labs(x = "Linear predictor", y = "Deviance residual")
-plot_grid(plt1, plt2, ncol = 2, align = "hv", axis = "lrtb",labels=c("a","b"))
+plot_grid(plt1, plt2, ncol = 2, align = "hv", axis = "lrtb",labels=c("A","B"))
 ```
 
 
@@ -311,7 +311,7 @@ zoo_daph_modGI <- gam(density_adj~s(day, bs="cc", k=10) + s(lake, bs="re") +
 Diagnostic plots from `gam.check()` indicate that there are no substantial patterns comparing residuals to fitted values (not shown), and QQ-plots are similar to those from the zooplankton community models; the residuals for all three models closely correspond to the expected (Gamma) distribution, except at small values, where the observed residuals are generally larger than expected (Fig. \ref{fig:Fig16}). 
 As with the community data, this is likely an artifact of the assumption we made of assigning zero observations a value of 1000 (the lowest possible value), imposing an artificial lower bound on the observed counts. There was also some evidence that the largest observed values were smaller than expected given the theoretical distribution , but these fell within the 95% CI for expected deviations from the 1-1 line (Fig. \ref{fig:Fig16}). 
 
-```{r Fig16, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=9, fig.height=3, fig.cap = "\\label{fig:Fig16} QQ-plots for model *G* (a) , *GS* (b), and *GI* (c) fitted to Daphnia data across the four lakes. Red line indicates the 1-1 line, black points are observed model residuals, and grey bands correspond to the expected 95% CI for the QQ plot, assuming the distribution is correct."}
+```{r Fig16, echo=FALSE, message=FALSE, warning=TRUE, cache=TRUE,results="markup", fig.width=9, fig.height=3, fig.cap = "\\label{fig:Fig16} QQ-plots for model *G* (A) , *GS* (B), and *GI* (C) fitted to Daphnia data across the four lakes. Red line indicates the 1-1 line, black points are observed model residuals, and grey bands correspond to the expected 95% CI for the QQ plot, assuming the distribution is correct."}
 
 #Checking residuals and qqplots for GAM fits
 
@@ -326,7 +326,7 @@ pltGI <- qq_plot(zoo_daph_modGI, method = "simulate")+
 plot_grid(pltG, pltGS,pltGI, 
           ncol = 3, 
           align = "hv", 
-          axis = "lrtb",labels=c("a","b","c"))
+          axis = "lrtb",labels=c("A","B","C"))
 ```
 
 

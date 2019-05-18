@@ -69,7 +69,7 @@ p3 <- ggplot(p.inf, aes(x = x, y = fit)) +
   dat.l + true.l +
   geom_line(colour = "darkred") + lab.l + coord.l
 
-plot_grid(p1, p2, p3, align = "hv", axis = "lrtb", ncol = 3, labels = "auto")
+plot_grid(p1, p2, p3, align = "hv", axis = "lrtb", ncol = 3, labels = "AUTO")
 
 #Code for generating figure 3: examples of basis functions and splines ####
 k = 6
@@ -193,11 +193,11 @@ aligned_plots = align_plots(basis_func_plot,
 
 top_row_plot = plot_grid(aligned_plots[[1]],basis_penalty_plot,
                          ncol=2,
-                         rel_widths = c(1,1),labels= c("","b"))
+                         rel_widths = c(1,1),labels= c("","B"))
   
 full_plot = plot_grid(top_row_plot,aligned_plots[[2]],
                       nrow=2,
-                      labels= c("a", "c"),
+                      labels= c("A", "C"),
                       rel_heights = c(1,0.9))
 
 full_plot
@@ -232,7 +232,7 @@ bird_vis_plot <- ggplot(dplyr::filter(bird_move, count > 0),
   labs(x = "Week", y = "Latitude") +
   theme(legend.position = "bottom")
 
-plot_grid(CO2_vis_plot, bird_vis_plot, nrow=1, labels=c("a","b"),
+plot_grid(CO2_vis_plot, bird_vis_plot, nrow=1, labels=c("A","B"),
           align = "hv", axis = "lrtb")
 
 CO2_modG <- gam(log(uptake) ~ s(log(conc), k=5, bs="tp") +
@@ -341,7 +341,7 @@ plot_grid(bird_modGS_indiv, bird_modGS_indiv_fit,
           ncol=1, 
           align="vh", 
           axis = "lrtb",
-          labels=c("a","b"), 
+          labels=c("A","B"), 
           rel_heights= c(1,1))
 ## 
 ## CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
@@ -461,7 +461,7 @@ df <- data.frame(log_fitted = log(fitted(zoo_comm_modI)),
 plt2 <- ggplot(df, aes(x = log_fitted, y = residuals)) +
     geom_point() +
     labs(x = "Linear predictor", y = "Deviance residual")
-plot_grid(plt1, plt2, ncol = 2, align = "hv", axis = "lrtb",labels=c("a","b"))
+plot_grid(plt1, plt2, ncol = 2, align = "hv", axis = "lrtb",labels=c("A","B"))
 ## 
 ## #individual components of gam.check: the results for k.check
 ## round(k.check(zoo_comm_modI),2)
@@ -586,7 +586,7 @@ pltGI <- qq_plot(zoo_daph_modGI, method = "simulate")+
 plot_grid(pltG, pltGS,pltGI, 
           ncol = 3, 
           align = "hv", 
-          axis = "lrtb",labels=c("a","b","c"))
+          axis = "lrtb",labels=c("A","B","C"))
 
 #Create synthetic data to use to compare predictions
 daph_plot_data <- expand.grid(day = 1:365, 
@@ -865,7 +865,7 @@ overfit_vis_plot = ggplot(data=biasvar_predict_fit_summary,
         plot.margin = unit(c(5.5, 5.5, 2.5, 5.5), "pt"))
 
 #Plot the overfit graphs together.
-cowplot::plot_grid(overfit_vis_plot, deriv_plot, ncol=1, labels="auto",
+cowplot::plot_grid(overfit_vis_plot, deriv_plot, ncol=1, labels="AUTO",
                    align="hv", axis="lr",
                    rel_heights = c(1,0.5))
 
@@ -1172,7 +1172,7 @@ bird_mod_predict = bird_move_global %>%
                                    "t2")))
 
 bird_global_labels <- data_frame(week = 5, latitude = 55, 
-                                 label = c("a", "b","c"),
+                                 label = c("A", "B","C"),
                                  model = c("true global function",
                                    "te",
                                    "t2"))%>%
