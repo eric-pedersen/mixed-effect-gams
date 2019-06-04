@@ -5,6 +5,12 @@
 
 library(dplyr)
 library(tidyr)
+
+#Check for the R version number, and if greater than 3.6, switch to using the
+#old random number generator, to ensure replicability
+
+if(getRversion()>= 3.6) RNGversion("3.5.0")
+
 set.seed(12)
 n_sp = 6
 species_data = data_frame(species = factor(paste("sp", 1:n_sp, sep="")),

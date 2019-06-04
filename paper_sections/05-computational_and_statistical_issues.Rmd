@@ -428,8 +428,8 @@ kable(comp_resources_table,format ="latex", caption="Relative computational time
   #"html" when compiling html
   kable_styling(full_width = FALSE) %>%
   add_header_above(c(" " = 1," "=1, "Number of terms"=2)) %>%
-  group_rows("A. CO2 data", 1,5) %>%
-  group_rows("B. Bird movement data", 6,10)
+  kableExtra::group_rows("A. CO2 data", 1,5) %>%
+  kableExtra::group_rows("B. Bird movement data", 6,10)
 ```
 
 ## Alternative formulations: `bam()`, `gamm()`, and `gamm4()`

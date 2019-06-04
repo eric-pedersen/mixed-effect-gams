@@ -58,6 +58,13 @@ library(latex2exp)
 #Set the default theme for ggplot objects to theme_bw()
 theme_set(theme_bw())
 theme_update(panel.grid = element_blank())
+
+#Check for the R version number, and if greater than 3.6, switch to using the
+#old random number generator, to ensure replicability
+#Thanks to Github user @bastistician for pointing this out!
+
+if(getRversion()>= 3.6) RNGversion("3.5.0")
+
 ```
 
 ```{r setup_tables, include=FALSE, purl=FALSE}

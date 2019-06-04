@@ -5,6 +5,10 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 
+#Check for the R version number, and if greater than 3.6, switch to using the
+#old random number generator, to ensure replicability
+
+if(getRversion()>= 3.6) RNGversion("3.5.0")
 
 generate_smooth_func = function(x,n_funcs=1,length_scale=0.25,
                                 amp = 1){

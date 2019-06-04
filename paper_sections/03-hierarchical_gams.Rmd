@@ -423,8 +423,8 @@ kable(AIC_table, format =table_out_format,
       caption="AIC table comparing model fits for example datasets", 
       booktabs = TRUE)%>% 
   kable_styling(full_width = FALSE)%>%
-  group_rows("A. CO2 models", 1,5)%>%
-  group_rows("B. bird_move models", 6,10)
+  kableExtra::group_rows("A. CO2 models", 1,5)%>%
+  kableExtra::group_rows("B. bird_move models", 6,10)
 ```
 
 Given this issue with selecting global terms, we strongly recommend not selecting models based purely on AIC. Instead, model selection should be based on expert subject knowledge about the system, computational time, and most importantly, the inferential goals of the study. Table \ref{tab:AIC_table_kable}A indicates that models *S* and *I* (which do not have a global function) fit the `CO2` data better than models with a global function, and that model *S* fits the `bird_move` data better than model *GS*. However, it is the shape of the global function that we are actually interested in here, as models *S* and *I* cannot be used to predict the concentration-uptake relationship for plants that are not part of the training set, or the average migration path for birds. The same consideration holds when choosing between model *GS* and *GI*: while model *GI* fits the `CO2` data better than model *GS* (as measured by AIC), model *GS* can be used to simulate functional variation for unobserved group levels, whereas this is not possible within the framework of model *GI*. The next section works through two examples to show how to choose between different models, and section V discusses these and other model fitting issues in more depth.

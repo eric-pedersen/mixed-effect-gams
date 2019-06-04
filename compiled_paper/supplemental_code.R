@@ -21,9 +21,21 @@ library(latex2exp)
 theme_set(theme_bw())
 theme_update(panel.grid = element_blank())
 
+#Check for the R version number, and if greater than 3.6, switch to using the
+#old random number generator, to ensure replicability
+#Thanks to Github user @bastistician for pointing this out!
+
+if(getRversion()>= 3.6) RNGversion("3.5.0")
+
+
+
+
+
 #### Code for part I: Introduction ####
 
+
 #### Code for II: A review of Generalized Additive Models ####
+
 # example of varying lambda
 
 set.seed(12)
@@ -70,6 +82,7 @@ p3 <- ggplot(p.inf, aes(x = x, y = fit)) +
   geom_line(colour = "darkred") + lab.l + coord.l
 
 plot_grid(p1, p2, p3, align = "hv", axis = "lrtb", ncol = 3, labels = "AUTO")
+
 
 #Code for generating figure 3: examples of basis functions and splines ####
 k = 6
@@ -202,7 +215,9 @@ full_plot = plot_grid(top_row_plot,aligned_plots[[2]],
 
 full_plot
 
+
 #### Code for III: What are hierarchical GAMs? ####
+
 
 #The default CO2 plant variable is ordered;
 #This recodes it to an unordered factor (see main text for why).
@@ -235,12 +250,16 @@ bird_vis_plot <- ggplot(dplyr::filter(bird_move, count > 0),
 plot_grid(CO2_vis_plot, bird_vis_plot, nrow=1, labels=c("A","B"),
           align = "hv", axis = "lrtb")
 
+
+
+
 CO2_modG <- gam(log(uptake) ~ s(log(conc), k=5, bs="tp") +
                   s(Plant_uo, k=12, bs="re"),
                 data=CO2, method="REML", family="gaussian")
   
 #plot the default gratia plot for the CO2 model
 draw(CO2_modG)
+
 
 # setup prediction data
 CO2_modG_pred <- with(CO2,
@@ -268,18 +287,22 @@ ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
   labs(x=expression(CO[2] ~ concentration ~ (mL ~ L^{-1})),
        y=expression(CO[2] ~ uptake ~ (mu*mol ~ m^{-2})))
 
+
 # Note for specifying tensor products: you can either specify bs (basis) and k
 # (number of basis functions) as single values, which would assign the same
 # basis and k to each marginal value, or pass them as vectors, one value for
 # each distinct marginal smoother (see ?mgcv::te for details)
 
 
+
 bird_modG <- gam(count ~ te(week, latitude, bs=c("cc", "tp"), k=c(10, 10)),
                  data=bird_move, method="REML", family="poisson",
                  knots=list(week=c(0, 52)))
 
+
 #gratia draw plot for the two-dimensional tensor product smoother for bird_modG.
 draw(bird_modG)
+
 
 #add the predicted values from the model to bird_move
 bird_move <- transform(bird_move, modG = predict(bird_modG, type="response"))
@@ -290,12 +313,15 @@ ggplot(bird_move, aes(x=modG, y=count)) +
   geom_abline() +
   labs(x="Predicted count", y="Observed count")
 
+
 CO2_modGS <- gam(log(uptake) ~ s(log(conc), k=5, m=2) + 
                    s(log(conc), Plant_uo, k=5,  bs="fs", m=2),
                  data=CO2, method="REML")
 
+
 #gratia draw() plot for CO2_modGS
 draw(CO2_modGS)
+
 
 CO2_modGS_pred <- predict(CO2_modGS, se.fit=TRUE)
 CO2 <- transform(CO2, 
@@ -311,12 +337,14 @@ ggplot(data=CO2, aes(x=conc, y=uptake, group=Plant_uo)) +
   labs(x=expression(CO[2] ~ concentration ~ (mL ~ L^{-1})),
        y=expression(CO[2] ~ uptake ~ (mu*mol ~ m^{-2})))
 
+
 bird_modGS <- gam(count ~ te(week, latitude, bs=c("cc", "tp"),
                              k=c(10, 10), m=2) +
                     t2(week, latitude, species, bs=c("cc", "tp", "re"),
                        k=c(10, 10, 6), m=2, full=TRUE),
                   data=bird_move, method="REML", family="poisson", 
                   knots=list(week=c(0, 52)))
+
 
 bird_move <- transform(bird_move, modGS = predict(bird_modGS, type="response"))
 
@@ -343,11 +371,13 @@ plot_grid(bird_modGS_indiv, bird_modGS_indiv_fit,
           axis = "lrtb",
           labels=c("A","B"), 
           rel_heights= c(1,1))
+
 ## 
 ## CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
 ##                   s(log(conc), by=Plant_uo, k=5, m=1, bs="tp") +
 ##                   s(Plant_uo, bs="re", k=12),
 ##                 data=CO2, method="REML")
+
 
 #Fitting CO2_modGI 
 CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
@@ -358,12 +388,14 @@ CO2_modGI <- gam(log(uptake) ~ s(log(conc), k=5, m=2, bs="tp") +
 #plotting CO2_modGI 
 draw(CO2_modGI, select = c(1,14,8,2,11,5), scales = "fixed")
 
+
 bird_modGI <- gam(count ~ species +
                     te(week, latitude, bs=c("cc", "tp"), k=c(10, 10), m=2) +
                     te(week, latitude, by=species, bs= c("cc", "tp"),
                        k=c(10, 10), m=1),
                  data=bird_move, method="REML", family="poisson",
                  knots=list(week=c(0, 52)))
+
 
 CO2_modS <- gam(log(uptake) ~ s(log(conc), Plant_uo, k=5, bs="fs", m=2),
                 data=CO2, method="REML")
@@ -372,6 +404,7 @@ bird_modS <- gam(count ~ t2(week, latitude, species, bs=c("cc", "tp", "re"),
                             k=c(10, 10, 6), m=2, full=TRUE),
                  data=bird_move, method="REML", family="poisson",
                  knots=list(week=c(0, 52)))
+
 
 CO2_modI <- gam(log(uptake) ~ s(log(conc), by=Plant_uo, k=5, bs="tp", m=2) +
                   s(Plant_uo, bs="re", k=12),
@@ -382,6 +415,7 @@ bird_modI <- gam(count ~ species + te(week, latitude, by=species,
                                       bs=c("cc", "tp"), k=c(10, 10), m=2),
                  data=bird_move, method="REML", family="poisson",
                  knots=list(week=c(0, 52)))
+
 
 AIC_table <- AIC(CO2_modG,CO2_modGS, CO2_modGI, CO2_modS, CO2_modI,
              bird_modG, bird_modGS, bird_modGI, bird_modS, bird_modI)%>%
@@ -394,7 +428,9 @@ AIC_table <- AIC(CO2_modG,CO2_modGS, CO2_modGI, CO2_modS, CO2_modI,
   mutate_at(.vars = vars(df,AIC, deltaAIC), 
             .funs = funs(round,.args = list(digits=0)))
 
+
 #### Code for IV: Examples ####
+
 
 zooplankton <- read.csv("data/zooplankton_example.csv")%>%
   mutate(year_f = factor(year))
@@ -431,11 +467,13 @@ get_deviance <- function(model, y_pred, y_obs, weights = NULL){
   return(sum(dev_residuals))
 }
 
+
 zoo_comm_modS <- gam(density_adj ~ s(taxon, year_f, bs="re") +
                        s(day, taxon, bs="fs", k=10, xt=list(bs="cc")),
                      data=zoo_train, knots=list(day=c(0, 365)),
                      family=Gamma(link="log"), method="REML",
                      drop.unused.levels=FALSE)
+
 
 # Note that s(taxon, bs="re") has to be explicitly included here, as the 
 # day by taxon smoother does not include an intercept
@@ -444,9 +482,11 @@ zoo_comm_modI <- gam(density_adj ~ s(day, by=taxon, k=10, bs="cc") +
                      data=zoo_train, knots=list(day=c(0, 365)),
                      family=Gamma(link="log"), method="REML",
                      drop.unused.levels=FALSE)
+
 ## 
 ## gam.check(zoo_comm_modS)
 ## gam.check(zoo_comm_modI)
+
 
 #Checking residuals and qqplots for GAM fits
 
@@ -462,9 +502,13 @@ plt2 <- ggplot(df, aes(x = log_fitted, y = residuals)) +
     geom_point() +
     labs(x = "Linear predictor", y = "Deviance residual")
 plot_grid(plt1, plt2, ncol = 2, align = "hv", axis = "lrtb",labels=c("A","B"))
+
 ## 
 ## #individual components of gam.check: the results for k.check
 ## round(k.check(zoo_comm_modI),2)
+
+
+
 
 #Create synthetic data to use to compare predictions
 zoo_plot_data <- expand.grid(day = 1:365, 
@@ -522,6 +566,7 @@ zoo_plot <- ggplot(zoo_plot_data) +
 
 zoo_plot
 
+
 #Getting the out-of-sample predictions for both models:
 
 # we need to compare how well this model fits with a null model. here we'll use an
@@ -553,11 +598,15 @@ zoo_test_summary = zoo_test %>%
                        digits=3))
 
 
+
+
+
 zoo_daph_modG <- gam(density_adj ~ s(day, bs="cc", k=10) + s(lake, bs="re") +
                        s(lake, year_f, bs="re"),
                      data=daphnia_train, knots=list(day=c(0, 365)),
                      family=Gamma(link="log"), method="REML",
                      drop.unused.levels=FALSE)
+
 
 zoo_daph_modGS <- gam(density_adj ~ s(day, bs="cc", k=10) +
                         s(day, lake, k=10, bs="fs", xt=list(bs="cc")) +
@@ -566,12 +615,14 @@ zoo_daph_modGS <- gam(density_adj ~ s(day, bs="cc", k=10) +
                       family=Gamma(link="log"), method="REML",
                       drop.unused.levels=FALSE)
 
+
 zoo_daph_modGI <- gam(density_adj~s(day, bs="cc", k=10) + s(lake, bs="re") +
                         s(day, by=lake, k=10, bs="cc") +
                         s(lake, year_f, bs="re"),
                       data=daphnia_train, knots=list(day=c(0, 365)),
                       family=Gamma(link ="log"), method="REML",
                       drop.unused.levels=FALSE)
+
 
 #Checking residuals and qqplots for GAM fits
 
@@ -587,6 +638,7 @@ plot_grid(pltG, pltGS,pltGI,
           ncol = 3, 
           align = "hv", 
           axis = "lrtb",labels=c("A","B","C"))
+
 
 #Create synthetic data to use to compare predictions
 daph_plot_data <- expand.grid(day = 1:365, 
@@ -664,6 +716,7 @@ daph_plot <- ggplot(daph_plot_data, aes(x=day))+
 
 daph_plot
 
+
 # we need to compare how well this model fits with a null model. here we'll use
 # an intercept-only model
 zoo_daph_mod0 <- gam(density_adj~s(lake, bs="re"),
@@ -709,7 +762,9 @@ daph_test_summary <- daphnia_test %>%
 
 
 
+
 #### Code for V: Computational and statistical issues when fitting HGAMs ####
+
 
 #This code will generate the bias-variance tradeoff plot
 set.seed(1)
@@ -801,6 +856,7 @@ deriv_est_data = biasvar_predict_fit %>%
                                    "model I fit")))
 
 
+
 # Uses the Tex function from the latex2exp package to create a math label for 
 # the facets. Based off code from
 # https://sahirbhatnagar.com/blog/2016/facet_wrap_labels/
@@ -868,6 +924,7 @@ overfit_vis_plot = ggplot(data=biasvar_predict_fit_summary,
 cowplot::plot_grid(overfit_vis_plot, deriv_plot, ncol=1, labels="AUTO",
                    align="hv", axis="lr",
                    rel_heights = c(1,0.5))
+
 
 #Note: this code takes quite a long time to run, as it's fitting all 10 models.
 
@@ -1010,6 +1067,7 @@ comp_resources = comp_resources %>%
          n_iter_out = get_n_out_iter(model[[1]]))
 
 
+
 comp_resources_table =comp_resources %>%
   ungroup()%>%
   arrange(data_source,model_number)%>%
@@ -1027,6 +1085,9 @@ comp_resources_table =comp_resources %>%
          )%>%
   ungroup() %>%
   dplyr::select( - data_source)
+
+
+
 
 #This code calculates the timing it takes to fit the same model (with varying
 #amounts of data) for gam, bam, gamm, and gamm4.
@@ -1143,6 +1204,7 @@ timing_plot = ggplot(aes(n_groups, timing, color=model, linetype= model),
   guides(color = guide_legend(nrow = 2, byrow = TRUE))+
   theme(legend.position = "top")
 timing_plot
+
 
 #Load the global function for the bird_move dataset
 bird_move_global <- read.csv("data/bird_move_global.csv")
