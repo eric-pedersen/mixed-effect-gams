@@ -23,7 +23,7 @@ To evaluate how well each model fits new data (not used to fit the model), we ca
 
 ```{r view_zoo, include = FALSE, message=FALSE,  cache=TRUE}
 
-zooplankton <- read.csv("data/zooplankton_example.csv")%>%
+zooplankton <- read.csv("data/zooplankton_example.csv",stringsAsFactors = TRUE)%>%
   mutate(year_f = factor(year))
 
 #This is what the data looks like:

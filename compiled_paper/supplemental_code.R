@@ -224,7 +224,7 @@ full_plot
 CO2 <- transform(CO2, Plant_uo=factor(Plant, ordered=FALSE))
 
 #Loading simulated bird movement data
-bird_move <- read.csv("data/bird_move.csv")
+bird_move <- read.csv("data/bird_move.csv", stringsAsFactors = TRUE)
 
 CO2_vis_plot <- ggplot(CO2, aes(x=conc, 
                                 y=uptake, 
@@ -432,7 +432,7 @@ AIC_table <- AIC(CO2_modG,CO2_modGS, CO2_modGI, CO2_modS, CO2_modI,
 #### Code for IV: Examples ####
 
 
-zooplankton <- read.csv("data/zooplankton_example.csv")%>%
+zooplankton <- read.csv("data/zooplankton_example.csv",stringsAsFactors = TRUE)%>%
   mutate(year_f = factor(year))
 
 #This is what the data looks like:
